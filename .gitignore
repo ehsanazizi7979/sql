@@ -1,0 +1,4 @@
+book_extracts/
+.venvs/
+__pycache__/
+*.pyc
