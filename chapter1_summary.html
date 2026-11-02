@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 1 Summary — Retrieving Records (SQL Cookbook)</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #555;
+    --accent: #0b6e4f;
+    --line: #ddd;
+    --codebg: #f5f5f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+  }
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+  header {
+    text-align: center;
+    padding: 40px 20px 24px;
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 32px;
+  }
+  h1 { font-size: 26px; margin: 0 0 8px; color: var(--accent); }
+  h2 { font-size: 20px; border-bottom: 2px solid var(--accent); padding-bottom: 6px; margin-top: 40px; }
+  h3 { font-size: 17px; margin: 24px 0 10px; color: var(--accent); }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 8px 0 18px; padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .meta { color: var(--muted); font-size: 14px; margin-bottom: 10px; }
+  .tagline { font-size: 16px; color: var(--muted); max-width: 720px; margin: 10px auto 0; }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 0 0 28px;
+  }
+  .recipe {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 22px;
+    margin: 0 0 26px;
+    page-break-inside: avoid;
+  }
+  .recipe h3 { margin-top: 2px; }
+  .plain { background: #f0f7f4; border-left: 3px solid var(--accent); padding: 10px 14px; margin: 12px 0; font-size: 14.5px; }
+  .plain b { color: var(--accent); }
+
+  /* Code */
+  pre {
+    background: var(--codebg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 14px;
+    margin: 12px 0 18px;
+  }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+  pre code { font-size: inherit; padding: 0; }
+  .result {
+    background: #eef2ff;
+    border: 1px solid #d7deed;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    margin: 8px 0 16px;
+    color: #222;
+  }
+  .vendors { font-size: 13.5px; color: var(--muted); margin: 6px 0 12px; }
+
+  /* Images */
+  .fig {
+    text-align: center;
+    margin: 22px 0 30px;
+  }
+  .fig img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .figcap {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; }
+  th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; font-size: 14px; }
+  th { background: #eef7f3; color: var(--accent); }
+  tr:nth-child(even) { background: #fbfbfb; }
+
+  .note { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin: 14px 0; font-size: 14px; }
+  .note b { color: #8a5a00; }
+  footer { margin-top: 50px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <h1>Chapter One, in Simple Terms</h1>
+  <div class="meta">"Chapter 1: Retrieving Records"</div>
+  <div class="tagline">From <em>SQL Cookbook, 2nd Edition</em> by Anthony Molinaro and Robert W De Graaf (O'Reilly, 2020).<br>
+  Pages shown below are photographs of the actual book pages.</div>
+</header>
+
+<section id="summary" class="card">
+  <h2>What this chapter is about</h2>
+  <p><b>In short:</b> Chapter 1 teaches you how to pull information out of a database table using <code>SELECT</code>. It is the most basic — and most important — skill in SQL, because almost everything else in the book builds on it.</p>
+  <p>The chapter uses two small example tables that come with the book:</p>
+  <ul>
+    <li><b>EMP</b> — 14 employees, with columns like employee number, name, job, manager, hire date, salary, commission, and department number.</li>
+    <li><b>DEPT</b> — 4 departments (Accounting, Research, Sales, Operations) with their locations.</li>
+  </ul>
+  <p>It then walks through 13 short "recipes," each solving one common task, plus a summary section. Here is the plain-English version:</p>
+  <ul>
+    <li><b>Get everything</b> from a table, or just the columns/rows you actually need.</li>
+    <li><b>Filter rows</b> with conditions (salary, department, commission, etc.) using <code>WHERE</code>.</li>
+    <li><b>Combine several conditions</b> with <code>AND</code>, <code>OR</code>, and parentheses.</li>
+    <li><b>Rename columns</b> in the results so they are easy to read (aliasing).</li>
+    <li><b>Use aliases inside <code>WHERE</code></b> by nesting one query inside another (an inline view).</li>
+    <li><b>Glue text columns together</b> (for example, name + job).</li>
+    <li><b>Do if/then logic</b> directly in a query with <code>CASE</code>.</li>
+    <li><b>Limit</b> how many rows come back, or grab a few <b>random</b> rows.</li>
+    <li><b>Find missing data</b> (<code>NULL</code>) and replace it with a real value (<code>COALESCE</code>).</li>
+    <li><b>Search text patterns</b> with <code>LIKE</code> and wildcards.</li>
+  </ul>
+  <div class="plain"><b>Plain-English takeaway:</b> SQL queries read almost like English: <i>"select these columns from this table where this condition is true."</i> The whole chapter is just variations on that one idea.</div>
+</section>
+
+<div class="fig">
+  <img src="ch1_images/page_23.png" alt="Opening page of Chapter 1: Retrieving Records from the SQL Cookbook">
+  <div class="figcap">Figure: The opening page of Chapter 1, "Retrieving Records," from the book.</div>
+</div>
+
+<section id="tables" class="card">
+  <h2>The tables the examples use</h2>
+  <p>Almost every recipe runs against the <code>EMP</code> table. Here is what it looks like (straight from the book):</p>
+  <pre><code>select * from emp;</code></pre>
+  <div class="result">
+EMPNO ENAME  JOB        MGR  HIREDATE     SAL   COMM  DEPTNO<br>
+----- ------ --------- ---- ----------- ----- ------ -------<br>
+ 7369 SMITH  CLERK     7902 17-DEC-2005   800                 20<br>
+ 7499 ALLEN  SALESMAN  7698 20-FEB-2006  1600    300      30<br>
+ 7521 WARD   SALESMAN  7698 22-FEB-2006  1250    500      30<br>
+ 7566 JONES  MANAGER   7839 02-APR-2006  2975                 20<br>
+ 7654 MARTIN SALESMAN  7698 28-SEP-2006  1250   1400      30<br>
+ 7698 BLAKE  MANAGER   7839 01-MAY-2006  2850                 30<br>
+ 7782 CLARK  MANAGER   7839 09-JUN-2006  2450                 10<br>
+ 7788 SCOTT  ANALYST   7566 09-DEC-2007  3000                 20<br>
+ 7839 KING   PRESIDENT      17-NOV-2006  5000                 10<br>
+ 7844 TURNER SALESMAN  7698 08-SEP-2006  1500      0      30<br>
+ 7876 ADAMS  CLERK     7788 12-JAN-2008  1100                 20<br>
+ 7900 JAMES  CLERK     7698 03-DEC-2006   950                 30<br>
+ 7902 FORD   ANALYST   7566 03-DEC-2006  3000                 20<br>
+ 7934 MILLER CLERK     7782 23-JAN-2007  1300                 10<br>
+  </div>
+  <pre><code>select * from dept;</code></pre>
+  <div class="result">
+DEPTNO DNAME          LOC<br>
+------ -------------- ---------<br>
+    10 ACCOUNTING     NEW YORK<br>
+    20 RESEARCH       DALLAS<br>
+    30 SALES           CHICAGO<br>
+    40 OPERATIONS      BOSTON<br>
+  </div>
+  <p>A note on style: the book writes SQL keywords in uppercase when talking about them, but all actual query examples are in lowercase. The code below follows the book's examples.</p>
+  <div class="fig">
+    <img src="ch1_images/page_24.png" alt="Book page showing the EMP and DEPT tables and the first recipes">
+    <div class="figcap">Figure: Book page 24 — the EMP/DEPT tables and the first retrieving recipes.</div>
+  </div>
+</section>
+
+<section id="recipes">
+<h2>Recipe by recipe: what each one does</h2>
+
+<div class="recipe">
+  <h3>1.1 Retrieving all rows and columns from a table</h3>
+  <p><b>Plain English:</b> "Show me everything in the table."</p>
+  <pre><code>1 select *
+2   from emp</code></pre>
+  <p>The asterisk <code>*</code> means "every column." Leaving out <code>WHERE</code> means "every row." It is great for looking around interactively, but for real programs it is better to list the columns you want by name.</p>
+</div>
+
+<div class="recipe">
+  <h3>1.2 Retrieving a subset of rows from a table</h3>
+  <p><b>Plain English:</b> "Show me only the rows that match a condition."</p>
+  <pre><code>1 select *
+2   from emp
+3  where deptno = 10</code></pre>
+  <p><code>WHERE</code> keeps only rows where the condition is true. Common operators: <code>=</code> <code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code> <code>&lt;&gt;</code>.</p>
+</div>
+
+<div class="recipe">
+  <h3>1.3 Finding rows that satisfy multiple conditions</h3>
+  <p><b>Plain English:</b> "Show me rows where condition A, or condition B, or condition C is true."</p>
+  <pre><code>1 select *
+2   from emp
+3  where deptno = 10
+4     or comm is not null
+5     or sal &lt;= 2000 and deptno = 20</code></pre>
+  <p>Use <code>AND</code> and <code>OR</code> to combine conditions, and <code>( )</code> parentheses to control which parts are checked together.</p>
+</div>
+
+<div class="recipe">
+  <h3>1.4 Retrieving a subset of columns from a table</h3>
+  <p><b>Plain English:</b> "Don't show every column — just the ones I care about."</p>
+  <pre><code>1 select ename, deptno, sal
+2   from emp</code></pre>
+  <p>Naming columns saves time (especially over a network) and makes results easier to understand than <code>select *</code>.</p>
+</div>
+
+<div class="recipe">
+  <h3>1.5 Providing meaningful names for columns</h3>
+  <p><b>Plain English:</b> "Give the result columns nicer labels."</p>
+  <pre><code>1 select sal as salary, comm as commission
+2   from emp</code></pre>
+  <div class="result">
+SALARY   COMMISSION<br>
+-------  ----------<br>
+   800<br>
+  1600         300<br>
+  1250         500<br>
+ ...
+  </div>
+  <p><code>AS</code> renames a column in the output. The new name is called an <b>alias</b>. (You can usually skip <code>AS</code>, but the book always uses it.)</p>
+</div>
+
+<div class="recipe">
+  <h3>1.6 Referencing an aliased column in the WHERE clause</h3>
+  <p><b>Plain English:</b> "I renamed a column, now let me filter by that new name."</p>
+  <p>This does <b>not</b> work, because <code>WHERE</code> is processed before the renaming happens:</p>
+  <pre><code>select sal as salary, comm as commission
+  from emp
+ where salary &lt; 5000   -- error: SALARY doesn't exist yet</code></pre>
+  <p>The fix is to wrap the query inside another query (called an <b>inline view</b>):</p>
+  <pre><code>1 select *
+2   from (
+3 select sal as salary, comm as commission
+4   from emp
+5        ) x
+6  where salary &lt; 5000</code></pre>
+  <p>The inner query runs first, produces the renamed columns, and the outer <code>WHERE</code> can then use them. The letter <code>x</code> is just a required nickname for the inner query.</p>
+  <div class="fig">
+    <img src="ch1_images/page_26.png" alt="Book page explaining aliases and inline views">
+    <div class="figcap">Figure: Book page 26 — aliases and the inline-view technique.</div>
+  </div>
+</div>
+
+<div class="recipe">
+  <h3>1.7 Concatenating column values</h3>
+  <p><b>Plain English:</b> "Stick two or more text columns together into one."</p>
+  <p>Example result the chapter wants:</p>
+  <div class="result">
+CLARK WORKS AS A MANAGER<br>
+KING WORKS AS A PRESIDENT<br>
+MILLER WORKS AS A CLERK<br>
+  </div>
+  <p>Every database does this a little differently:</p>
+  <table>
+    <tr><th>Database</th><th>Code</th></tr>
+    <tr><td>DB2, Oracle, PostgreSQL</td><td><code>select ename || ' WORKS AS A ' || job as msg from emp where deptno = 10</code></td></tr>
+    <tr><td>MySQL</td><td><code>select concat(ename, ' WORKS AS A ', job) as msg from emp where deptno = 10</code></td></tr>
+    <tr><td>SQL Server</td><td><code>select ename + ' WORKS AS A ' + job as msg from emp where deptno = 10</code></td></tr>
+  </table>
+  <div class="fig">
+    <img src="ch1_images/page_28.png" alt="Book page showing inline views and concatenation examples">
+    <div class="figcap">Figure: Book page 28 — inline view discussion plus a figure from the book page.</div>
+  </div>
+  <div class="fig" style="margin-top:10px;">
+    <img src="ch1_images/embedded_page28.png" alt="A figure embedded on page 28 of the book">
+    <div class="figcap">Figure: An image embedded directly on book page 28.</div>
+  </div>
+</div>
+
+<div class="recipe">
+  <h3>1.8 Using conditional logic in a SELECT statement</h3>
+  <p><b>Plain English:</b> "If salary is low, say 'UNDERPAID'; if high, say 'OVERPAID'; otherwise say 'OK'."</p>
+  <pre><code>1 select ename, sal,
+2        case when sal &lt;= 2000 then 'UNDERPAID'
+3             when sal &gt;= 4000 then 'OVERPAID'
+4             else 'OK'
+5        end as status
+6   from emp</code></pre>
+  <div class="result">
+ENAME            SAL  STATUS<br>
+---------- ----------  ---------<br>
+SMITH             800  UNDERPAID<br>
+JONES            2975  OK<br>
+KING             5000  OVERPAID<br>
+ ...
+  </div>
+  <p><code>CASE</code> is SQL's if/then/else. The <code>ELSE</code> part is optional — leave it out and unmatched rows get <code>NULL</code>.</p>
+</div>
+
+<div class="recipe">
+  <h3>1.9 Limiting the number of rows returned</h3>
+  <p><b>Plain English:</b> "I don't need all the rows — just give me the first five."</p>
+  <p>Each database has its own way:</p>
+  <table>
+    <tr><th>Database</th><th>Code</th></tr>
+    <tr><td>DB2</td><td><code>select * from emp fetch first 5 rows only</code></td></tr>
+    <tr><td>MySQL, PostgreSQL</td><td><code>select * from emp limit 5</code></td></tr>
+    <tr><td>Oracle</td><td><code>select * from emp where rownum &lt;= 5</code></td></tr>
+    <tr><td>SQL Server</td><td><code>select top 5 * from emp</code></td></tr>
+  </table>
+  <div class="note"><b>Oracle warning:</b> <code>rownum</code> numbers rows as they are fetched, so <code>rownum = 5</code> never works — you can never reach row five without first returning rows one through four.</div>
+  <div class="fig">
+    <img src="ch1_images/page_30.png" alt="Book page showing how to limit rows in different databases">
+    <div class="figcap">Figure: Book page 30 — limiting rows (FETCH FIRST, LIMIT, ROWNUM, TOP).</div>
+  </div>
+</div>
+
+<div class="recipe">
+  <h3>1.10 Returning n random records from a table</h3>
+  <p><b>Plain English:</b> "Give me five random rows, different each time I run it."</p>
+  <p>The trick: sort the rows by a random function, then limit the result.</p>
+  <table>
+    <tr><th>Database</th><th>Code</th></tr>
+    <tr><td>DB2</td><td><code>select ename, job from emp order by rand() fetch first 5 rows only</code></td></tr>
+    <tr><td>MySQL</td><td><code>select ename, job from emp order by rand() limit 5</code></td></tr>
+    <tr><td>PostgreSQL</td><td><code>select ename, job from emp order by random() limit 5</code></td></tr>
+    <tr><td>Oracle</td><td><code>select * from (select ename, job from emp order by dbms_random.value()) where rownum &lt;= 5</code></td></tr>
+    <tr><td>SQL Server</td><td><code>select top 5 ename, job from emp order by newid()</code></td></tr>
+  </table>
+  <div class="fig">
+    <img src="ch1_images/page_32.png" alt="Book page explaining random rows and Oracle ROWNUM behavior">
+    <div class="figcap">Figure: Book page 32 — random rows and how Oracle's ROWNUM works.</div>
+  </div>
+</div>
+
+<div class="recipe">
+  <h3>1.11 Finding null values</h3>
+  <p><b>Plain English:</b> "Show me rows where a column is empty/unknown."</p>
+  <pre><code>1 select *
+2   from emp
+3  where comm is null</code></pre>
+  <p><code>NULL</code> means "unknown," and it is never equal to anything — not even itself. So you must use <code>IS NULL</code> (or <code>IS NOT NULL</code>), never <code>=</code> or <code>&lt;&gt;</code>.</p>
+</div>
+
+<div class="recipe">
+  <h3>1.12 Transforming nulls into real values</h3>
+  <p><b>Plain English:</b> "Show a real value (like 0) whenever the column is empty."</p>
+  <pre><code>1 select coalesce(comm, 0)
+2   from emp</code></pre>
+  <p><code>COALESCE</code> returns the first non-empty value in its list — here, the commission if there is one, otherwise 0. It works in all the databases the book covers. You could do the same thing with <code>CASE</code>, but <code>COALESCE</code> is shorter.</p>
+</div>
+
+<div class="recipe">
+  <h3>1.13 Searching for patterns</h3>
+  <p><b>Plain English:</b> "Find rows where text contains a certain letter or ends with certain letters."</p>
+  <pre><code>1 select ename, job
+2   from emp
+3  where deptno in (10, 20)
+4    and (ename like '%I%' or job like '%ER')</code></pre>
+  <p><code>LIKE</code> does pattern matching. The <code>%</code> wildcard stands for "any text": <code>'%I%'</code> finds names containing an <i>I</i> anywhere, and <code>'%ER'</code> finds jobs ending in <i>ER</i> (like CLERK, MANAGER, PRESIDENT).</p>
+  <div class="fig">
+    <img src="ch1_images/page_35.png" alt="Book page showing LIKE pattern matching examples">
+    <div class="figcap">Figure: Book page 35 — pattern matching with LIKE and wildcards.</div>
+  </div>
+</div>
+
+<div class="recipe">
+  <h3>1.14 Summing up</h3>
+  <p><b>Plain English:</b> "These recipes are simple, but they are the foundation of everything else in the book."</p>
+  <p>Getting data out of a table is the core of database querying. Once you are comfortable with selecting columns, filtering rows, renaming output, handling empty values, and matching text patterns, the harder recipes in later chapters become much easier.</p>
+</div>
+
+</section>
+
+<section id="reference" class="card">
+  <h2>Quick reference</h2>
+  <table>
+    <tr><th>Task</th><th>Key SQL</th><th>Recipe</th></tr>
+    <tr><td>Everything from a table</td><td><code>select * from emp</code></td><td>1.1</td></tr>
+    <tr><td>Filter rows</td><td><code>where deptno = 10</code></td><td>1.2</td></tr>
+    <tr><td>Multiple conditions</td><td><code>and / or / ( )</code></td><td>1.3</td></tr>
+    <tr><td>Pick columns</td><td><code>select ename, sal from emp</code></td><td>1.4</td></tr>
+    <tr><td>Rename a column</td><td><code>as</code> (alias)</td><td>1.5</td></tr>
+    <tr><td>Filter by alias</td><td>inline view (query inside <code>from</code>)</td><td>1.6</td></tr>
+    <tr><td>Join text together</td><td><code>||</code> / <code>concat()</code> / <code>+</code></td><td>1.7</td></tr>
+    <tr><td>If/then logic</td><td><code>case ... when ... then ... end</code></td><td>1.8</td></tr>
+    <tr><td>First N rows</td><td><code>limit</code> / <code>fetch first</code> / <code>top</code> / <code>rownum</code></td><td>1.9</td></tr>
+    <tr><td>Random N rows</td><td><code>order by rand()</code> / <code>random()</code> / <code>newid()</code></td><td>1.10</td></tr>
+    <tr><td>Empty values</td><td><code>is null</code> / <code>is not null</code></td><td>1.11</td></tr>
+    <tr><td>Replace empty values</td><td><code>coalesce(col, 0)</code></td><td>1.12</td></tr>
+    <tr><td>Text patterns</td><td><code>like '%text%'</code></td><td>1.13</td></tr>
+  </table>
+</section>
+
+<footer>
+  Summary prepared from <em>SQL Cookbook, 2nd Edition</em> (Anthony Molinaro, Robert W De Graaf; O'Reilly Media; ISBN 9781098100148).<br>
+  Code examples and page images are from Chapter 1: "Retrieving Records" (book pages 1–14). Intended for personal study.
+</footer>
+</div>
+
+</body>
+</html>
