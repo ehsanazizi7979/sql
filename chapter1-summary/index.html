@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapters 1–5 · Background, Database Creation, Query Primer, Filtering, Joins — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Chapters 1–6 · SQL Fundamentals, Joins and Sets — Simple Summary (Learning SQL, 3rd Ed.)</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -21,7 +21,7 @@
   .layout{display:grid;grid-template-columns:248px minmax(0,1fr);gap:48px;
     max-width:1240px;margin:0 auto;padding:0 28px 96px}
   /* ---------- sidebar ---------- */
-  nav.toc{position:sticky;top:0;align-self:start;padding:34px 0 20px;font-family:var(--sans);font-size:14px}
+  nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:34px 0 20px;font-family:var(--sans);font-size:14px}
   nav.toc .brand{font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
   nav.toc ol{list-style:none;margin:0;padding:0;border-left:2px solid var(--line)}
   nav.toc a{display:block;padding:6px 14px;color:var(--muted);text-decoration:none;border-left:2px solid transparent;margin-left:-2px}
@@ -186,7 +186,7 @@
     font-family:var(--sans);font-size:13px;color:var(--muted);line-height:1.6}
   @media(max-width:900px){
     .layout{grid-template-columns:1fr;gap:0;padding:0 20px 64px}
-    nav.toc{position:static;padding:0 0 8px;border-bottom:1px solid var(--line);margin-bottom:8px}
+    nav.toc{position:static;max-height:none;overflow:visible;padding:0 0 8px;border-bottom:1px solid var(--line);margin-bottom:8px}
     nav.toc ol{display:flex;flex-wrap:wrap;border-left:0;gap:2px}
     nav.toc a{border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin:0}
     nav.toc a.active{background:var(--accent-soft);border-left-color:var(--line)}
@@ -211,19 +211,20 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapters 1–5, in plain English</h1>
+  <h1>Chapters 1–6, in plain English</h1>
   <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
   and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
   data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
   rows. <b>Ch. 3 — Query Primer:</b> the six clauses of <span class="inline">SELECT</span>, what each one
   is for, and the order the server actually runs them in. <b>Ch. 4 — Filtering:</b> how conditions are
   evaluated, the five ways to write one, and the <span class="inline">NULL</span> trap that silently drops
-  rows. <b>Ch. 5 — Querying Multiple Tables:</b> joining related tables to bring scattered facts together.</p>
+  rows. <b>Ch. 5 — Querying Multiple Tables:</b> joining related tables to bring scattered facts together.
+  <b>Ch. 6 — Working with Sets:</b> combining, comparing and subtracting query results.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–100 (PDF pp. 19–118)</span>
-    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10</span>
-    <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8</span>
-    <span><b>Reading time:</b> ~65 min</span>
+    <span><b>Book pages:</b> 1–114 (PDF pp. 19–132)</span>
+    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10</span>
+    <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8, Figures 6-1…6-4</span>
+    <span><b>Reading time:</b> ~77 min</span>
   </div>
   <div class="jump">
     <a href="#tldr">↓ Chapter 1 · A Little Background</a>
@@ -231,6 +232,7 @@
     <a href="#ch3">↓ Chapter 3 · Query Primer</a>
     <a href="#ch4">↓ Chapter 4 · Filtering</a>
     <a href="#ch5">↓ Chapter 5 · Querying Multiple Tables</a>
+    <a href="#ch6">↓ Chapter 6 · Working with Sets</a>
   </div>
 </header>
 
@@ -302,6 +304,18 @@
     <li><a href="#ch5-repeated">Joining a table twice</a></li>
     <li><a href="#ch5-self">Self-joins</a></li>
     <li><a href="#ch5-exercises">Exercises &amp; recap</a></li>
+  </ol>
+  <div class="brand" style="margin-top:18px">Chapter 6 · Sets</div>
+  <ol>
+    <li><a href="#ch6-intro">The chapter in one paragraph</a></li>
+    <li><a href="#ch6-theory">Set theory in pictures</a></li>
+    <li><a href="#ch6-compatible">Compatible query results</a></li>
+    <li><a href="#ch6-union">UNION and UNION ALL</a></li>
+    <li><a href="#ch6-intersect">INTERSECT</a></li>
+    <li><a href="#ch6-except">EXCEPT and duplicates</a></li>
+    <li><a href="#ch6-sort">Sorting results</a></li>
+    <li><a href="#ch6-precedence">Operator order</a></li>
+    <li><a href="#ch6-exercises">Exercises &amp; recap</a></li>
   </ol>
 </nav>
 
@@ -3636,21 +3650,242 @@ WHERE a1.address_id &lt; a2.address_id;</code></pre></div>
     <tr><td>Derived table</td><td>A subquery in FROM or JOIN supplies rows and columns to the outer query.</td></tr>
     <tr><td>Self-join</td><td>Join two aliases of one table to compare related rows.</td></tr>
   </tbody></table>
-  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 6, <em>Working with Sets</em>,
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p><a href="#ch6">Chapter 6, <em>Working with Sets</em></a>,
   combines the results of whole queries using set operators.</p></div>
 </section>
 
 
+<div class="chap" id="ch6">
+  <div class="kicker">Chapter 6 · book pages 101–114 (PDF pp. 119–132)</div>
+  <h2><span class="num">6.0</span>Working with Sets</h2>
+  <p>Combine complete query results rather than linking columns from individual rows.</p>
+</div>
+<section id="ch6-intro">
+  <h2><span class="num">6.1</span>The chapter in one paragraph</h2>
+  <p class="lede">A join connects related rows horizontally; a set operator combines compatible result rows vertically.</p>
+  <p><span class="inline">UNION</span> combines results, <span class="inline">INTERSECT</span> keeps
+  what they share, and <span class="inline">EXCEPT</span> removes the second result from the first.
+  Their duplicate-handling variants matter: <span class="inline">UNION ALL</span> keeps all rows,
+  while ordinary <span class="inline">UNION</span> removes duplicate result rows. Match columns by
+  position, then apply a final <span class="inline">ORDER BY</span> if a particular order matters.</p>
+</section>
+<section id="ch6-theory">
+  <h2><span class="num">6.2</span>Set theory in pictures</h2>
+  <p>Each circle is a set. The shaded part is the result. In ordinary set theory, a value occurs only once.</p>
+  <figure><img src="images/fig6-1-union.png" alt="Two overlapping circles, both completely shaded, representing A union B.">
+  <figcaption><b>Figure 6-1 · Union.</b> Everything in A or B, including the overlap once. Book figure.</figcaption></figure>
+  <figure><img src="images/fig6-2-intersection.png" alt="Two overlapping circles with only their shared middle shaded.">
+  <figcaption><b>Figure 6-2 · Intersection.</b> Only values in both A and B. If there is no overlap, the result is empty. Book figure.</figcaption></figure>
+  <figure><img src="images/fig6-3-except.png" alt="Two overlapping circles with only the part of A outside B shaded.">
+  <figcaption><b>Figure 6-3 · Except.</b> A minus B. Reversing the order gives a different result. Book figure.</figcaption></figure>
+  <figure><img src="images/fig6-4-symmetric-difference.png" alt="Two overlapping circles shaded except for their shared middle.">
+  <figcaption><b>Figure 6-4 · Mystery set.</b> Values in exactly one of A or B. Book figure.</figcaption></figure>
+  <p>Figure 6-4 can be expressed as <span class="inline">(A UNION B) EXCEPT (A INTERSECT B)</span>,
+  or as <span class="inline">(A EXCEPT B) UNION (B EXCEPT A)</span>. These are conceptual set
+  expressions; exact SQL grouping syntax varies by database.</p>
+</section>
+<section id="ch6-compatible">
+  <h2><span class="num">6.3</span>Make the result shapes match</h2>
+  <p>Both queries must return the same number of columns, with corresponding positions having compatible
+  types. A customer table and a city table have different structures, so combining all their columns
+  directly is not meaningful. Select matching columns deliberately.</p>
+  <div class="code"><div class="bar"><span>Book example · a compound query</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT 1 num, 'abc' str
+UNION
+SELECT 9 num, 'xyz' str;</code></pre></div>
+  <p>The result has two columns and two rows: <span class="inline">(1, 'abc')</span> and
+  <span class="inline">(9, 'xyz')</span>. A duplicate means the <em>whole projected row</em> matches,
+  not merely one column; comparison rules such as collation can matter.</p>
+</section>
+<section id="ch6-union">
+  <h2><span class="num">6.4</span>UNION and UNION ALL</h2>
+  <p><span class="inline">UNION ALL</span> keeps every row from both inputs. In the book's Sakila data,
+  599 customers plus 200 actors yields <strong>799 rows</strong>. The type label identifies the source.</p>
+  <div class="code"><div class="bar"><span>Book example · append all</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT 'CUST' typ, c.first_name, c.last_name
+FROM customer c
+UNION ALL
+SELECT 'ACTR' typ, a.first_name, a.last_name
+FROM actor a;</code></pre></div>
+  <p>The book also unions the actor table with itself: all 200 rows appear twice, giving 400 rows.</p>
+  <div class="code"><div class="bar"><span>Book example · the same query twice</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT 'ACTR' typ, a.first_name, a.last_name
+FROM actor a
+UNION ALL
+SELECT 'ACTR' typ, a.first_name, a.last_name
+FROM actor a;</code></pre></div>
+  <p>For customer and actor names with initials JD, the book finds five rows with
+  <span class="inline">UNION ALL</span>, including Jennifer Davis twice. Replacing it with
+  <span class="inline">UNION</span> yields four distinct name rows.</p>
+  <div class="code"><div class="bar"><span>Book example · keep duplicate names</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.first_name, c.last_name
+FROM customer c
+WHERE c.first_name LIKE 'J%' AND c.last_name LIKE 'D%'
+UNION ALL
+SELECT a.first_name, a.last_name
+FROM actor a
+WHERE a.first_name LIKE 'J%' AND a.last_name LIKE 'D%';</code></pre></div>
+  <div class="code"><div class="bar"><span>Book example · eliminate duplicate rows</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.first_name, c.last_name
+FROM customer c
+WHERE c.first_name LIKE 'J%' AND c.last_name LIKE 'D%'
+UNION
+SELECT a.first_name, a.last_name
+FROM actor a
+WHERE a.first_name LIKE 'J%' AND a.last_name LIKE 'D%';</code></pre></div>
+  <div class="note"><span class="tag">Two easy traps</span>The source label becomes part of the row:
+  <span class="inline">CUST</span> and <span class="inline">ACTR</span> make otherwise identical names
+  different. And even if a database sorts internally to remove duplicates, <strong>UNION does not guarantee
+  output order</strong> without ORDER BY.</div>
+</section>
+<section id="ch6-intersect">
+  <h2><span class="num">6.5</span>INTERSECT: the overlap</h2>
+  <p>Find names appearing in both query results. The book's JD example produces one row: JENNIFER DAVIS.
+  With DT as the initials, the book's result is empty.</p>
+  <div class="code"><div class="bar"><span>Book example · names in both</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.first_name, c.last_name
+FROM customer c
+WHERE c.first_name LIKE 'J%' AND c.last_name LIKE 'D%'
+INTERSECT
+SELECT a.first_name, a.last_name
+FROM actor a
+WHERE a.first_name LIKE 'J%' AND a.last_name LIKE 'D%';</code></pre></div>
+  <p>The book also tests DT names, which have no overlap in its sample:</p>
+  <div class="code"><div class="bar"><span>Book example · empty intersection</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.first_name, c.last_name
+FROM customer c
+WHERE c.first_name LIKE 'D%' AND c.last_name LIKE 'T%'
+INTERSECT
+SELECT a.first_name, a.last_name
+FROM actor a
+WHERE a.first_name LIKE 'D%' AND a.last_name LIKE 'T%';</code></pre></div>
+  <p>Ordinary INTERSECT returns distinct matching rows. Where supported,
+  <span class="inline">INTERSECT ALL</span> preserves matches up to the smaller occurrence count in
+  the two inputs.</p>
+  <div class="note"><span class="tag">Version matters</span>The book's INTERSECT and EXCEPT outputs
+  were illustrative rather than executed in the MySQL version used when it was written. Support has
+  changed since then: MySQL added these operators in 8.0.31. Syntax and ALL support vary by database
+  and version; check the documentation for the server you use.</div>
+</section>
+<section id="ch6-except">
+  <h2><span class="num">6.6</span>EXCEPT: subtract the second set</h2>
+  <p>This book query keeps JD actors whose name is absent from the matching customers. It returns
+  JUDY DEAN, JODIE DEGENERES, and JULIANNE DENCH; Jennifer Davis is removed.</p>
+  <div class="code"><div class="bar"><span>Book example · actor names minus customer names</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT a.first_name, a.last_name
+FROM actor a
+WHERE a.first_name LIKE 'J%' AND a.last_name LIKE 'D%'
+EXCEPT
+SELECT c.first_name, c.last_name
+FROM customer c
+WHERE c.first_name LIKE 'J%' AND c.last_name LIKE 'D%';</code></pre></div>
+  <p>Order matters: customer names minus actor names answers a different question. Some database versions
+  use another spelling, such as <span class="inline">MINUS</span> in Oracle; check your version.</p>
+  <h3>What does ALL subtract?</h3>
+  <table><thead><tr><th>Input</th><th>Rows</th></tr></thead><tbody>
+  <tr><td>A</td><td>10, 11, 12, 10, 10</td></tr><tr><td>B</td><td>10, 10</td></tr>
+  <tr><td>A EXCEPT B</td><td>11, 12</td></tr><tr><td>A EXCEPT ALL B</td><td>10, 11, 12</td></tr>
+  </tbody></table>
+  <p>With ALL, remove one occurrence from A for each occurrence in B, never going below zero.
+  Without ALL, any matching value is removed entirely and remaining duplicates are collapsed.</p>
+</section>
+<section id="ch6-sort">
+  <h2><span class="num">6.7</span>Sort the combined result</h2>
+  <p>Put <span class="inline">ORDER BY</span> at the end to sort the compound result. In the book's
+  example, the final column names come from the first query: <span class="inline">fname</span> and
+  <span class="inline">lname</span>, not the second query's original column names.</p>
+  <div class="code"><div class="bar"><span>Book example · sort the whole result</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT a.first_name fname, a.last_name lname
+FROM actor a
+WHERE a.first_name LIKE 'J%' AND a.last_name LIKE 'D%'
+UNION ALL
+SELECT c.first_name, c.last_name
+FROM customer c
+WHERE c.first_name LIKE 'J%' AND c.last_name LIKE 'D%'
+ORDER BY lname, fname;</code></pre></div>
+  <p>There are five rows, with Jennifer Davis appearing twice. The book shows that ordering by
+  <span class="inline">last_name, first_name</span> instead produces an unknown-column error in MySQL,
+  since those names were replaced by the first query's aliases.</p>
+</section>
+<section id="ch6-precedence">
+  <h2><span class="num">6.8</span>Operator order changes the answer</h2>
+  <p>The book combines JD actors, MT actors, and JD customers. Here the final UNION deduplicates the
+  combined result, giving six rows:</p>
+  <div class="code"><div class="bar"><span>Book example · ALL then UNION</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT a.first_name, a.last_name
+FROM actor a
+WHERE a.first_name LIKE 'J%' AND a.last_name LIKE 'D%'
+UNION ALL
+SELECT a.first_name, a.last_name
+FROM actor a
+WHERE a.first_name LIKE 'M%' AND a.last_name LIKE 'T%'
+UNION
+SELECT c.first_name, c.last_name
+FROM customer c
+WHERE c.first_name LIKE 'J%' AND c.last_name LIKE 'D%';</code></pre></div>
+  <p>Switch the two operators and the final UNION ALL appends the customer row without deduplicating it:
+  the book gets seven rows, including Jennifer Davis twice.</p>
+  <div class="code"><div class="bar"><span>Book example · UNION then ALL</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT a.first_name, a.last_name
+FROM actor a
+WHERE a.first_name LIKE 'J%' AND a.last_name LIKE 'D%'
+UNION
+SELECT a.first_name, a.last_name
+FROM actor a
+WHERE a.first_name LIKE 'M%' AND a.last_name LIKE 'T%'
+UNION ALL
+SELECT c.first_name, c.last_name
+FROM customer c
+WHERE c.first_name LIKE 'J%' AND c.last_name LIKE 'D%';</code></pre></div>
+  <p>The SQL standard gives <span class="inline">INTERSECT</span> higher precedence than UNION and
+  EXCEPT. Parentheses can make intended grouping explicit, but supported syntax and precedence can
+  vary between engines and versions; consult your database's documentation. The book's statements
+  about older MySQL limitations are historical, not a reliable guide to every current release.</p>
+  <div class="code"><div class="bar"><span>Book example · explicit grouping</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT a.first_name, a.last_name
+FROM actor a
+WHERE a.first_name LIKE 'J%' AND a.last_name LIKE 'D%'
+UNION
+(SELECT a.first_name, a.last_name
+ FROM actor a
+ WHERE a.first_name LIKE 'M%' AND a.last_name LIKE 'T%'
+ UNION ALL
+ SELECT c.first_name, c.last_name
+ FROM customer c
+ WHERE c.first_name LIKE 'J%' AND c.last_name LIKE 'D%'
+)</code></pre></div>
+  <p>Here the parenthesized pair is combined first, then UNION removes duplicates from the combined result.</p>
+</section>
+<section id="ch6-exercises">
+  <h2><span class="num">6.9</span>Exercises &amp; recap</h2>
+  <p class="lede">Try the book's exercises first. These are worked answers, not the book's Appendix B solutions.</p>
+  <h3>6-1 · Sets A and B</h3>
+  <p>Let A = {L, M, N, O, P} and B = {P, Q, R, S, T}. Find the union, union all, intersection, and A except B.</p>
+  <details><summary>Show answer</summary><ul>
+    <li>UNION: {L, M, N, O, P, Q, R, S, T}</li>
+    <li>UNION ALL: L, M, N, O, P, P, Q, R, S, T (P appears twice; order is not promised).</li>
+    <li>INTERSECT: {P}</li><li>A EXCEPT B: {L, M, N, O}</li>
+  </ul></details>
+  <h3>6-2 and 6-3 · Names beginning with L, sorted</h3>
+  <p>Find actor and customer first and last names whose last names start with L; then sort by last name.</p>
+  <details><summary>Show one possible answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · both exercises</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT first_name, last_name
+FROM actor
+WHERE last_name LIKE 'L%'
+UNION
+SELECT first_name, last_name
+FROM customer
+WHERE last_name LIKE 'L%'
+ORDER BY last_name, first_name;</code></pre></div>
+  <p>This returns distinct name pairs; choose UNION ALL if every source row must be kept, and include a
+  source label if you need to distinguish actors from customers.</p></details>
+  <h3>Quick reference</h3>
+  <table><thead><tr><th>Operator</th><th>What it keeps</th></tr></thead><tbody>
+    <tr><td>UNION</td><td>Distinct rows from either input.</td></tr>
+    <tr><td>UNION ALL</td><td>Every row from both inputs, including duplicates.</td></tr>
+    <tr><td>INTERSECT</td><td>Distinct rows in both inputs.</td></tr>
+    <tr><td>EXCEPT</td><td>Distinct rows in the first input but not the second.</td></tr>
+  </tbody></table>
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 7, <em>Data Generation,
+  Manipulation, and Conversion</em>, explores working with data values and functions.</p></div>
+</section>
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–5 of <i>Learning SQL: Generate,
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–6 of <i>Learning SQL: Generate,
   Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
-  ISBN 9781492057611). Figure 1-1…1-3 and the Table 2-6…2-8 crops are reproduced from the copy of that PDF
-  in this repository for personal study; please buy the book if you like it. SQL snippets are the book's
-  teaching examples. Exercise answers for Chapters 3, 4 and 5 are worked here by me, not copied from the book —
-  its own solutions live in Appendix B. Diagrams marked <i>original</i> are drawn for this page: apart from
-  the three Chapter 1 figures, these chapters contain no artwork at all, only prose, tables and code.</p>
+  ISBN 9781492057611). Figures 1-1…1-3 and 6-1…6-4 and the Table 2-6…2-8 crops are reproduced from
+  the PDF in this repository for personal study; please buy the book if you like it. SQL snippets include
+  the book's teaching examples. Exercise answers for Chapters 3–6 are worked here, not copied from the book —
+  its own solutions live in Appendix B. Diagrams marked <i>original</i> are drawn for this page.</p>
 </footer>
 </div>
 
@@ -3672,7 +3907,7 @@ const io=new IntersectionObserver(es=>{
 },{rootMargin:'-15% 0px -75% 0px'});
 document.querySelectorAll('main section').forEach(s=>io.observe(s));
 
-const KW=/\b(create|table|insert|into|values|select|from|where|inner|outer|left|right|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max)\b/gi;
+const KW=/\b(create|table|insert|into|values|select|from|where|inner|outer|left|right|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max|union|all|intersect|except)\b/gi;
 function hl(src){
   const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const toks=[];
@@ -3689,10 +3924,11 @@ function hl(src){
 document.querySelectorAll('.code .sql').forEach(el=>{ el.innerHTML=hl(el.textContent); });
 document.querySelectorAll('.code .bar').forEach(bar=>{
   const pre=bar.parentElement.querySelector('pre'); if(!pre) return;
-  const b=document.createElement('button'); b.className='copy'; b.type='button'; b.textContent='Copy';
+  const b=bar.querySelector('button.copy') || document.createElement('button');
+  b.className='copy'; b.type='button'; b.textContent='Copy';
   b.onclick=()=>{navigator.clipboard.writeText(pre.textContent).then(()=>{b.textContent='Copied';
     setTimeout(()=>b.textContent='Copy',1400);});};
-  bar.appendChild(b);
+  if(!b.parentElement) bar.appendChild(b);
 });
 </script>
 </body>
