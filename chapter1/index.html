@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>T-SQL Fundamentals — Chapters 1–5 | Plain-English Study Companion</title>
-<meta name="description" content="Plain-English summaries of Chapters 1–5 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, and code samples.">
+<title>T-SQL Fundamentals — Chapters 1–6 | Plain-English Study Companion</title>
+<meta name="description" content="Plain-English summaries of Chapters 1–6 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, and code samples.">
 <style>
   :root{
     --paper:#f7f4ed;
@@ -236,28 +236,28 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="#top"><span class="brand-mark">1–5</span> T-SQL Fundamentals · Chapters 1–5</a>
+    <a class="brand" href="#top"><span class="brand-mark">1–6</span> T-SQL Fundamentals · Chapters 1–6</a>
     <div class="topbar-meta">
-      <span>Plain-English summaries</span><span class="dot"></span><span>9 figures + 3 tables</span><span class="dot"></span><span>100+ code samples</span>
+      <span>Plain-English summaries</span><span class="dot"></span><span>12 figures + 3 tables</span><span class="dot"></span><span>100+ code samples</span>
     </div>
-    <a class="pill" href="#ch5-derived">Jump to Chapter 5 ↓</a>
+    <a class="pill" href="#ch6-basics">Jump to Chapter 6 ↓</a>
   </div>
 </header>
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <span class="eyebrow">📘 Chapters 1–5 · T-SQL Fundamentals, 4th Edition</span>
+    <span class="eyebrow">📘 Chapters 1–6 · T-SQL Fundamentals, 4th Edition</span>
     <h1>The ideas behind the queries</h1>
-    <p class="lede">A plain-English study companion for Chapters 1–5 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
+    <p class="lede">A plain-English study companion for Chapters 1–6 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
     <div class="chips">
-      <span class="chip">5 chapters · 210 book pages</span>
-      <span class="chip">9 figures + 3 tables from the book</span>
+      <span class="chip">6 chapters · 230 book pages</span>
+      <span class="chip">12 figures + 3 tables from the book</span>
       <span class="chip">100+ code samples</span>
-      <span class="chip">~75 min read</span>
+      <span class="chip">~90 min read</span>
     </div>
     <div class="hero-quote">
-      <span>The five-chapter version</span>
-      <p>Chapter 1 gives you the mental model — sets, logic, keys, and how SQL Server is organized. Chapter 2 turns that model into a single-table query. Chapter 3 combines tables with joins. Chapter 4 nests queries with subqueries. Chapter 5 names and reuses query results: derived tables, CTEs, views, inline TVFs, and the APPLY operator.</p>
+      <span>The six-chapter version</span>
+      <p>Chapter 1 gives you the mental model. Chapter 2 turns it into a single-table query. Chapter 3 combines tables with joins. Chapter 4 nests queries with subqueries. Chapter 5 names and reuses query results. Chapter 6 combines result sets with UNION, INTERSECT, and EXCEPT — and shows how to emulate the ALL variants T-SQL lacks.</p>
     </div>
   </div>
 </section>
@@ -315,9 +315,19 @@
       <a href="#ch5-practice"><span class="n">5.6</span> Practice: 10 exercises</a>
       <a href="#ch5-recap"><span class="n">5.7</span> Recap &amp; key terms</a>
       <a href="#ch5-quiz"><span class="n">5.8</span> Check yourself</a>
+      <div class="toc-group">Chapter 6 · Set operators</div>
+      <a href="#ch6-basics"><span class="n">6.1</span> Set operator basics</a>
+      <a href="#ch6-union"><span class="n">6.2</span> UNION and UNION ALL</a>
+      <a href="#ch6-intersect"><span class="n">6.3</span> INTERSECT</a>
+      <a href="#ch6-except"><span class="n">6.4</span> EXCEPT</a>
+      <a href="#ch6-precedence"><span class="n">6.5</span> Precedence</a>
+      <a href="#ch6-phases"><span class="n">6.6</span> Beyond ORDER BY</a>
+      <a href="#ch6-practice"><span class="n">6.7</span> Practice: 6 exercises</a>
+      <a href="#ch6-recap"><span class="n">6.8</span> Recap &amp; key terms</a>
+      <a href="#ch6-quiz"><span class="n">6.9</span> Check yourself</a>
     </nav>
     <div class="toc-foot">
-      <strong>Reading tip:</strong> Chapter 1 is theory, Chapter 2 is the single-table query, Chapter 3 is joins, Chapter 4 is subqueries, Chapter 5 is naming and reusing query results. If you only have five minutes, read the five recaps.
+      <strong>Reading tip:</strong> Chapters 1–5 build up to Chapter 6, where you combine result sets. If you only have five minutes, read the six recaps.
     </div>
   </aside>
 
@@ -3929,6 +3939,481 @@ DROP FUNCTION IF EXISTS Production.TopProducts;</code></pre>
       </details>
     </section>
 
+    <!-- ================= CHAPTER 6 ================= -->
+    <div class="part-divider" id="chapter-6">
+      <span class="part-eyebrow">Chapter 6 · Set operators</span>
+      <h2>Combine result sets</h2>
+      <p>Set operators combine the rows of two queries: <code>UNION</code> stacks them, <code>INTERSECT</code> keeps the common rows, and <code>EXCEPT</code> keeps the rows that are only in the first input. T-SQL supports the DISTINCT behavior of all three plus <code>UNION ALL</code>; the ALL variants of <code>INTERSECT</code> and <code>EXCEPT</code> must be emulated.</p>
+      <div class="part-chips">
+        <span>Book pages 211–230</span>
+        <span>3 figures from the book</span>
+        <span>6 practice exercises</span>
+      </div>
+    </div>
+
+    <!-- 6.1 -->
+    <section class="section" id="ch6-basics">
+      <div class="section-head">
+        <div class="sec-num">6.1</div>
+        <div>
+          <div class="kicker">Set operator basics</div>
+          <h2>Rows in, rows out</h2>
+        </div>
+      </div>
+      <p class="lead">A set operator compares complete rows between two input queries. The general form is:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · general form</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>Input Query1
+&lt;set_operator&gt;
+Input Query2
+[ORDER BY ...];</code></pre>
+      </div>
+      <ul>
+        <li>The two input queries must produce the <strong>same number of columns</strong>, with compatible data types.</li>
+        <li>The input queries <strong>cannot have ORDER BY</strong>, because a set operator expects multisets, not ordered results. You can add an <code>ORDER BY</code> to the result of the operator.</li>
+        <li>Column names in the result come from the <strong>first query</strong>. Assign aliases there.</li>
+        <li>Rows are compared using <strong>distinctness-based comparison</strong>, not equality. Two NULLs are treated as equal, just like two 5s.</li>
+      </ul>
+      <div class="note">
+        <strong>DISTINCT vs. ALL</strong>
+        The SQL standard defines both flavors. T-SQL supports the implicit DISTINCT version of <code>UNION</code>, <code>INTERSECT</code>, and <code>EXCEPT</code>, plus <code>UNION ALL</code>. It does not implement <code>INTERSECT ALL</code> or <code>EXCEPT ALL</code>; the chapter shows how to emulate them.
+      </div>
+    </section>
+
+    <!-- 6.2 -->
+    <section class="section" id="ch6-union">
+      <div class="section-head">
+        <div class="sec-num">6.2</div>
+        <div>
+          <div class="kicker">UNION</div>
+          <h2>Stack two result sets</h2>
+        </div>
+      </div>
+      <p class="lead"><code>UNION</code> unifies two input results. <code>UNION ALL</code> keeps every row, including duplicates; <code>UNION</code> (implicit DISTINCT) removes duplicates.</p>
+
+      <h3 class="subhead">UNION ALL: keep everything</h3>
+      <p>If Query1 returns <em>m</em> rows and Query2 returns <em>n</em> rows, <code>Query1 UNION ALL Query2</code> returns <em>m + n</em> rows. The result is a multiset, so the same row can appear more than once.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · UNION ALL</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+SELECT country, region, city FROM HR.Employees
+UNION ALL
+SELECT country, region, city FROM Sales.Customers;</code></pre>
+      </div>
+      <p>This returns 100 rows: 9 employees and 91 customers. Duplicates such as <code>(UK, NULL, London)</code> can appear multiple times.</p>
+
+      <h3 class="subhead">UNION: remove duplicates</h3>
+      <p><code>UNION</code> returns a set: a row that appears in both inputs appears only once in the result.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · UNION (implicit DISTINCT)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT country, region, city FROM HR.Employees
+UNION
+SELECT country, region, city FROM Sales.Customers;</code></pre>
+      </div>
+      <p>This returns 71 distinct locations instead of 100 rows.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 6-1</span><span class="fig-src">From the book · p. 212</span></div>
+          <img class="fig-img" src="images/figure-6-1.png" alt="Venn-style diagram of the UNION operator, with the shaded area representing the combined result of the two input sets.">
+          <div class="fig-body">
+            <p class="fig-cap">The UNION operator</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the shaded area is the result: any row that appears in either input. The unshaded parts of the original circles are not included, which reminds you that the inputs (and the result) don’t have to include every column of the underlying tables.</p>
+          </div>
+        </div>
+      </figure>
+
+      <div class="note">
+        <strong>Which one should you use?</strong>
+        If duplicates are possible and you don’t need them, use <code>UNION</code>. If duplicates cannot exist, use <code>UNION ALL</code> and avoid the unnecessary duplicate-checking work. If you need duplicates, use <code>UNION ALL</code>.
+      </div>
+    </section>
+
+    <!-- 6.3 -->
+    <section class="section" id="ch6-intersect">
+      <div class="section-head">
+        <div class="sec-num">6.3</div>
+        <div>
+          <div class="kicker">INTERSECT</div>
+          <h2>Keep only the common rows</h2>
+        </div>
+      </div>
+      <p class="lead"><code>INTERSECT</code> returns only distinct rows that appear in both input results. A row that appears at least once in both inputs appears once in the output.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · INTERSECT</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT country, region, city FROM HR.Employees
+INTERSECT
+SELECT country, region, city FROM Sales.Customers;</code></pre>
+      </div>
+      <p>This returns the locations that are both employee and customer locations: <code>(UK, NULL, London)</code>, <code>(USA, WA, Kirkland)</code>, and <code>(USA, WA, Seattle)</code>.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 6-2</span><span class="fig-src">From the book · p. 214</span></div>
+          <img class="fig-img" src="images/figure-6-2.png" alt="Venn-style diagram of the INTERSECT operator, with the shaded intersection representing rows common to both inputs.">
+          <div class="fig-body">
+            <p class="fig-cap">The INTERSECT operator</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> only the overlap is shaded. Those are the rows that appear in both input sets. Because the operator uses distinctness-based comparison, two NULLs count as equal — which is why <code>(UK, NULL, London)</code> is returned without any special NULL handling.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">Emulating INTERSECT ALL</h3>
+      <p>T-SQL does not implement <code>INTERSECT ALL</code>. The standard version returns each common row the minimum number of times it appears in the two inputs. You can emulate it by numbering occurrences with <code>ROW_NUMBER</code> and then applying <code>INTERSECT</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · INTERSECT ALL emulation</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT
+  ROW_NUMBER()
+    OVER(PARTITION BY country, region, city
+         ORDER     BY (SELECT 0)) AS rownum,
+  country, region, city
+FROM HR.Employees
+INTERSECT
+SELECT
+  ROW_NUMBER()
+    OVER(PARTITION BY country, region, city
+         ORDER     BY (SELECT 0)),
+  country, region, city
+FROM Sales.Customers;</code></pre>
+      </div>
+      <p>The location <code>(UK, NULL, London)</code> appears four times in Employees and six times in Customers, so occurrences 1–4 intersect. To hide the helper <code>rownum</code> column, wrap the query in a CTE and select only the original attributes.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · INTERSECT ALL without the row number</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH INTERSECT_ALL
+AS
+(
+  SELECT
+    ROW_NUMBER()
+      OVER(PARTITION BY country, region, city
+           ORDER     BY (SELECT 0)) AS rownum,
+    country, region, city
+  FROM HR.Employees
+  INTERSECT
+  SELECT
+    ROW_NUMBER()
+      OVER(PARTITION BY country, region, city
+           ORDER     BY (SELECT 0)),
+    country, region, city
+  FROM Sales.Customers
+)
+SELECT country, region, city
+FROM INTERSECT_ALL;</code></pre>
+      </div>
+      <div class="note">
+        <strong>Why not use a join or subquery?</strong>
+        You can, but you must compare every corresponding column and add special NULL treatment. Set operators use distinctness-based comparison and handle NULLs automatically.
+      </div>
+    </section>
+
+    <!-- 6.4 -->
+    <section class="section" id="ch6-except">
+      <div class="section-head">
+        <div class="sec-num">6.4</div>
+        <div>
+          <div class="kicker">EXCEPT</div>
+          <h2>Keep what’s only in the first input</h2>
+        </div>
+      </div>
+      <p class="lead"><code>EXCEPT</code> implements a minus, or set difference: it returns distinct rows that appear in the first input but not the second. Unlike <code>UNION</code> and <code>INTERSECT</code>, it is <strong>noncommutative</strong> — the order of the inputs matters.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · employee locations that are not customer locations</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT country, region, city FROM HR.Employees
+EXCEPT
+SELECT country, region, city FROM Sales.Customers;</code></pre>
+      </div>
+      <p>This returns <code>(USA, WA, Redmond)</code> and <code>(USA, WA, Tacoma)</code>. Reversing the inputs gives a different result: 66 customer locations that are not employee locations.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 6-3</span><span class="fig-src">From the book · p. 218</span></div>
+          <img class="fig-img" src="images/figure-6-3.png" alt="Venn-style diagram of the EXCEPT operator, with the shaded part of the first set that does not overlap the second set.">
+          <div class="fig-body">
+            <p class="fig-cap">The EXCEPT operator</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the shaded part is the portion of the first input that does not overlap the second. That is the set difference. Reversing the inputs would shade the other side, which is why <code>EXCEPT</code> is noncommutative.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">Emulating EXCEPT ALL</h3>
+      <p>T-SQL does not implement <code>EXCEPT ALL</code> either. The standard version returns each row from the first input minus the number of times it appears in the second. You can emulate it with <code>ROW_NUMBER</code> and <code>EXCEPT</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · EXCEPT ALL emulation</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH EXCEPT_ALL
+AS
+(
+  SELECT
+    ROW_NUMBER()
+      OVER(PARTITION BY country, region, city
+           ORDER     BY (SELECT 0)) AS rownum,
+    country, region, city
+  FROM HR.Employees
+  EXCEPT
+  SELECT
+    ROW_NUMBER()
+      OVER(PARTITION BY country, region, city
+           ORDER     BY (SELECT 0)),
+    country, region, city
+  FROM Sales.Customers
+)
+SELECT country, region, city
+FROM EXCEPT_ALL;</code></pre>
+      </div>
+      <p>This returns the employee locations that have no corresponding customer-location occurrence: <code>(USA, WA, Redmond)</code>, <code>(USA, WA, Tacoma)</code>, and <code>(USA, WA, Seattle)</code>.</p>
+    </section>
+
+    <!-- 6.5 -->
+    <section class="section" id="ch6-precedence">
+      <div class="section-head">
+        <div class="sec-num">6.5</div>
+        <div>
+          <div class="kicker">Precedence</div>
+          <h2>INTERSECT runs first</h2>
+        </div>
+      </div>
+      <p class="lead"><code>INTERSECT</code> has higher precedence than <code>UNION</code> and <code>EXCEPT</code>. <code>UNION</code> and <code>EXCEPT</code> are evaluated in order of appearance. The <code>ALL</code> variant does not change precedence.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · precedence in action</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT country, region, city FROM Production.Suppliers
+EXCEPT
+SELECT country, region, city FROM HR.Employees
+INTERSECT
+SELECT country, region, city FROM Sales.Customers;</code></pre>
+      </div>
+      <p>Even though <code>INTERSECT</code> appears second, it is evaluated first. The query means “supplier locations, but not locations that are both employee and customer locations.”</p>
+      <p>Use parentheses to control the order and make the intent explicit.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · parentheses override precedence</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>(SELECT country, region, city FROM Production.Suppliers
+ EXCEPT
+ SELECT country, region, city FROM HR.Employees)
+INTERSECT
+SELECT country, region, city FROM Sales.Customers;</code></pre>
+      </div>
+      <p>This means “(supplier locations but not employee locations) that are also customer locations.”</p>
+    </section>
+
+    <!-- 6.6 -->
+    <section class="section" id="ch6-phases">
+      <div class="section-head">
+        <div class="sec-num">6.6</div>
+        <div>
+          <div class="kicker">Beyond ORDER BY</div>
+          <h2>Apply more phases to the result</h2>
+        </div>
+      </div>
+      <p class="lead">The individual input queries can have all logical phases except a presentation <code>ORDER BY</code>. The result of the set operator can have an <code>ORDER BY</code>. To apply other phases — such as <code>GROUP BY</code> — to the result, wrap the set-operator query in a table expression.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · GROUP BY the result of a UNION</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT country, COUNT(*) AS numlocations
+FROM (SELECT country, region, city FROM HR.Employees
+      UNION
+      SELECT country, region, city FROM Sales.Customers) AS U
+GROUP BY country;</code></pre>
+      </div>
+      <p>If you need <code>TOP</code> or <code>OFFSET-FETCH</code> in the inputs, use derived tables. An <code>ORDER BY</code> is allowed inside a derived table when <code>TOP</code> or <code>OFFSET-FETCH</code> is also specified; there it serves the filter, not presentation.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · TOP in each input of a UNION ALL</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, orderid, orderdate
+FROM (SELECT TOP (2) empid, orderid, orderdate
+      FROM Sales.Orders
+      WHERE empid = 3
+      ORDER BY orderdate DESC, orderid DESC) AS D1
+UNION ALL
+SELECT empid, orderid, orderdate
+FROM (SELECT TOP (2) empid, orderid, orderdate
+      FROM Sales.Orders
+      WHERE empid = 5
+      ORDER BY orderdate DESC, orderid DESC) AS D2;</code></pre>
+      </div>
+      <p>This returns the two most recent orders for employee 3 and the two most recent for employee 5.</p>
+    </section>
+
+    <!-- 6.7 -->
+    <section class="section" id="ch6-practice">
+      <div class="section-head">
+        <div class="sec-num">6.7</div>
+        <div>
+          <div class="kicker">Practice</div>
+          <h2>Six exercises, with the book’s solutions</h2>
+        </div>
+      </div>
+      <p class="lead">Try each one before opening the solution. The sample database is <code>TSQLV6</code>. The chapter asks you to practice set operators, even though some tasks can also be solved with joins or subqueries.</p>
+
+      <details>
+        <summary>Exercise 1 · Explain UNION ALL vs. UNION</summary>
+        <div class="answer">
+          <p><code>UNION ALL</code> unifies the two inputs and keeps duplicates. <code>UNION</code> (implicit DISTINCT) also unifies them but removes duplicates. They are equivalent when the result cannot contain duplicates, such as when unifying disjoint sets. In that case, use <code>UNION ALL</code> to avoid the unnecessary duplicate-checking work.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 2 · Generate the numbers 1 through 10 without a loop or GENERATE_SERIES</summary>
+        <div class="answer">
+          <p>Use <code>UNION ALL</code> with constant <code>SELECT</code> statements, or a table value constructor.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution with UNION ALL</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT 1 AS n
+UNION ALL SELECT 2
+UNION ALL SELECT 3
+UNION ALL SELECT 4
+UNION ALL SELECT 5
+UNION ALL SELECT 6
+UNION ALL SELECT 7
+UNION ALL SELECT 8
+UNION ALL SELECT 9
+UNION ALL SELECT 10;</code></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution with a table value constructor</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT n
+FROM (VALUES(1),(2),(3),(4),(5),(6),(7),(8),(9),(10)) AS Nums(n);</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 3 · Customer/employee pairs active in January 2022 but not February 2022</summary>
+        <div class="answer">
+          <p>Use <code>EXCEPT</code>: January pairs minus February pairs.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+SELECT custid, empid
+FROM Sales.Orders
+WHERE orderdate &gt;= '20220101' AND orderdate &lt; '20220201'
+EXCEPT
+SELECT custid, empid
+FROM Sales.Orders
+WHERE orderdate &gt;= '20220201' AND orderdate &lt; '20220301';</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 4 · Customer/employee pairs active in both January and February 2022</summary>
+        <div class="answer">
+          <p>Use <code>INTERSECT</code>: pairs that appear in both periods.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT custid, empid
+FROM Sales.Orders
+WHERE orderdate &gt;= '20220101' AND orderdate &lt; '20220201'
+INTERSECT
+SELECT custid, empid
+FROM Sales.Orders
+WHERE orderdate &gt;= '20220201' AND orderdate &lt; '20220301';</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 5 · Pairs active in both January and February 2022 but not in 2021</summary>
+        <div class="answer">
+          <p>Combine <code>INTERSECT</code> and <code>EXCEPT</code>. <code>INTERSECT</code> runs first, so the default precedence is what you want; parentheses make it clearer.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT custid, empid
+FROM Sales.Orders
+WHERE orderdate &gt;= '20220101' AND orderdate &lt; '20220201'
+INTERSECT
+SELECT custid, empid
+FROM Sales.Orders
+WHERE orderdate &gt;= '20220201' AND orderdate &lt; '20220301'
+EXCEPT
+SELECT custid, empid
+FROM Sales.Orders
+WHERE orderdate &gt;= '20210101' AND orderdate &lt; '20220101';</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 6 · Employees before Suppliers, each segment sorted</summary>
+        <div class="answer">
+          <p>The inputs cannot have <code>ORDER BY</code>. Add a constant <code>sortcol</code> to each input (1 for Employees, 2 for Suppliers), apply <code>UNION ALL</code>, and sort the outer result by <code>sortcol</code> first.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT country, region, city
+FROM (SELECT 1 AS sortcol, country, region, city
+      FROM HR.Employees
+      UNION ALL
+      SELECT 2, country, region, city
+      FROM Production.Suppliers) AS D
+ORDER BY sortcol, country, region, city;</code></pre>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- 6.8 -->
+    <section class="section" id="ch6-recap">
+      <div class="section-head">
+        <div class="sec-num">6.8</div>
+        <div>
+          <div class="kicker">Takeaways</div>
+          <h2>Chapter 6 in ten bullets</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li><strong>Set operators combine complete rows</strong> from two input queries.</li>
+        <li><strong>The inputs must have the same number of columns</strong> and compatible data types.</li>
+        <li><strong>The inputs cannot have ORDER BY;</strong> the result of the operator can.</li>
+        <li><strong>Result column names come from the first query.</strong></li>
+        <li><strong>Rows are compared with distinctness-based semantics,</strong> so two NULLs are treated as equal.</li>
+        <li><strong><code>UNION ALL</code> keeps duplicates (m + n rows);</strong> <code>UNION</code> removes them and returns a set.</li>
+        <li><strong><code>INTERSECT</code> keeps common distinct rows;</strong> <code>EXCEPT</code> keeps rows only in the first input and is noncommutative.</li>
+        <li><strong><code>INTERSECT</code> has higher precedence</strong> than <code>UNION</code> and <code>EXCEPT</code>; use parentheses to be explicit.</li>
+        <li><strong>T-SQL lacks <code>INTERSECT ALL</code> and <code>EXCEPT ALL</code>;</strong> emulate them with <code>ROW_NUMBER</code> plus <code>INTERSECT</code>/<code>EXCEPT</code>.</li>
+        <li><strong>Wrap a set-operator query in a table expression</strong> to apply <code>GROUP BY</code>, <code>TOP</code>, <code>OFFSET-FETCH</code>, or other phases to its result.</li>
+      </ul>
+
+      <h3 class="subhead">Chapter 6 key terms</h3>
+      <dl class="terms">
+        <div class="term"><dt>Set operator</dt><dd>An operator that combines the rows of two input query results.</dd></div>
+        <div class="term"><dt>UNION ALL</dt><dd>Concatenates two inputs and keeps duplicates; returns m + n rows.</dd></div>
+        <div class="term"><dt>UNION</dt><dd>Concatenates two inputs and removes duplicates; returns a set.</dd></div>
+        <div class="term"><dt>INTERSECT</dt><dd>Returns distinct rows that appear in both inputs.</dd></div>
+        <div class="term"><dt>EXCEPT</dt><dd>Returns distinct rows that appear in the first input but not the second; noncommutative.</dd></div>
+        <div class="term"><dt>Distinctness-based comparison</dt><dd>A comparison in which two NULLs are treated as equal, unlike SQL’s usual equality comparison.</dd></div>
+        <div class="term"><dt>Precedence</dt><dd>The order in which set operators are evaluated: <code>INTERSECT</code> first, then <code>UNION</code>/<code>EXCEPT</code> in written order.</dd></div>
+        <div class="term"><dt>INTERSECT ALL</dt><dd>A standard operator not implemented in T-SQL; returns each common row the minimum number of occurrences.</dd></div>
+        <div class="term"><dt>EXCEPT ALL</dt><dd>A standard operator not implemented in T-SQL; returns occurrences from the first input minus those in the second.</dd></div>
+        <div class="term"><dt>Table value constructor</dt><dd>A <code>VALUES</code> clause used to define a table expression with one or more rows.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 6.9 -->
+    <section class="section" id="ch6-quiz">
+      <div class="section-head">
+        <div class="sec-num">6.9</div>
+        <div>
+          <div class="kicker">Check yourself</div>
+          <h2>Six quick questions</h2>
+        </div>
+      </div>
+      <p class="lead">Try to answer before opening each one. If you can explain it in your own words, you’ve got the chapter.</p>
+
+      <details>
+        <summary>What are the four set operators in T-SQL?</summary>
+        <div class="answer"><code>UNION</code>, <code>UNION ALL</code>, <code>INTERSECT</code>, and <code>EXCEPT</code>. T-SQL supports the implicit DISTINCT version of <code>UNION</code>, <code>INTERSECT</code>, and <code>EXCEPT</code>, plus <code>UNION ALL</code>. It does not implement <code>INTERSECT ALL</code> or <code>EXCEPT ALL</code>.</div>
+      </details>
+      <details>
+        <summary>What requirements must the two input queries meet?</summary>
+        <div class="answer">They must produce the same number of columns with compatible data types, and they cannot have a presentation <code>ORDER BY</code>. The result column names come from the first query.</div>
+      </details>
+      <details>
+        <summary>What is the difference between UNION and UNION ALL?</summary>
+        <div class="answer"><code>UNION ALL</code> keeps all rows, including duplicates, and returns m + n rows. <code>UNION</code> removes duplicates and returns a set. Use <code>UNION ALL</code> when duplicates cannot exist or are wanted, to avoid unnecessary duplicate-checking work.</div>
+      </details>
+      <details>
+        <summary>Why is EXCEPT noncommutative?</summary>
+        <div class="answer">It returns rows that appear in the first input but not the second. Reversing the inputs produces a different set — the rows that are in the second but not the first.</div>
+      </details>
+      <details>
+        <summary>Which set operator has higher precedence?</summary>
+        <div class="answer"><code>INTERSECT</code> has higher precedence than <code>UNION</code> and <code>EXCEPT</code>. <code>UNION</code> and <code>EXCEPT</code> are evaluated in order of appearance. Use parentheses to control the order explicitly.</div>
+      </details>
+      <details>
+        <summary>How can you emulate INTERSECT ALL or EXCEPT ALL in T-SQL?</summary>
+        <div class="answer">Number the occurrences of each row in both inputs with <code>ROW_NUMBER() OVER(PARTITION BY ... ORDER BY (SELECT 0))</code>, then apply <code>INTERSECT</code> or <code>EXCEPT</code> to the numbered rows. Wrap the result in a CTE if you want to hide the row-number column.</div>
+      </details>
+    </section>
+
   </main>
 </div>
 
@@ -3936,12 +4421,12 @@ DROP FUNCTION IF EXISTS Production.TopProducts;</code></pre>
   <div class="footer-inner">
     <div>
       <h3>About this summary</h3>
-      <p>A study companion for <strong>Chapters 1–5</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210.</p>
-      <p class="fine">All nine figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, and 5 have no figures or tables; the join-types, subquery-types, and table-expression diagrams are original study aids, not from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
+      <p>A study companion for <strong>Chapters 1–6</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230.</p>
+      <p class="fine">All twelve figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, and 5 have no figures or tables; the join-types, subquery-types, and table-expression diagrams are original study aids, not from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
     </div>
     <div>
       <h3>Navigate</h3>
-      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch5-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch5-quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch6-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch6-quiz" style="color:#9fe0d6">Quiz</a></p>
       <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
     </div>
   </div>
