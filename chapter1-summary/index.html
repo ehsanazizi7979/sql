@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapters 1–14 · SQL Fundamentals, Transactions, Indexes and Views — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Chapters 1–15 · SQL Fundamentals, Transactions, Views and Metadata — Simple Summary (Learning SQL, 3rd Ed.)</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -211,7 +211,7 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapters 1–14, in plain English</h1>
+  <h1>Chapters 1–15, in plain English</h1>
   <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
   and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
   data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
@@ -227,12 +227,13 @@
   <b>Ch. 11 — Conditional Logic:</b> making data-dependent decisions with CASE.
   <b>Ch. 12 — Transactions:</b> grouping changes into a safe unit of work.
   <b>Ch. 13 — Indexes and Constraints:</b> speeding lookups and enforcing data rules.
-  <b>Ch. 14 — Views:</b> presenting stored queries as tables.</p>
+  <b>Ch. 14 — Views:</b> presenting stored queries as tables.
+  <b>Ch. 15 — Metadata:</b> querying information about database objects.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–250 (PDF pp. 19–268)</span>
-    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14 + 10 + 11 + 10 + 11 + 10</span>
+    <span><b>Book pages:</b> 1–266 (PDF pp. 19–284)</span>
+    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14 + 10 + 11 + 10 + 11 + 10 + 11</span>
     <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8, Figures 6-1…6-4, Figure 13-1</span>
-    <span><b>Reading time:</b> ~180 min</span>
+    <span><b>Reading time:</b> ~192 min</span>
   </div>
   <div class="jump">
     <a href="#tldr">↓ Chapter 1 · A Little Background</a>
@@ -249,6 +250,7 @@
     <a href="#ch12">↓ Chapter 12 · Transactions</a>
     <a href="#ch13">↓ Chapter 13 · Indexes and Constraints</a>
     <a href="#ch14">↓ Chapter 14 · Views</a>
+    <a href="#ch15">↓ Chapter 15 · Metadata</a>
   </div>
 </header>
 
@@ -438,6 +440,19 @@
     <li><a href="#ch14-simple-update">Updating a simple view</a></li>
     <li><a href="#ch14-join-update">Updating a join view</a></li>
     <li><a href="#ch14-exercises">Exercises &amp; recap</a></li>
+  </ol>
+  <div class="brand" style="margin-top:18px">Chapter 15 · Metadata</div>
+  <ol>
+    <li><a href="#ch15-intro">The chapter in one paragraph</a></li>
+    <li><a href="#ch15-tables">Tables and views</a></li>
+    <li><a href="#ch15-columns">Column metadata</a></li>
+    <li><a href="#ch15-indexes">Index metadata</a></li>
+    <li><a href="#ch15-catalog">Constraints and catalog reference</a></li>
+    <li><a href="#ch15-ddl">Generating schema scripts</a></li>
+    <li><a href="#ch15-verify">Checking a deployment</a></li>
+    <li><a href="#ch15-prepare">Prepared dynamic SQL</a></li>
+    <li><a href="#ch15-dynamic">Generating SQL from metadata</a></li>
+    <li><a href="#ch15-exercises">Exercises &amp; recap</a></li>
   </ol>
 </nav>
 
@@ -6029,17 +6044,302 @@ FROM country co;</code></pre></div>
   <tr><td>Write through a view</td><td>Changes may affect base tables; updatability and privileges vary.</td></tr>
   <tr><td>Order results</td><td>Use ORDER BY in the outer query when order is required.</td></tr>
   </tbody></table>
-  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 15, <em>Metadata</em>,
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p><a href="#ch15">Chapter 15, <em>Metadata</em></a>,
   explores information about database objects and their definitions.</p></div>
+</section>
+<div class="chap" id="ch15">
+  <div class="kicker">Chapter 15 · book pages 251–266 (PDF pp. 269–284)</div>
+  <h2><span class="num">15.0</span>Metadata</h2>
+  <p>Query the database's description of its own objects.</p>
+</div>
+<section id="ch15-intro">
+  <h2><span class="num">15.1</span>The chapter in one paragraph</h2>
+  <p class="lede">Metadata is data about database objects, not the application rows they contain.</p>
+  <p>The system catalog describes tables, columns, data types, keys, indexes, views and more. MySQL's
+  <span class="inline">information_schema</span> exposes much of it as queryable views. You can use
+  those views to inspect a schema, compare deployments, and generate SQL. Names, visibility, fields and
+  privileges differ across engines and versions, so treat the book's examples as MySQL-specific unless
+  verified elsewhere.</p>
+  <div class="simple"><span class="tag">Original diagram · metadata in use</span>
+  schema objects → system catalog → INFORMATION_SCHEMA query → inspection or generated SQL
+  </div>
+  <div class="note"><span class="tag">Safe practice</span>Metadata queries are generally read-only,
+  but generated DDL can modify schemas. Review and test generated statements in a disposable database;
+  protect credentials and use only the privileges needed.</div>
+</section>
+<section id="ch15-tables">
+  <h2><span class="num">15.2</span>List tables and views</h2>
+  <p>The book queries <span class="inline">information_schema.tables</span> for Sakila and finds 23
+  objects: 16 base tables and 7 views. A second query limits the result to base tables.</p>
+  <div class="code"><div class="bar"><span>Book examples · tables and views</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT table_name, table_type
+FROM information_schema.tables
+WHERE table_schema = 'sakila'
+ORDER BY 1;
+
+SELECT table_name, table_type
+FROM information_schema.tables
+WHERE table_schema = 'sakila'
+  AND table_type = 'BASE TABLE'
+ORDER BY 1;
+
+SELECT table_name, is_updatable
+FROM information_schema.views
+WHERE table_schema = 'sakila'
+ORDER BY 1;</code></pre></div>
+  <p>The sample marks customer_list and staff_list updatable and five other views not updatable.
+  Those counts and flags describe the book's installation, not necessarily yours. Metadata visibility
+  depends on the account's privileges, and a view-level flag does not by itself promise that every
+  column or operation is writable.</p>
+</section>
+<section id="ch15-columns">
+  <h2><span class="num">15.3</span>Inspect columns in order</h2>
+  <p>Query <span class="inline">information_schema.columns</span> for the name, type, length, precision,
+  and scale. <span class="inline">ordinal_position</span> puts columns in their defined order.</p>
+  <div class="code"><div class="bar"><span>Book example · film columns</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT column_name, data_type,
+  character_maximum_length char_max_len,
+  numeric_precision num_prcsn, numeric_scale num_scale
+FROM information_schema.columns
+WHERE table_schema = 'sakila' AND table_name = 'film'
+ORDER BY ordinal_position;</code></pre></div>
+  <p>The book shows 13 columns; for example, title is varchar(255) and rental_rate is decimal(4,2).
+  A NULL in an inapplicable metadata field does not mean every corresponding data value is NULL.</p>
+</section>
+<section id="ch15-indexes">
+  <h2><span class="num">15.4</span>Inspect indexes and their column order</h2>
+  <div class="code"><div class="bar"><span>Book example · rental index entries</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT index_name, non_unique, seq_in_index, column_name
+FROM information_schema.statistics
+WHERE table_schema = 'sakila' AND table_name = 'rental'
+ORDER BY 1, 3;</code></pre></div>
+  <p>The book's output has seven rows representing five indexes: one row per indexed column, including
+  three rows for the composite rental_date index. NON_UNIQUE = 0 means the index is unique; in this
+  sample both PRIMARY <em>and</em> rental_date have that value.</p>
+</section>
+<section id="ch15-catalog">
+  <h2><span class="num">15.5</span>Constraints and other catalog views</h2>
+  <div class="code"><div class="bar"><span>Book example · constraints</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT constraint_name, table_name, constraint_type
+FROM information_schema.table_constraints
+WHERE table_schema = 'sakila'
+ORDER BY 3,1;</code></pre></div>
+  <p>The book's sample contains 41 rows. Use schema, table, and constraint identity together: names such
+  as PRIMARY recur across tables. Column-level key information is in key_column_usage.</p>
+  <h3>Book Table 15-1 · metadata views at a glance</h3>
+  <table><thead><tr><th>Views</th><th>Information</th></tr></thead><tbody>
+  <tr><td>schemata, tables, columns</td><td>Databases, tables/views and their columns</td></tr>
+  <tr><td>statistics</td><td>Indexes and indexed columns</td></tr>
+  <tr><td>user_privileges, schema_privileges</td><td>User and schema privileges</td></tr>
+  <tr><td>table_privileges, column_privileges</td><td>Table and column privileges</td></tr>
+  <tr><td>character_sets, collations</td><td>Character sets and collations</td></tr>
+  <tr><td>collation_character_set_applicability</td><td>Collation and character-set relationships</td></tr>
+  <tr><td>table_constraints, key_column_usage</td><td>Constraints and their key columns</td></tr>
+  <tr><td>routines, parameters</td><td>Stored routines and parameters</td></tr>
+  <tr><td>views, triggers</td><td>Views and table triggers</td></tr>
+  <tr><td>plugins, engines, partitions, events</td><td>Server plugins, engines, partitions and scheduled events</td></tr>
+  <tr><td>processlist, profiling</td><td>Process and profiling information</td></tr>
+  <tr><td>referential_constraints</td><td>Foreign-key relationships and rules</td></tr>
+  </tbody></table>
+  <p>This table reflects the book's MySQL 8.0 examples; catalog availability and deprecations can change.
+  Other databases expose different catalog views and vendor-specific fields.</p>
+</section>
+<section id="ch15-ddl">
+  <h2><span class="num">15.6</span>Generate a schema script</h2>
+  <p>The book constructs pieces of CREATE TABLE from column and primary-key metadata. Its original
+  category definition is:</p>
+  <div class="code"><div class="bar"><span>Book example · category table</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE TABLE category (
+  category_id TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(25) NOT NULL,
+  last_update TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY  (category_id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;</code></pre></div>
+  <p>The book's generator demonstrates the approach, not a complete or generally safe schema exporter:</p>
+  <div class="code"><div class="bar"><span>Book example · generate DDL text in MySQL</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT 'CREATE TABLE category (' create_table_statement
+UNION ALL
+SELECT cols.txt
+FROM
+ (SELECT concat('  ',column_name, ' ', column_type,
+   CASE
+     WHEN is_nullable = 'NO' THEN ' not null'
+     ELSE ''
+   END,
+   CASE
+     WHEN extra IS NOT NULL AND extra LIKE 'DEFAULT_GENERATED%'
+       THEN concat(' DEFAULT ',column_default,substr(extra,18))
+     WHEN extra IS NOT NULL THEN concat(' ', extra)
+     ELSE ''
+   END,
+   ',') txt
+  FROM information_schema.columns
+  WHERE table_schema = 'sakila' AND table_name = 'category'
+  ORDER BY ordinal_position
+ ) cols
+UNION ALL
+SELECT concat('  constraint primary key (')
+FROM information_schema.table_constraints
+WHERE table_schema = 'sakila' AND table_name = 'category'
+  AND constraint_type = 'PRIMARY KEY'
+UNION ALL
+SELECT cols.txt
+FROM
+ (SELECT concat(CASE WHEN ordinal_position &gt; 1 THEN '   ,'
+    ELSE '    ' END, column_name) txt
+  FROM information_schema.key_column_usage
+  WHERE table_schema = 'sakila' AND table_name = 'category'
+    AND constraint_name = 'PRIMARY'
+  ORDER BY ordinal_position
+ ) cols
+UNION ALL
+SELECT '  )'
+UNION ALL
+SELECT ')';</code></pre></div>
+  <div class="note"><span class="tag">Not a general dump tool</span>UNION ALL without an outer ORDER BY
+  does not guarantee row order; the subquery's ordering alone is not a reliable script-order guarantee.
+  The example omits other schema details and does not safely quote arbitrary identifiers. For real
+  migrations, prefer vendor-supported schema export tools, review output, and test restoration.</div>
+</section>
+<section id="ch15-verify">
+  <h2><span class="num">15.7</span>Verify a deployment</h2>
+  <p>The book compares metadata before and after a deployment with three correlated counts:</p>
+  <div class="code"><div class="bar"><span>Book example · schema summary</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT tbl.table_name,
+ (SELECT count(*) FROM information_schema.columns clm
+  WHERE clm.table_schema = tbl.table_schema
+    AND clm.table_name = tbl.table_name) num_columns,
+ (SELECT count(*) FROM information_schema.statistics sta
+  WHERE sta.table_schema = tbl.table_schema
+    AND sta.table_name = tbl.table_name) num_indexes,
+ (SELECT count(*) FROM information_schema.table_constraints tc
+  WHERE tc.table_schema = tbl.table_schema
+    AND tc.table_name = tbl.table_name
+    AND tc.constraint_type = 'PRIMARY KEY') num_primary_keys
+FROM information_schema.tables tbl
+WHERE tbl.table_schema = 'sakila' AND tbl.table_type = 'BASE TABLE'
+ORDER BY 1;</code></pre></div>
+  <p><strong>Important:</strong> the book labels the middle count num_indexes, but STATISTICS has one
+  row per index key part, so a multicolumn index is counted more than once. To count distinct index
+  names per table in MySQL, use <span class="inline">COUNT(DISTINCT sta.index_name)</span> instead.
+  Counts alone cannot prove matching definitions; also compare types, column order, constraints,
+  options, permissions, and any migration-specific requirements.</p>
+</section>
+<section id="ch15-prepare">
+  <h2><span class="num">15.8</span>Prepare, execute, deallocate</h2>
+  <p>The book uses MySQL prepared statements to parse SQL held in a string, then execute it with
+  different customer IDs:</p>
+  <div class="code"><div class="bar"><span>Book example · MySQL parameter binding</span><button class="copy">Copy</button></div><pre><code class="sql">SET @qry = 'SELECT customer_id, first_name, last_name
+  FROM customer WHERE customer_id = ?';
+PREPARE dynsql2 FROM @qry;
+SET @custid = 9;
+EXECUTE dynsql2 USING @custid;
+SET @custid = 145;
+EXECUTE dynsql2 USING @custid;
+DEALLOCATE PREPARE dynsql2;</code></pre></div>
+  <p>The book finds Margaret Moore for 9 and Lucille Holmes for 145 in its sample. Bind values rather
+  than interpolating them into SQL. A placeholder is for a value, not an identifier: dynamic table or
+  column names need a strict allowlist and proper engine-specific identifier quoting. Prepared statements
+  and session variables use vendor-specific syntax; deallocate resources when finished.</p>
+</section>
+<section id="ch15-dynamic">
+  <h2><span class="num">15.9</span>Build a query from metadata</h2>
+  <p>The book pivots the first nine customer column names into a comma-separated SELECT list and stores
+  the resulting query in a MySQL session variable:</p>
+  <div class="code"><div class="bar"><span>Book example · build query text</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT concat('SELECT ',
+  concat_ws(',', cols.col1, cols.col2, cols.col3, cols.col4,
+    cols.col5, cols.col6, cols.col7, cols.col8, cols.col9),
+  ' FROM customer WHERE customer_id = ?')
+INTO @qry
+FROM
+ (SELECT
+    max(CASE WHEN ordinal_position = 1 THEN column_name
+      ELSE NULL END) col1,
+    max(CASE WHEN ordinal_position = 2 THEN column_name
+      ELSE NULL END) col2,
+    max(CASE WHEN ordinal_position = 3 THEN column_name
+      ELSE NULL END) col3,
+    max(CASE WHEN ordinal_position = 4 THEN column_name
+      ELSE NULL END) col4,
+    max(CASE WHEN ordinal_position = 5 THEN column_name
+      ELSE NULL END) col5,
+    max(CASE WHEN ordinal_position = 6 THEN column_name
+      ELSE NULL END) col6,
+    max(CASE WHEN ordinal_position = 7 THEN column_name
+      ELSE NULL END) col7,
+    max(CASE WHEN ordinal_position = 8 THEN column_name
+      ELSE NULL END) col8,
+    max(CASE WHEN ordinal_position = 9 THEN column_name
+      ELSE NULL END) col9
+  FROM information_schema.columns
+  WHERE table_schema = 'sakila' AND table_name = 'customer'
+  GROUP BY table_name
+ ) cols;
+SELECT @qry;
+PREPARE dynsql3 FROM @qry;
+SET @custid = 45;
+EXECUTE dynsql3 USING @custid;
+DEALLOCATE PREPARE dynsql3;</code></pre></div>
+  <p>This is an educational example: it only handles the first nine positions and does not quote arbitrary
+  identifier names. Selecting all metadata-discovered columns can also expose sensitive data. In real
+  systems constrain allowed columns, escape identifiers correctly, bind values, and review permissions.</p>
+</section>
+<section id="ch15-exercises">
+  <h2><span class="num">15.10</span>Exercises &amp; recap</h2>
+  <p class="lede">Try the book's exercises first. These are independently worked MySQL answers,
+  not copied from Appendix B.</p>
+  <h3>15-1 · List indexes in Sakila</h3>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · index key parts</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT table_name, index_name, non_unique, seq_in_index, column_name
+FROM information_schema.statistics
+WHERE table_schema = 'sakila'
+ORDER BY table_name, index_name, seq_in_index;</code></pre></div>
+  <p>Each row describes an index key part; composite indexes appear on multiple rows. Use distinct
+  table/index pairs if you need one row per index.</p></details>
+  <h3>15-2 · Generate customer index DDL</h3>
+  <p>The book asks for ALTER TABLE statements to create the customer indexes. This candidate generator
+  handles ordinary B-tree column indexes, including primary and unique indexes:</p>
+  <details><summary>Show one possible answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · MySQL index DDL text</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT CONCAT(
+  'ALTER TABLE `', REPLACE(table_schema, '`', '``'), '`.`',
+  REPLACE(table_name, '`', '``'), '` ADD ',
+  CASE
+    WHEN index_name = 'PRIMARY' THEN 'PRIMARY KEY'
+    WHEN non_unique = 0 THEN CONCAT('UNIQUE INDEX `', REPLACE(index_name, '`', '``'), '`')
+    ELSE CONCAT('INDEX `', REPLACE(index_name, '`', '``'), '`')
+  END,
+  ' (',
+  GROUP_CONCAT(
+    CONCAT('`', REPLACE(column_name, '`', '``'), '`',
+      CASE WHEN sub_part IS NOT NULL THEN CONCAT('(', sub_part, ')') ELSE '' END,
+      CASE WHEN collation = 'D' THEN ' DESC' ELSE '' END)
+    ORDER BY seq_in_index SEPARATOR ', '),
+  ');') AS index_ddl
+FROM information_schema.statistics
+WHERE table_schema = 'sakila' AND table_name = 'customer'
+  AND index_type = 'BTREE'
+GROUP BY table_schema, table_name, index_name, non_unique
+HAVING SUM(column_name IS NULL) = 0
+ORDER BY index_name;</code></pre></div>
+  <p>The query produces text; it does not execute the DDL. It quotes identifiers, preserves key-part
+  order and handles primary/unique indexes and column prefixes. It deliberately excludes non-B-tree
+  and expression-based indexes, and does not reproduce every index option, such as visibility or
+  comments. Check for omitted indexes, ensure GROUP_CONCAT is not truncated by
+  <span class="inline">group_concat_max_len</span>, inspect warnings, and test the output before use.
+  Do not recreate indexes over existing ones blindly; prefer vendor schema export for a faithful backup.</p></details>
+  <h3>Quick reference</h3>
+  <table><thead><tr><th>Need</th><th>MySQL metadata source</th></tr></thead><tbody>
+  <tr><td>Tables / views</td><td>INFORMATION_SCHEMA.TABLES / VIEWS</td></tr>
+  <tr><td>Column definitions</td><td>INFORMATION_SCHEMA.COLUMNS, ordered by ORDINAL_POSITION</td></tr>
+  <tr><td>Index key parts</td><td>INFORMATION_SCHEMA.STATISTICS, ordered by SEQ_IN_INDEX</td></tr>
+  <tr><td>Constraints</td><td>TABLE_CONSTRAINTS and KEY_COLUMN_USAGE</td></tr>
+  <tr><td>Dynamic values</td><td>PREPARE / EXECUTE with bound parameters; whitelist identifiers separately</td></tr>
+  </tbody></table>
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 16, <em>Analytic Functions</em>,
+  explores calculations over related rows without collapsing them into one group.</p></div>
 </section>
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–14 of <i>Learning SQL: Generate,
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–15 of <i>Learning SQL: Generate,
   Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
   ISBN 9781492057611). Figures 1-1…1-3, 6-1…6-4 and 13-1 and the Table 2-6…2-8 crops are reproduced from
   the PDF in this repository for personal study; please buy the book if you like it. SQL snippets include
-  the book's teaching examples. Exercise answers for Chapters 3–14 are worked here, not copied from the book —
+  the book's teaching examples. Exercise answers for Chapters 3–15 are worked here, not copied from the book —
   its own solutions live in Appendix B. Diagrams marked <i>original</i> are drawn for this page.</p>
 </footer>
 </div>
@@ -6062,7 +6362,7 @@ const io=new IntersectionObserver(es=>{
 },{rootMargin:'-15% 0px -75% 0px'});
 document.querySelectorAll('main section').forEach(s=>io.observe(s));
 
-const KW=/\b(create|table|view|insert|into|values|select|from|where|inner|outer|left|right|cross|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max|union|all|any|with|intersect|except|case|when|then|else|end|start|transaction|commit|rollback|savepoint|index|explain|cascade|restrict|check)\b/gi;
+const KW=/\b(create|table|view|insert|into|values|select|from|where|inner|outer|left|right|cross|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max|union|all|any|with|intersect|except|case|when|then|else|end|start|transaction|commit|rollback|savepoint|index|explain|cascade|restrict|check|prepare|execute|deallocate|using)\b/gi;
 function hl(src){
   const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const toks=[];
