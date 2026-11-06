@@ -1,0 +1,534 @@
+    <div class="chapterbar" id="chapter13">
+      <span class="cnum">Chapter 13</span>
+      <div>
+        <h2>The XML of Execution Plans</h2>
+        <p>Every plan you've looked at for twelve chapters is XML underneath. This chapter opens the lid:
+        what the tree looks like, the three situations where the XML tells you something the picture
+        can't, and how to <i>query</i> a thousand cached plans with XQuery instead of reading them one
+        by one.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch13-tour">
+      <h2><span class="num">1</span> The plan is XML; the picture is a renderer</h2>
+      <p class="lede">An XML plan isn't a different plan. It contains exactly the same information as the operators and property sheets — just in the format SQL Server actually stores and saves.</p>
+
+      <p>
+        This is worth stating plainly, because the XML has barely been mentioned in twelve chapters and
+        that's deliberate: <b>you don't need to read XML to understand execution plans</b>. The two ways to
+        get at it:
+      </p>
+      <div class="plain">
+        <div><span>In SSMS</span>Right-click any white space in a graphical plan → <b>Show Execution Plan XML</b>. For a saved plan, open the <code class="inl">.sqlplan</code> file.</div>
+        <div><span>Programmatically</span><code class="inl">SET SHOWPLAN_XML ON</code> for the <b>estimated</b> plan, <code class="inl">SET STATISTICS XML ON</code> for the <b>actual</b> plan. More on that distinction shortly.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 13-1 · the query we'll take apart</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> c.CustomerID, a.City, s.Name, st.Name
+  <span class="kw">FROM</span> Sales.Customer <span class="kw">AS</span> c
+    <span class="kw">JOIN</span> Sales.Store <span class="kw">AS</span> s
+      <span class="kw">ON</span> c.StoreID = s.BusinessEntityID
+    <span class="kw">JOIN</span> Sales.SalesTerritory <span class="kw">AS</span> st
+      <span class="kw">ON</span> c.TerritoryID = st.TerritoryID
+    <span class="kw">JOIN</span> Person.BusinessEntityAddress <span class="kw">AS</span> bea
+      <span class="kw">ON</span> c.CustomerID = bea.BusinessEntityID
+    <span class="kw">JOIN</span> Person.Address <span class="kw">AS</span> a
+      <span class="kw">ON</span> bea.AddressID = a.AddressID
+    <span class="kw">JOIN</span> Person.StateProvince <span class="kw">AS</span> sp
+      <span class="kw">ON</span> a.StateProvinceID = sp.StateProvinceID
+  <span class="kw">WHERE</span> st.Name = 'Northeast' <span class="kw">AND</span> sp.Name = 'New York';
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter13/fig-13-1-new-york-customers-plan.png"
+             alt="Graphical plan with a chain of Nested Loops joins over index seeks and scans.">
+        <figcaption><b>Figure 13-1</b> — The familiar picture: a chain of six Nested Loops joins over index seeks and scans on six tables.</figcaption>
+      </figure>
+
+      <p>
+        Right-click → Show Execution Plan XML and you get a document that, even for this simple query, is
+        far too big to print. The book shows just the opening. Don't be alarmed if yours differs in shape:
+        <b>new versions add content</b>, and attribute order (sometimes elements) varies between versions.
+      </p>
+
+      <figure>
+        <img src="images/chapter13/fig-13-2-plan-xml-tree.png"
+             alt="XML tree view showing ShowPlanXML, BatchSequence, Batch, Statements, StmtSimple, StatementSetOptions, QueryPlan, RelOp nodes with expanders.">
+        <figcaption><b>Figure 13-2</b> — The opening of the XML: <code class="inl">ShowPlanXML</code> → <code class="inl">BatchSequence</code> → <code class="inl">Batch</code> → <code class="inl">Statements</code> → <code class="inl">StmtSimple</code>, with the plan itself hanging below <code class="inl">QueryPlan</code>.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>The five levels above the plan</b>
+        <b>ShowPlanXML</b> is the root, declaring the Microsoft schema (a published, standard structure).
+        <b>BatchSequence</b> then <b>Batch</b> then <b>Statements</b> are the nesting for multi-batch,
+        multi-statement code — here there's only one of each, so each contains a single child.
+        <b>StmtSimple</b> holds the statement text and its attributes. When you have several statements,
+        you get several <code class="inl">StmtSimple</code> elements, which is exactly how a cached
+        batch-from-Chapter-9 keeps its per-statement plans.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 13-2 · StmtSimple and StatementSetOptions</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>&lt;StmtSimple StatementText="SELECT c.CustomerID, a.City, s.Name,
+                           st.Name FROM Sales.Customer AS c
+                           JOIN Sales.Store AS s ON c.StoreID = s.BusinessEntityID
+                           JOIN Sales.SalesTerritory AS st
+                            &hellip;etc&hellip;
+                           WHERE st.Name = 'Northeast' AND sp.Name = 'New York'"
+            StatementId="1" StatementCompId="1" StatementType="SELECT"
+            StatementSqlHandle="0x0900A7CAC098F11600D15964667F6395453000000 &hellip;"
+            DatabaseContextSettingsId="3" ParentObjectId="0"
+            StatementParameterizationType="0" RetrievedFromCache="true"
+            StatementSubTreeCost="1.04758" StatementEstRows="1"
+            SecurityPolicyApplied="false" StatementOptmLevel="FULL"
+            QueryHash="0x6F422E0A48C0E2DA" QueryPlanHash="0xBF47C4983DC8361D"
+            StatementOptmEarlyAbortReason="TimeOut"
+            CardinalityEstimationModelVersion="140"&gt;
+  &lt;StatementSetOptions QUOTED_IDENTIFIER="true" ARITHABORT="true"
+                       CONCAT_NULL_YIELDS_NULL="true" ANSI_NULLS="true"
+                       ANSI_PADDING="true" ANSI_WARNINGS="true"
+                       NUMERIC_ROUNDABORT="false"&gt;
+  &lt;/StatementSetOptions&gt;</code></pre>
+        <div class="cap">The <code>StatementText</code> is the whole statement — which is the first clue about why sharing plans needs care. <code>StatementParameterizationType="0"</code> is the Chapter 9 code for "no parameterization".</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 13-3 · the QueryPlan element</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>&lt;QueryPlan NonParallelPlanReason="CouldNotGenerateValidParallelPlan"
+            CachedPlanSize="104" CompileTime="10" CompileCPU="10"
+            CompileMemory="1160"&gt;
+  &lt;MemoryGrantInfo SerialRequiredMemory="2048" SerialDesiredMemory="2632" /&gt;
+  &lt;OptimizerHardwareDependentProperties EstimatedAvailableMemoryGrant="157286"
+                                        EstimatedPagesCached="19660"
+                                        EstimatedAvailableDegreeOfParallelism="2"
+                                        MaxCompileMemory="1475656" /&gt;
+  &lt;OptimizerStatsUsage&gt;&hellip;&lt;/OptimizerStatsUsage&gt;</code></pre>
+      </div>
+
+      <p>
+        Listings 13-2 and 13-3 together are <b>the same information as the properties of the first
+        operator</b> in the graphical plan. And you can see the translation table:
+      </p>
+      <table>
+        <thead><tr><th>In the XML</th><th>In the Properties sheet</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">CompileTime</code></td><td>Compile Time</td></tr>
+          <tr><td><code class="inl">CachedPlanSize</code></td><td>Cached Plan Size</td></tr>
+          <tr><td><code class="inl">StatementOptmEarlyAbortReason</code></td><td><b>Reason for Early Termination of Statement Optimization</b></td></tr>
+          <tr><td><code class="inl">StatementSubTreeCost</code></td><td>Estimated Subtree Cost</td></tr>
+          <tr><td><code class="inl">NonParallelPlanReason</code></td><td>Why this plan isn't parallel (Chapter 11)</td></tr>
+        </tbody>
+      </table>
+      <div class="note">
+        <b>Worth pausing on two values</b>
+        <code class="inl">NonParallelPlanReason="CouldNotGenerateValidParallelPlan"</code> is the XML telling
+        you, in words, why Chapter 11's double arrows are absent. And
+        <code class="inl">StatementOptmEarlyAbortReason="TimeOut"</code> is the same message Chapter 10's
+        ten-table query gave us — the optimizer gave up searching join orders. These strings are often
+        easier to <i>search for</i> across thousands of plans than to spot by eye one plan at a time,
+        which is the whole point of the last section.
+      </div>
+
+      <h3 class="step">RelOp: one element per operator</h3>
+      <p>
+        Inside <code class="inl">QueryPlan</code> sits a nested hierarchy of <code class="inl">RelOp</code>
+        elements. They appear <b>in the order they are called</b> — like reading a graphical plan from left
+        to right. So <b>NodeId 0</b> is the outermost operator (a Nested Loops), NodeId 1 the next Nested
+        Loops, and so on down to the last operator called.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 13-4 · the first RelOp</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>&lt;RelOp NodeId="0" PhysicalOp="Nested Loops" LogicalOp="Inner Join" EstimateRows="1"
+       EstimateIO="0" EstimateCPU="5.9304e-005" AvgRowSize="149"
+       EstimatedTotalSubtreeCost="1.04758" Parallel="0" EstimateRebinds="0"
+       EstimateRewinds="0" EstimatedExecutionMode="Row"&gt;</code></pre>
+        <div class="cap"><b>PhysicalOp</b> vs <b>LogicalOp</b> is the same pair you see in the graphical properties: what the engine actually runs, versus what the query asked for. <code>EstimatedExecutionMode="Row"</code> is Chapter 12's other half.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 13-5 · OutputList</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>&lt;OutputList&gt;
+  &lt;ColumnReference Database="[AdventureWorks2016]" Schema="[Sales]"
+                    Table="[Customer]" Alias="[c]" Column="CustomerID" /&gt;
+  &lt;ColumnReference Database="[AdventureWorks2016]" Schema="[Sales]"
+                    Table="[Store]" Alias="[s]" Column="Name" /&gt;
+  &lt;ColumnReference Database="[AdventureWorks2016]" Schema="[Sales]"
+                    Table="[SalesTerritory]" Alias="[st]" Column="Name" /&gt;
+  &lt;ColumnReference Database="[AdventureWorks2016]" Schema="[Person]"
+                    Table="[Address]" Alias="[a]" Column="City" /&gt;
+&lt;/OutputList&gt;</code></pre>
+        <div class="cap">The book's judgement, and I agree with it: for complex plans, this is a <b>genuinely easier</b> way to see every column an operator returns than hunting through a property grid.</div>
+      </div>
+
+      <p>
+        Then come the operator-specific properties. Compare the two joins in this plan, because they resolve
+        their join condition in <b>different ways</b> — and the XML names the difference exactly:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 13-6 · NodeId 0 resolves its join with OuterReferences</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>  &lt;NestedLoops Optimized="0"&gt;
+    &lt;OuterReferences&gt;
+      &lt;ColumnReference Database="[AdventureWorks2016]" Schema="[Sales]"
+                        Table="[Customer]" Alias="[c]" Column="StoreID"&gt;
+      &lt;/ColumnReference&gt;
+    &lt;/OuterReferences&gt;
+    &lt;RelOp AvgRowSize="101" EstimateCPU="0.00059304" EstimateIO="0"
+           EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row"
+           EstimateRows="14.1876" LogicalOp="Inner Join" NodeId="1" Parallel="false"
+           PhysicalOp="Nested Loops" EstimatedTotalSubtreeCost="1.03974"&gt;&hellip;&lt;/RelOp&gt;
+    &lt;RelOp AvgRowSize="61" EstimateCPU="0.0001581" EstimateIO="0.003125"
+           EstimateRebinds="1.78078" EstimateRewinds="11.4068"
+           EstimatedExecutionMode="Row" EstimateRows="1" EstimatedRowsRead="1"
+           LogicalOp="Clustered Index Seek" NodeId="14" Parallel="false"
+           PhysicalOp="Clustered Index Seek" EstimatedTotalSubtreeCost="0.00778646"
+           TableCardinality="701"&gt;&hellip;&lt;/RelOp&gt;</code></pre>
+        <div class="cap"><b>OuterReferences</b> on <code>StoreID</code>: the outer input's StoreID values are pushed down into the inner input, a <b>Clustered Index Seek</b> on Store (NodeId 14) — the last operator called. Exactly the Outer References mechanic from Chapter 4, written out.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 13-7 · NodeId 1 uses a Predicate instead</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>&lt;NestedLoops Optimized="0"&gt;
+  &lt;Predicate&gt;
+    &lt;ScalarOperator ScalarString="[AdventureWorks2016].[Sales].[SalesTerritory].[TerritoryID]
+                                 as [st].[TerritoryID]=
+                                 [AdventureWorks2016].[Sales].[Customer].[TerritoryID]
+                                 as [c].[TerritoryID]"&gt;
+&hellip;Etc&hellip;
+  &lt;/Predicate&gt;</code></pre>
+        <div class="cap">A plain <b>Predicate</b> comparison rather than an outer reference — this join is evaluated as a hash-free equality between TerritoryID values rather than by seeking per row.</div>
+      </div>
+    </section>
+
+    <section class="card" id="ch13-actual">
+      <h2><span class="num">2</span> What the actual plan's XML adds</h2>
+      <p class="lede">Execute the same query and the document grows: grant details, degree of parallelism, and per-thread runtime counters for every operator.</p>
+
+      <div class="code">
+        <header><span>Listing 13-8 · QueryPlan, estimated then actual</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="cm">&lt;!-- estimated plan --&gt;</span>
+&lt;QueryPlan NonParallelPlanReason="CouldNotGenerateValidParallelPlan"
+           CachedPlanSize="104" CompileTime="9" CompileCPU="9" CompileMemory="1160"&gt;
+  &lt;MemoryGrantInfo SerialRequiredMemory="2048" SerialDesiredMemory="2632"&gt;
+
+<span class="cm">&lt;!-- actual plan: same, plus runtime values --&gt;</span>
+&lt;QueryPlan DegreeOfParallelism="0"
+           NonParallelPlanReason="CouldNotGenerateValidParallelPlan"
+           MemoryGrant="2632"
+           CachedPlanSize="104" CompileTime="9" CompileCPU="9" CompileMemory="1160"&gt;
+  &lt;MemoryGrantInfo SerialRequiredMemory="2048" SerialDesiredMemory="2632"
+                   RequiredMemory="2048" DesiredMemory="2632" RequestedMemory="2632"
+                   GrantWaitTime="0" GrantedMemory="2632" MaxUsedMemory="640"
+                   MaxQueryMemory="576112" /&gt;</code></pre>
+        <div class="cap">The four numbers to read: <b>RequestedMemory 2632</b>, <b>GrantedMemory 2632</b>, <b>MaxUsedMemory 640</b>, and <b>GrantWaitTime 0</b> — how long the query queued for its grant. Compare with Chapter 12's <code>ExcessiveGrant</code> warning, where granted was 80,840 KB against 3,192 used.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 13-9 · RunTimeInformation per operator</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>&lt;RelOp AvgRowSize="149" EstimateCPU="5.9304E-05" EstimateIO="0"
+       EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row"
+       EstimateRows="1" LogicalOp="Inner Join" NodeId="0" Parallel="false"
+       PhysicalOp="Nested Loops" EstimatedTotalSubtreeCost="1.04758"&gt;
+  &lt;OutputList&gt;
+  &hellip;Etc&hellip;
+  &lt;/OutputList&gt;
+  &lt;RunTimeInformation&gt;
+    &lt;RunTimeCountersPerThread Thread="0" ActualRows="1" Batches="0"
+                              ActualEndOfScans="1" ActualExecutions="1"
+                              ActualExecutionMode="Row"
+                              ActualElapsedms="6" ActualCPUms="6" /&gt;
+  &lt;/RunTimeInformation&gt;</code></pre>
+        <div class="cap">One <code>RunTimeCountersPerThread</code> per thread — which is precisely where Chapter 11's per-thread row distributions came from, and why a parallel plan's operator has four of these elements.</div>
+      </div>
+    </section>
+
+    <section class="card" id="ch13-sharing">
+      <h2><span class="num">3</span> Saving and sharing plans — carefully</h2>
+      <p class="lede">The native format is the XML, and it round-trips to a picture. But it also carries your query text and parameter values.</p>
+
+      <p>
+        You can only <b>save</b> a plan from the graphical view: right-click → <b>Save Execution Plan As…</b>
+        → a <code class="inl">.sqlplan</code> file. Saving from the results grid only captures what's
+        displayed on screen. (A PowerShell script works too, if you want to write XML straight to
+        <code class="inl">.sqlplan</code>.) The payoff: collect many plans as files, then open them all in a
+        viewer and <b>compare graphical plans side by side</b>. Third-party tools use the same format
+        (Chapter 17).
+      </p>
+
+      <div class="note warn">
+        <b>Two privacy facts before you post a plan</b>
+        The XML stores the <b>query text</b> and the <b>parameter values</b>. That can include proprietary
+        logic or personally identifying information — a plan for a query filtering on an email address can
+        contain that address. Sanitise before sharing publicly.
+      </div>
+    </section>
+
+    <section class="card" id="ch13-need">
+      <h2><span class="num">4</span> The three times you genuinely need the XML</h2>
+      <p class="lede">Plan forcing, Extended Events captures, and missing-index detail. Only the first is common; all three are cases where the picture is missing something.</p>
+
+      <h3 class="step">Plan forcing (Chapter 9 revisited)</h3>
+      <p>
+        A plan guide applying <code class="inl">USE PLAN</code> needs the plan's XML as the
+        <code class="inl">@hints</code> parameter. Capture it with <code class="inl">SET STATISTICS XML</code>:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 13-10 · capture the XML programmatically</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SET STATISTICS XML ON</span>;
+<span class="kw">SELECT</span>  poh.PurchaseOrderID,
+        poh.ShipDate,
+        poh.ShipMethodID
+<span class="kw">FROM</span>    Purchasing.PurchaseOrderHeader <span class="kw">AS</span> poh
+<span class="kw">WHERE</span>   poh.ShipDate <span class="kw">BETWEEN</span> '20140103' <span class="kw">AND</span> '20140303';
+<span class="kw">GO</span>
+<span class="kw">SET STATISTICS XML OFF</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter13/fig-13-3-xml-plan-link.png"
+             alt="Results grid showing a clickable hyperlink to the XML execution plan.">
+        <figcaption><b>Figure 13-3</b> — In grid mode the XML arrives as a <b>clickable link</b>. Click it and you get the graphical plan; right-click and <b>copy</b> it and you have the string for <code class="inl">@hints</code>. In text mode you get an unclickable, possibly truncated fragment — set output to grid.</figcaption>
+      </figure>
+
+      <h3 class="step">Extended Events plans are missing their first operator</h3>
+      <p>
+        Capture a plan with Extended Events (Chapter 15) and the graphical version has <b>no SELECT/INSERT/
+        UPDATE/DELETE operator</b> — so all the metadata that operator carries is inaccessible, unless you
+        switch to the XML. The XML from Extended Events (and Trace) is a <b>reduced</b> document, different
+        from SSMS, the plan cache and Query Store:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 13-11 · Extended Events XML, between Statement and the first RelOp</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>&lt;StmtSimple StatementSubTreeCost="1.04758" StatementEstRows="1"
+            SecurityPolicyApplied="false" StatementOptmLevel="FULL"
+            QueryHash="0x6F422E0A48C0E2DA" QueryPlanHash="0xBF47C4983DC8361D"
+            StatementOptmEarlyAbortReason="TimeOut"
+            CardinalityEstimationModelVersion="140"&gt;
+  &lt;QueryPlan DegreeOfParallelism="0" MemoryGrant="2632"
+             NonParallelPlanReason="CouldNotGenerateValidParallelPlan"
+             CachedPlanSize="104" CompileTime="10" CompileCPU="10"
+             CompileMemory="1160"&gt;
+    &lt;MemoryGrantInfo SerialRequiredMemory="2048" SerialDesiredMemory="2632"
+                     RequiredMemory="2048" DesiredMemory="2632"
+                     RequestedMemory="2632" GrantWaitTime="0" GrantedMemory="2632"
+                     MaxUsedMemory="640" MaxQueryMemory="573840"&gt;
+    &lt;/MemoryGrantInfo&gt;
+    &lt;OptimizerHardwareDependentProperties EstimatedAvailableMemoryGrant="157286"
+                                          EstimatedPagesCached="19660"
+                                          EstimatedAvailableDegreeOfParallelism="2"
+                                          MaxCompileMemory="1475656"&gt;
+    &lt;/OptimizerHardwareDependentProperties&gt;
+  &lt;OptimizerStatsUsage&gt;&hellip;&lt;/OptimizerStatsUsage&gt;</code></pre>
+        <div class="cap">The book is candid that it has no full explanation from Microsoft for the reduction; the capture code appears to have originated in Trace Events and been duplicated into Extended Events. What remains is still useful — and only available here.</div>
+      </div>
+
+      <h3 class="step">Missing index detail</h3>
+      <p>
+        Before SQL Server 2012 the graphical plan showed <b>only one</b> missing index when several applied;
+        on older versions the XML is the only place to see them all. But even on current versions there's a
+        reason to look: the XML ties the suggestion to <b>the query that triggered it</b>. The
+        Microsoft-supplied missing-index DMVs can't do that correlation at all.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 13-12 · MissingIndexes in the plan XML</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>&lt;MissingIndexes&gt;
+  &lt;MissingIndexGroup Impact="83.5833"&gt;
+    &lt;MissingIndex Database="[AdventureWorks2016]" Schema="[Purchasing]"
+                  Table="[PurchaseOrderHeader]"&gt;
+      &lt;ColumnGroup Usage="INEQUALITY"&gt;
+        &lt;Column Name="[ShipDate]" ColumnId="8" /&gt;
+      &lt;/ColumnGroup&gt;
+      &lt;ColumnGroup Usage="INCLUDE"&gt;
+        &lt;Column Name="[ShipMethodID]" ColumnId="6" /&gt;
+      &lt;/ColumnGroup&gt;
+    &lt;/MissingIndex&gt;
+  &lt;/MissingIndexGroup&gt;
+&lt;/MissingIndexes&gt;</code></pre>
+        <div class="cap">Read it as a suggested <code>CREATE INDEX</code>: <b>key</b> on ShipDate (INEQUALITY), <b>INCLUDE</b> ShipMethodID, projected impact <b>83.58%</b>.</div>
+      </div>
+
+      <div class="note warn">
+        <b>Missing-index suggestions are only as good as the statistics behind them</b>
+        The book's verdict is blunt: sometimes very unreliable, and they <b>ignore the cost of maintaining</b>
+        the new index. A suggestion with 83% impact on one query might be a write penalty on every
+        <code class="inl">INSERT</code> in the workload. Test before you create (Chapter 8's trade-offs).
+      </div>
+    </section>
+
+    <section class="card" id="ch13-xquery">
+      <h2><span class="num">5</span> The real reason: querying plans with XQuery</h2>
+      <p class="lede">Thousands of cached plans, one pattern to find. This is where XML stops being a curiosity and becomes a tool.</p>
+
+      <p>
+        The DMOs from Chapter 9 (<code class="inl">sys.dm_exec_query_stats</code>,
+        <code class="inl">sys.dm_exec_cached_plans</code>) and Query Store all hand you plans in this same XML
+        format — Query Store stores it as text, so you <code class="inl">CAST</code> it to
+        <code class="inl">XML</code>. Then XQuery lets you pull out elements, attributes and values.
+      </p>
+
+      <div class="plain">
+        <div><span>Find patterns at scale</span>Search every plan for, say, <code class="inl">Reason For Early Termination</code> instead of clicking through thousands of property sheets one at a time.</div>
+        <div><span>Correlate plan detail to queries</span>Combine missing-index suggestions with execution stats and SQL text — the one thing the missing-index DMVs cannot do.</div>
+        <div><span>Search a huge plan</span>On a very large plan, querying for a value is easier than scrolling a canvas looking for an operator (more in Chapter 14).</div>
+      </div>
+
+      <div class="note warn">
+        <b>XQuery is expensive</b>
+        It's inherently costly, mostly through <b>memory</b> consumption, so an unfiltered query against the
+        plan cache can genuinely hurt a busy server. Always narrow the scope — restrict to a single
+        database, for instance. Better still, export the plans (and runtime stats) to a table on another
+        server and run the XQuery there.
+      </div>
+
+      <h3 class="step">Example 1 — the most expensive operators in the most-executed query</h3>
+
+      <div class="code">
+        <header><span>Listing 13-13 · shredding the plan XML</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">WITH</span> Top1Query
+<span class="kw">AS</span> (<span class="kw">SELECT TOP</span> (1)
+           dest.text,
+           deqp.query_plan
+    <span class="kw">FROM</span> sys.dm_exec_query_stats <span class="kw">AS</span> deqs
+        <span class="kw">CROSS APPLY</span> sys.dm_exec_sql_text(deqs.sql_handle) <span class="kw">AS</span> dest
+        <span class="kw">CROSS APPLY</span> sys.dm_exec_query_plan(deqs.plan_handle) <span class="kw">AS</span> deqp
+    <span class="kw">ORDER BY</span> deqs.execution_count <span class="kw">DESC</span>)
+<span class="kw">SELECT TOP</span> 3
+       tq.text,
+       RelOp.op.value('@PhysicalOp', 'varchar(50)') <span class="kw">AS</span> PhysicalOp,
+       RelOp.op.value('@EstimateCPU', 'float') + RelOp.op.value('@EstimateIO', 'float') <span class="kw">AS</span> EstimatedCost
+<span class="kw">FROM</span> Top1Query <span class="kw">AS</span> tq
+    <span class="kw">CROSS APPLY</span> tq.query_plan.nodes('declare default element namespace "http://schemas.microsoft.com/sqlserver/2004/07/showplan";
+    //RelOp') RelOp(op)
+<span class="kw">ORDER BY</span> EstimatedCost <span class="kw">DESC</span>;</code></pre>
+        <div class="cap">The book's own caution: this is an illustration of what's possible — don't run it on a production server that's already under stress.</div>
+      </div>
+
+      <div class="note tip">
+        <b>How to read it</b>
+        The CTE picks the single most frequently executed query in cache. For each row,
+        <code class="inl">CROSS APPLY … .nodes()</code> <b>shreds</b> the plan XML into a rowset — one row
+        per <code class="inl">RelOp</code> — and the default-namespace declaration is what lets
+        <code class="inl">//RelOp</code> match without prefixing every element. Then
+        <code class="inl">.value('@PhysicalOp', …)</code> pulls an attribute out. Cost is
+        <b>EstimateCPU + EstimateIO</b>, which <i>usually</i> but not always matches Estimated Operator
+        Cost — some operators include things like memory grants.
+      </div>
+
+      <figure>
+        <img src="images/chapter13/fig-13-4-top-cost-operators.png"
+             alt="Result grid listing three operators with their estimated costs.">
+        <figcaption><b>Figure 13-4</b> — Three rows: the operator, and its estimated cost. A graphical plan's cost percentages, extracted as data you can sort and filter.</figcaption>
+      </figure>
+
+      <h3 class="step">Example 2 — missing indexes, tied to their queries</h3>
+
+      <div class="code">
+        <header><span>Listing 13-14 · missing index suggestions with the SQL that caused them</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">WITH</span> <span class="kw">XMLNAMESPACES</span>
+(
+    <span class="kw">DEFAULT</span> 'http://schemas.microsoft.com/sqlserver/2004/07/showplan'
+)
+<span class="kw">SELECT</span> deqp.query_plan.value(N'(//MissingIndex/@Database)[1]', 'NVARCHAR(256)')
+           <span class="kw">AS</span> DatabaseName,
+       dest.text <span class="kw">AS</span> QueryText,
+       deqs.total_elapsed_time,
+       deqs.last_execution_time,
+       deqs.execution_count,
+       deqs.total_logical_writes,
+       deqs.total_logical_reads,
+       deqs.min_elapsed_time,
+       deqs.max_elapsed_time,
+       deqp.query_plan,
+       deqp.query_plan.value(N'(//MissingIndex/@Table)[1]', 'NVARCHAR(256)')
+           <span class="kw">AS</span> TableName,
+       deqp.query_plan.value(N'(//MissingIndex/@Schema)[1]', 'NVARCHAR(256)')
+           <span class="kw">AS</span> SchemaName,
+       deqp.query_plan.value(N'(//MissingIndexGroup/@Impact)[1]', 'DECIMAL(6,4)')
+           <span class="kw">AS</span> ProjectedImpact,
+       ColumnGroup.value('./@Usage', 'NVARCHAR(256)') <span class="kw">AS</span> ColumnGroupUsage,
+       ColumnGroupColumn.value('./@Name', 'NVARCHAR(256)') <span class="kw">AS</span> ColumnName
+<span class="kw">FROM</span> sys.dm_exec_query_stats <span class="kw">AS</span> deqs
+    <span class="kw">CROSS APPLY</span> sys.dm_exec_query_plan(deqs.plan_handle) <span class="kw">AS</span> deqp
+    <span class="kw">CROSS APPLY</span> sys.dm_exec_sql_text(deqs.sql_handle) <span class="kw">AS</span> dest
+    <span class="kw">CROSS APPLY</span> deqp.query_plan.nodes('//MissingIndexes/MissingIndexGroup/MissingIndex/ColumnGroup') <span class="kw">AS</span> t1(ColumnGroup)
+    <span class="kw">CROSS APPLY</span> t1.ColumnGroup.nodes('./Column') <span class="kw">AS</span> t2(ColumnGroupColumn);</code></pre>
+        <div class="cap">Two <code>.nodes()</code> calls nested: the first shreds to <code>ColumnGroup</code>, the second to each <code>Column</code> inside it. Because <code>ColumnGroupUsage</code> is an attribute of the group and <code>ColumnName</code> of the column, you need both levels.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter13/fig-13-5-missing-index-suggestions.png"
+             alt="Result grid with database, query text, elapsed times, counts, table, schema, impact, usage and column name per row.">
+        <figcaption><b>Figure 13-5</b> — Missing-index suggestions for AdventureWorks2014 (the book filtered to one database and trimmed columns for readability). One suggestion spans several rows — one per column — so rows 2–4 are a single index.</figcaption>
+      </figure>
+
+      <p>
+        The <code class="inl">ColumnGroupUsage</code> value tells you <b>where</b> the column belongs:
+      </p>
+      <table>
+        <thead><tr><th>Usage</th><th>Means</th><th>Goes into</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">EQUALITY</code></td><td>Equality predicate on this column</td><td><b>Key</b> of the index</td></tr>
+          <tr><td><code class="inl">INEQUALITY</code></td><td>Range/inequality predicate</td><td><b>Key</b>, after equality columns</td></tr>
+          <tr><td><code class="inl">INCLUDE</code></td><td>Needed for output, not filtering — covers the query</td><td>The <b>INCLUDE</b> clause</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note warn">
+        <b>Three caveats, straight from the book</b>
+        Not all problem queries have missing indexes; not all queries with missing indexes are problems;
+        and <b>not all problem queries are in cache</b> when you run the query. Treat the output as a lead
+        generator, not a to-do list.
+      </div>
+
+      <p>
+        And the practical advice for anyone who doesn't want to write XQuery from scratch — which is most
+        people: take Listing 13-14 and <b>adjust it</b>. The only hard part is getting the path right, and
+        the way to do that is to open the plan XML and step through the tree until you've found the element
+        you want.
+      </p>
+    </section>
+
+    <section class="card" id="ch13-cheatsheet">
+      <h2><span class="num">★</span> Chapter 13 cheat sheet</h2>
+
+      <table>
+        <thead><tr><th>Element / method</th><th>What it holds</th><th>Why you'd care</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">ShowPlanXML</code> → <code class="inl">BatchSequence</code> → <code class="inl">Batch</code> → <code class="inl">Statements</code></td><td>The nesting above any plan</td><td>Multiple <code class="inl">StmtSimple</code> children = a multi-statement batch, exactly as cached in Chapter 9.</td></tr>
+          <tr><td><code class="inl">StmtSimple</code></td><td>Statement text + statement-level attributes</td><td><code class="inl">StatementOptmEarlyAbortReason</code>, <code class="inl">QueryHash</code>, <code class="inl">StatementParameterizationType</code>.</td></tr>
+          <tr><td><code class="inl">StatementSetOptions</code></td><td>The seven SET options in force</td><td>The same list required for indexed-view matching (Chapter 10).</td></tr>
+          <tr><td><code class="inl">QueryPlan</code></td><td>Plan-level and optimizer properties</td><td><code class="inl">CompileTime</code>, <code class="inl">CachedPlanSize</code>, <code class="inl">NonParallelPlanReason</code>.</td></tr>
+          <tr><td><code class="inl">MemoryGrantInfo</code></td><td>Required / desired / requested / granted / max used / wait</td><td><code class="inl">GrantWaitTime</code> and <code class="inl">MaxUsedMemory</code> are the two you can't get from the picture.</td></tr>
+          <tr><td><code class="inl">RelOp</code></td><td>One operator</td><td>Ordered by call sequence; <code class="inl">PhysicalOp</code> vs <code class="inl">LogicalOp</code>; search <code class="inl">NodeId="xx"</code> with Ctrl-F.</td></tr>
+          <tr><td><code class="inl">OutputList</code> / <code class="inl">ColumnReference</code></td><td>Every column an operator returns, fully qualified</td><td>The easiest way to read columns on a complex plan.</td></tr>
+          <tr><td><code class="inl">OuterReferences</code> vs <code class="inl">Predicate</code></td><td>How a Nested Loops resolves its join</td><td>Pushed-down per-row seek vs. a plain comparison (Chapter 4).</td></tr>
+          <tr><td><code class="inl">RunTimeInformation</code></td><td>Per-thread rows, executions, CPU/elapsed ms</td><td>Actual plans only. Where Chapter 11's per-thread split comes from.</td></tr>
+          <tr><td><code class="inl">MissingIndexes</code></td><td>Suggested index with <code class="inl">Impact</code> and column <code class="inl">Usage</code></td><td>Correlated to the query — which the missing-index DMVs can't do.</td></tr>
+          <tr><td><code class="inl">.nodes()</code> + <code class="inl">.value()</code></td><td>Shred XML into rows / extract one value</td><td>The XQuery pair behind every plan-cache report.</td></tr>
+          <tr><td><code class="inl">WITH XMLNAMESPACES</code></td><td>Declares the showplan namespace</td><td>Without it, <code class="inl">//RelOp</code> matches nothing. Alternative: <code class="inl">declare default element namespace</code> inside <code class="inl">.nodes()</code>.</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>The XML is the plan; the picture is a renderer.</b> Nothing is lost by reading graphically, and nothing extra exists only in the picture.</li>
+        <li><b><code class="inl">.sqlplan</code> is XML.</b> Save from the graphical plan, never from the results grid, and you can share or re-open it anywhere.</li>
+        <li><b>Sanitise before sharing.</b> Query text and parameter values are in there — including anything PII in a filter.</li>
+        <li><b>Extended Events plans are reduced</b> — no first operator in the picture, less metadata in the XML. That's why the XML is still worth opening.</li>
+        <li><b>XQuery is the payoff, and it's costly.</b> Filter narrowly, or copy plans to another server and query them there.</li>
+        <li><b>Steal Listing 13-14.</b> Adjusting a working path is far easier than composing one from nothing.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        The XML plan is complete and easy to share, but not easy to read — and almost everything in it is
+        already visible in the properties of a graphical plan. Read plans graphically; learn just enough
+        XQuery to automate the questions you'd otherwise answer by hand, like "which cached queries want an
+        index, and what are they?".
+      </div>
+    </section>
