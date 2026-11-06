@@ -7,8 +7,8 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1 through 10** — 101 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 100 syntax-highlighted,
+One self-contained HTML file covering **Chapters 1 through 11** — 113 figures embedded as inline
+base64 images (works offline, no server, no external assets) and 105 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -23,6 +23,7 @@ copyable T-SQL listings.
 | 8 | Locking, Blocking, and Concurrency | 219–262 | 8-1 … 8-14 | 8-1 … 8-13 |
 | 9 | tempdb Usage and Performance | 263–292 | 9-1 … 9-8 | 9-1 … 9-14 |
 | 10 | Latches | 293–306 | 10-1 … 10-8 | 10-1 … 10-5 |
+| 11 | Transaction Log | 307–330 | 11-1 … 11-12 | 11-1 … 11-5 |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -283,6 +284,29 @@ wait families, hotspots on ever-increasing index keys, and the three fixes.
 - Listing 10-3 — Enabling the `OPTIMIZE_FOR_SEQUENTIAL_KEY` option
 - Listing 10-4 — Implementing hash partitioning
 - Listing 10-5 — Analyzing latch statistics
+
+### Chapter 11 — Transaction Log
+
+Write-ahead logging, the cost of auto-committed transactions, VLF management,
+"transaction log full" emergencies, and diagnosing log throughput.
+
+- Figure 11-1 — Data modifications and transaction logging: initial state
+- Figure 11-2 — Data modifications and transaction logging: state after the first update
+- Figure 11-3 — Data modifications and transaction logging: state after two data modifications
+- Figure 11-4 — Data modifications and transaction logging: commit operation
+- Figure 11-5 — Data modifications and transaction logging: checkpoint
+- Figure 11-6 — Data modifications and transaction logging: rollback
+- Figure 11-7 — Explicit and auto-committed transactions
+- Figure 11-8 — Performance of explicit and auto-committed transactions
+- Figure 11-9 — Transaction log and VLFs
+- Figure 11-10 — Transaction log and VLFs after the commit
+- Figure 11-11 — Inefficient VLF configuration
+- Figure 11-12 — Analyzing `log_reuse_wait_desc` data
+- Listing 11-1 — Explicit and auto-committed transactions
+- Listing 11-2 — Controlling delayed durability at the transaction level
+- Listing 11-3 — Analyzing VLFs in the database
+- Listing 11-4 — Analyzing the `log_reuse_wait_desc` column in `sys.databases`
+- Listing 11-5 — Getting active transactions
 
 ## Viewing it
 
