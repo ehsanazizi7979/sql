@@ -230,9 +230,9 @@
       figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">3 chapters covered</span>
-      <span class="badge">18 book listings</span>
-      <span class="badge">36 figures</span>
+      <span class="badge">4 chapters covered</span>
+      <span class="badge">25 book listings</span>
+      <span class="badge">61 figures</span>
       <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
@@ -271,6 +271,16 @@
     <a class="mini" href="#ch3-lookups">Lookups &amp; covering indexes</a>
     <a class="mini" href="#ch3-heap">Reading a heap</a>
     <a class="mini" href="#ch3-cheatsheet">Cheat sheet</a>
+
+    <div class="grp">Chapter 4 · Joining Data</div>
+    <a class="mini" href="#ch4-logical">Logical vs physical joins</a>
+    <a class="mini" href="#ch4-nested-loops">Nested Loops</a>
+    <a class="mini" href="#ch4-hash">Hash Match</a>
+    <a class="mini" href="#ch4-compute-scalar">Compute Scalar</a>
+    <a class="mini" href="#ch4-merge">Merge Join</a>
+    <a class="mini" href="#ch4-adaptive">Adaptive Join</a>
+    <a class="mini" href="#ch4-other">Joins that aren't joins</a>
+    <a class="mini" href="#ch4-cheatsheet">Cheat sheet</a>
   </nav>
 
   <main>
@@ -1894,6 +1904,581 @@ Seek Keys[1]:
         Scans, seeks and lookups are just different mechanisms for the same job. None is inherently
         good or bad — read the operator properties, see how many rows were processed versus returned,
         and how the filtering actually worked.
+      </div>
+    </section>
+
+
+    <div class="chapterbar" id="chapter4">
+      <span class="cnum">Chapter 4</span>
+      <div>
+        <h2>Joining Data</h2>
+        <p>Four physical join operators — Nested Loops, Hash Match, Merge Join, Adaptive Join — and
+        the eight logical operations they can implement. This is where most plans get interesting.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch4-logical">
+      <h2><span class="num">1</span> Logical vs physical joins</h2>
+      <p class="lede">You write a JOIN. The optimizer picks an algorithm. Those are two different things.</p>
+
+      <p>
+        The optimizer can implement your join with one of <b>four physical operators</b>:
+      </p>
+      <table>
+        <thead><tr><th>Operator</th><th>How it works</th><th>Wins when…</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Nested Loops</b></td>
+            <td>For each row in the top (outer) input, do one search of the bottom (inner) input.</td>
+            <td>The outer input is <b>small</b> and the inner input is <b>cheap to seek</b>.</td>
+          </tr>
+          <tr>
+            <td><b>Hash Match</b></td>
+            <td>Build a hash table from the top input, then probe it with rows from the bottom input.</td>
+            <td>Inputs are <b>unsorted</b> and <b>large</b>, or there are no usable indexes.</td>
+          </tr>
+          <tr>
+            <td><b>Merge Join</b></td>
+            <td>Read both inputs in order and merge them, matching values as it goes.</td>
+            <td>Both inputs are <b>already sorted</b> on the join column.</td>
+          </tr>
+          <tr>
+            <td><b>Adaptive Join</b> <sup>2017+</sup></td>
+            <td>Defers the choice — Hash Match or Nested Loops — until runtime, when the real row count is known.</td>
+            <td>Row counts are hard to estimate (e.g. columnstore), and you need both options available.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Those four implement <b>eight logical operations</b> — plus two things that aren't really joins:</p>
+      <div class="opgrid">
+        <div class="opcol">
+          <h4>Written explicitly in T-SQL</h4>
+          <span>Inner Join</span><span>Outer Join (Left/Right/Full)</span>
+        </div>
+        <div class="opcol">
+          <h4>Produced by EXISTS / IN</h4>
+          <span>Semi Join (Left/Right)</span><span>Anti Semi Join (Left/Right)</span>
+        </div>
+        <div class="opcol">
+          <h4>Not a join at all</h4>
+          <span>Concatenation (UNION ALL)</span><span>Union (UNION)</span>
+        </div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 4-1 · the chapter's running example</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> e.JobTitle, a.City,
+  p.LastName + <span class="str">', '</span> + p.FirstName <span class="kw">AS</span> EmployeeName
+  <span class="kw">FROM</span> HumanResources.Employee <span class="kw">AS</span> e
+    <span class="kw">INNER JOIN</span> Person.BusinessEntityAddress <span class="kw">AS</span> bea
+      <span class="kw">ON</span> e.BusinessEntityID = bea.BusinessEntityID
+    <span class="kw">INNER JOIN</span> Person.Address <span class="kw">AS</span> a
+      <span class="kw">ON</span> bea.AddressID = a.AddressID
+    <span class="kw">INNER JOIN</span> Person.Person <span class="kw">AS</span> p
+      <span class="kw">ON</span> e.BusinessEntityID = p.BusinessEntityID;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter4/fig-4-1-two-nested-loops-plan.png"
+             alt="Plan with SELECT, Compute Scalar, Nested Loops, Hash Match 16%, Nested Loops, Clustered Index Scan on Employee 1%, Clustered Index Seek on BusinessEntityAddress 7%, Index Scan on Address 48%, Clustered Index Seek on Person 27%.">
+        <figcaption><b>Figure 4-1</b> — Three joins, three different choices: <b>Nested Loops</b>, then <b>Hash Match</b> (16%), then <b>Nested Loops</b> again, with a Compute Scalar to finish.</figcaption>
+      </figure>
+
+      <p>
+        Read right to left: Employee ⨝ BusinessEntityAddress (Nested Loops) → that stream ⨝ Address
+        (Hash Match, on AddressID) → that stream ⨝ Person (Nested Loops, on BusinessEntityID) →
+        Compute Scalar → SELECT.
+      </p>
+      <div class="note tip">
+        <b>Don't start with the expensive box</b>
+        The tempting move is to jump at the 48% Index Scan or the 27% Clustered Index Seek. The book's
+        advice is the opposite: first understand <i>what the plan does overall</i>, then ask why each
+        operator was chosen. The cost percentages only make sense once you see how the pieces interact.
+      </div>
+    </section>
+
+    <section class="card" id="ch4-nested-loops">
+      <h2><span class="num">2</span> Nested Loops</h2>
+      <p class="lede">Two cursors, one inside the other. Brilliant when the outer set is small — catastrophic when it isn't.</p>
+
+      <p>
+        The <b>outer input</b> is the top pipe; the <b>inner input</b> is the bottom pipe. For every row
+        from the outer input, the operator calls the inner input once. So <b>everything in the bottom
+        branch executes once per outer row</b>. This is why "scan on top, seek below" is the classic
+        Nested Loops shape.
+      </p>
+
+      <figure>
+        <img src="images/chapter4/fig-4-2-nested-loops-outer-inner.png"
+             alt="Close-up of a Nested Loops (Inner Join) with the outer input feeding from the top and the inner input from the bottom.">
+        <figcaption><b>Figure 4-2</b> — Outer input on top, inner input below. The logical operation here is <b>Inner Join</b>; Nested Loops is just the physical implementation.</figcaption>
+      </figure>
+
+      <p>
+        Here the outer input is a clustered index scan of Employee (290 rows), so the inner input — the
+        clustered index seek on BusinessEntityAddress — runs <b>290 times</b>.
+      </p>
+
+      <figure>
+        <img src="images/chapter4/fig-4-3-nested-loops-properties.png"
+             alt="Nested Loops properties: Actual Number of Rows 290, Estimated Number of Rows 275.573, Number of Executions 1, Logical Operation Inner Join, Physical Operation Nested Loops.">
+        <figcaption><b>Figure 4-3</b> — 290 actual vs <b>275.573</b> estimated. The .573 proves it's a calculation, not a count — and the gap is small enough to ignore.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>The most misread number in execution plans</b>
+        On the inner branch, Figure 4-4 shows <b>Estimated Number of Rows = 1</b> but
+        <b>Actual = 290</b>. That looks like a catastrophic estimate error. It isn't: SSMS reports the
+        estimated rows <b>per execution</b> (1 row × 275.573 estimated executions ≈ 275.573), while the
+        actual figure is the <b>total</b> across all executions (290, i.e. ~1 per execution). Always check
+        <b>Number of Executions</b> before panicking.
+      </div>
+
+      <figure>
+        <img src="images/chapter4/fig-4-4-nested-loops-runtime.png"
+             alt="Clustered Index Seek properties: Estimated Number of Rows 1, Estimated Number of Executions 275.573, Number of Executions 290, Estimated Operator Cost 37%.">
+        <figcaption><b>Figure 4-4</b> — The 27%-cost seek explained: <b>290 executions</b> of a 3-logical-read operation. That's where the cost comes from, not from any one execution.</figcaption>
+      </figure>
+
+      <p>
+        Note the comparison the book draws: the seek on BusinessEntityAddress runs even <i>more</i> often
+        (290 times, versus ~275 for Person) yet costs less — because that table has fewer bytes per row,
+        one less level of index pages, so <b>2 logical reads instead of 3</b> per execution.
+      </p>
+
+      <h3 class="step">Two ways to resolve the join condition</h3>
+      <table>
+        <thead><tr><th></th><th>Outer References</th><th>Predicate</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Mechanism</b></td>
+            <td>Values from the outer row are <b>pushed down</b> into the inner input, which can then seek on them.</td>
+            <td>Nothing is pushed down; the inner input returns the same rows every time, and Nested Loops filters them.</td>
+          </tr>
+          <tr>
+            <td><b>Effect</b></td>
+            <td>Inner input only ever returns matching rows — no validation work.</td>
+            <td>Inner input is re-read identically; fewer index seeks possible.</td>
+          </tr>
+          <tr>
+            <td><b>Best case</b></td>
+            <td>Pushed-down column is the <b>leading column of a usable index</b> ⇒ Index Seek. This is the situation you want.</td>
+            <td>Seen with non-sargable joins; usually the slower option.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <figure>
+        <img src="images/chapter4/fig-4-5-outer-references.png"
+             alt="Outer References expanded showing BusinessEntityID from HumanResources.Employee and Expr1008.">
+        <figcaption><b>Figure 4-5</b> — <code class="inl">BusinessEntityID</code> is pushed down, and it happens to be the leading column of the index on BusinessEntityAddress ⇒ seek. The mystery <code class="inl">Expr1008</code> appears nowhere else in the plan; it's an artefact of the comparison inside the seek.</figcaption>
+      </figure>
+
+      <h3 class="step">Rebinds and Rewinds</h3>
+      <p>
+        Both count calls to an operator's <code class="inl">Init()</code>. Every execution of the inner
+        input is one or the other:
+      </p>
+      <ul>
+        <li><b>Rebind</b> — the pushed-down value <b>changed</b> (including the very first execution).</li>
+        <li><b>Rewind</b> — the value is <b>unchanged</b>, or there are no Outer References at all.</li>
+      </ul>
+      <figure>
+        <img src="images/chapter4/fig-4-6-seek-rebinds-rewinds.png"
+             alt="Clustered Index Seek properties: Estimated Rebinds 289, Estimated Rewinds 0, Actual Rebinds 0, Actual Rewinds 0, Number of Executions 290.">
+        <figcaption><b>Figure 4-6</b> — The inner seek of Figure 4-5: <b>Estimated Rebinds 289</b>, but <b>Actual Rebinds 0</b>. The estimate assumes 290 executions with 289 changed values; in reality nothing downstream caches results, so the counters stay empty and tell you nothing.</figcaption>
+      </figure>
+
+      <p>
+        Why care? Because if the previous results are <b>stored somewhere</b>, a Rewind can skip all the
+        downstream work. That only happens with operators that cache their output:
+        <b>Index Spool, Table Spool, Row Count Spool, Sort, Remote Query, and table-valued functions</b>.
+        With none of those present, Rebinds and Rewinds stay at zero and the properties are noise.
+      </p>
+
+      <figure>
+        <img src="images/chapter4/fig-4-7-rebinds-rewinds-spool.png"
+             alt="Index Spool properties: Actual Number of Rows 14, Actual Rebinds 10, Actual Rewinds 4.">
+        <figcaption><b>Figure 4-7</b> — 14 rows from the outer input, 10 distinct values: <b>10 Rebinds + 4 Rewinds</b>. The four rewinds mean the operators to the right of the spool ran only 10 times, not 14.</figcaption>
+      </figure>
+    </section>
+
+    <section class="card" id="ch4-hash">
+      <h2><span class="num">3</span> Hash Match</h2>
+      <p class="lede">Build a lookup table in memory, then stream the other side against it.</p>
+
+      <p>
+        Two phases: <b>Build</b> (top input → hash table in memory) and <b>Probe</b> (bottom input,
+        row by row, hashed and matched). The optimizer always picks what it thinks is the
+        <b>smaller</b> input as the Build side.
+      </p>
+
+      <figure>
+        <img src="images/chapter4/fig-4-8-hash-match-two-inputs.png"
+             alt="Hash Match (Inner Join) at 16% with the top Build input from a Nested Loops and the bottom Probe input from an Index Scan on Address at 48%.">
+        <figcaption><b>Figure 4-8</b> — Build = 290 rows from the first Nested Loops. Probe = 19,614 rows from the Address index scan.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter4/fig-4-9-hash-keys.png"
+             alt="Hash Keys Build showing BusinessEntityAddress.AddressID and Hash Keys Probe showing Address.AddressID.">
+        <figcaption><b>Figure 4-9</b> — <b>Hash Keys Build</b> and <b>Hash Keys Probe</b> name the exact columns being hashed. If they don't match each other, something unexpected is happening.</figcaption>
+      </figure>
+
+      <div class="plain">
+        <div>
+          <span>Hashing</span>
+          Turning data into a number so it can be found quickly. The same input always gives the same number.
+        </div>
+        <div>
+          <span>Hash table</span>
+          Buckets. The goal is <b>many buckets, few rows per bucket</b> — minimal collisions, fast probes.
+        </div>
+      </div>
+
+      <h3 class="step">When Hash Match is chosen — and when it hurts</h3>
+      <ul>
+        <li>It is <b>blocking during Build</b>: it must read the whole top input before emitting anything.</li>
+        <li>Chosen when inputs are <b>unsorted</b> on the join column, or when no usable index exists, or when a large fraction of an index would be scanned anyway.</li>
+        <li>If inputs are already sorted, the optimizer usually prefers a <b>Merge Join</b> — the sort is free.</li>
+        <li><b>The only real failure mode:</b> the Build input is far bigger than estimated, exceeds its memory grant, and <b>spills to disk</b>.</li>
+      </ul>
+
+      <div class="note">
+        <b>A Hash Match can be a clue, not a diagnosis</b>
+        Seeing one sometimes indicates a <b>missing or unusable index</b>, or a <b>non-SARGable</b> WHERE
+        clause — a calculation or conversion wrapped around the column, so the "search argument" can't
+        use the index. But often, as in this plan (no WHERE clause at all), Hash Match is simply the
+        cheapest way to combine everything, and "tuning" it would make things worse.
+      </div>
+    </section>
+
+    <section class="card" id="ch4-compute-scalar">
+      <h2><span class="num">4</span> Compute Scalar (and its hidden cost)</h2>
+      <p class="lede">Not a join — but it sits in this plan, and it hides a trap.</p>
+
+      <figure>
+        <img src="images/chapter4/fig-4-11-compute-scalar-cost.png"
+             alt="Plan fragment showing Compute Scalar at Cost 0% feeding SELECT.">
+        <figcaption><b>Figure 4-11</b> — In the graphical plan it simply reads <b>Cost: 0%</b>. That zero is the thing to distrust.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter4/fig-4-10-compute-scalar-icon.png"
+               alt="The Compute Scalar operator icon.">
+          <figcaption><b>Figure 4-10</b> — The Compute Scalar icon.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter4/fig-4-12-compute-scalar-defined-values.png"
+               alt="Compute Scalar defined values showing Expr1004 = Scalar Operator concatenation, cost 0.000027 (0%), Output List including Expr1004.">
+          <figcaption><b>Figure 4-12</b> — <code class="inl">Expr1004</code> is the <code class="inl">LastName + ', ' + FirstName</code> concatenation, estimated at 0.000027.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note warn">
+        <b>The costing formula is fake</b>
+        A Compute Scalar is costed at roughly <code class="inl">0.0000001 × Estimated Number of Rows</code>
+        — <b>regardless of how complex the expression is</b>. Performance testing showed a UDF using a
+        thousand nested calls costed at the same 0.001 as one using a single call. Multiply that by 1,000
+        rows and the real cost is ~72 seconds, while the optimizer thinks it is 100 nanoseconds.
+      </div>
+      <p>
+        Two practical consequences:
+      </p>
+      <ul>
+        <li>The <b>logical</b> position of a Compute Scalar in the plan is not necessarily where the work
+          physically happens — so in an actual plan it may show <b>no rows and no executions</b> at all.</li>
+        <li>With <b>scalar UDFs</b> inside, this is where truly surprising slowness hides. If a plan is slow
+          for no visible reason, look for Compute Scalar with a function call.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="ch4-merge">
+      <h2><span class="num">5</span> Merge Join</h2>
+      <p class="lede">Both sides sorted, zipped together in one pass. The fastest join — if you can get the sort for free.</p>
+
+      <div class="code">
+        <header><span>Listing 4-2 · a Merge Join</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> c.CustomerID
+<span class="kw">FROM</span> Sales.SalesOrderDetail <span class="kw">AS</span> sod
+    <span class="kw">INNER JOIN</span> Sales.SalesOrderHeader <span class="kw">AS</span> soh
+        <span class="kw">ON</span> sod.SalesOrderID = soh.SalesOrderID
+    <span class="kw">INNER JOIN</span> Sales.Customer <span class="kw">AS</span> c
+        <span class="kw">ON</span> soh.CustomerID = c.CustomerID;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter4/fig-4-13-merge-join-plan.png"
+             alt="Plan showing Merge Join between Customer and SalesOrderHeader, plus a Hash Match for the third table.">
+        <figcaption><b>Figure 4-13</b> — Merge Join between Customer and SalesOrderHeader, then a Hash Match pulls in the third table. Notice the join order does <b>not</b> follow the query's order.</figcaption>
+      </figure>
+
+      <p>
+        The optimizer reorders tables freely when it's safe (inner joins are commutative). Here the
+        <b>guaranteed-unique</b> side — Customer — becomes the top input, giving a <b>one-to-many</b> join:
+        both scans are already ordered on CustomerID, so nothing needs sorting.
+      </p>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter4/fig-4-14-merge-join-properties.png"
+               alt="Merge Join Where (join columns) property showing Inner Side and Outer Side join columns both CustomerID.">
+          <figcaption><b>Figure 4-14</b> — The <b>Where (join columns)</b> property names both sides.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter4/fig-4-15-ordered-property.png"
+               alt="Scan properties showing Ordered = True.">
+          <figcaption><b>Figure 4-15</b> — <b>Ordered = True</b>: the optimizer <i>requires</i> this output to stay in index order. That's what makes the merge free.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note">
+        <b>Ordered = False does not mean unordered</b>
+        It means the optimizer <b>doesn't require</b> the data in order for the rest of the plan. The rows
+        may well come out sorted anyway. It's a requirement flag, not a fact about the data.
+      </div>
+
+      <h3 class="step">The Many-to-Many trap</h3>
+      <div class="code">
+        <header><span>Listing 4-3 · a two-sided duplicate join</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SET</span> STATISTICS IO <span class="kw">ON</span>;
+<span class="kw">SELECT</span>      sod.ProductID,
+            sod.SalesOrderID,
+            pv.BusinessEntityID,
+            pv.StandardPrice
+<span class="kw">FROM</span>        Sales.SalesOrderDetail   <span class="kw">AS</span> sod
+<span class="kw">INNER JOIN</span>  Purchasing.ProductVendor <span class="kw">AS</span> pv
+      <span class="kw">ON</span>    pv.ProductID = sod.ProductID;
+<span class="kw">SET</span> STATISTICS IO <span class="kw">OFF</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter4/fig-4-17-many-to-many-plan.png"
+             alt="Execution plan with a Merge Join where both inputs are scans with duplicates.">
+        <figcaption><b>Figure 4-17</b> — Both sides have duplicate ProductIDs, so this is a <b>Many to Many</b> merge.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter4/fig-4-16-many-to-many.png"
+             alt="Merge Join properties showing Many to Many = True.">
+        <figcaption><b>Figure 4-16</b> — <b>Many to Many = True</b> is the warning flag.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>STATISTICS IO output for Listing 4-3</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>(74523 rows affected)
+Table <span class="str">'Worktable'</span>. Scan count 19, logical reads 18013, ...
+Table <span class="str">'ProductVendor'</span>. Scan count 1, logical reads 7, ...
+Table <span class="str">'SalesOrderDetail'</span>. Scan count 1, logical reads 250, ...</code></pre>
+        <div class="cap">The worktable alone accounts for <b>18,013 of 18,270</b> logical reads — over 98% of the query's total I/O.</div>
+      </div>
+
+      <p>
+        Why? For a many-to-many merge, rows from the bottom input are copied to a
+        <b>worktable in tempdb</b>. When the same join value repeats, the worktable is used to
+        <b>rewind</b> to the start of those duplicates; when the value changes, it's flushed and
+        reloaded. That's the 18,000 reads.
+      </p>
+      <div class="note tip">
+        <b>If Many to Many is True but shouldn't be</b>
+        The optimizer infers uniqueness from unique indexes <i>and</i> from plan elements like a Distinct
+        or Aggregate. It can only do so when the uniqueness constraint sits on a <b>bare column</b> — not
+        when the column is wrapped in an expression or an implicit conversion. So a "wrong" True often
+        means a <b>missing constraint</b> or a type mismatch in the join predicate.
+      </div>
+    </section>
+
+    <section class="card" id="ch4-adaptive">
+      <h2><span class="num">6</span> Adaptive Join <sup>2017+</sup></h2>
+      <p class="lede">Why guess the row count at compile time when you can look at it at runtime?</p>
+
+      <div class="code">
+        <header><span>Listing 4-4 · columnstore index to force batch mode</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="cm">-- Clean up first if you've run this before</span>
+<span class="kw">DROP INDEX IF EXISTS</span> ix_csTest <span class="kw">ON</span> Production.TransactionHistory;
+<span class="kw">GO</span>
+<span class="kw">CREATE NONCLUSTERED COLUMNSTORE INDEX</span> IX_CSTest
+<span class="kw">ON</span> Production.TransactionHistory
+(
+    TransactionID,
+    ProductID,
+    ActualCost
+);</code></pre>
+        <div class="cap">Adaptive Join needs <b>batch mode</b>, which here means a columnstore index. Requires SQL Server 2017+ (or Azure SQL DB) with compatibility level ≥ 140.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 4-5 · a query that gets an Adaptive Join</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.Name <span class="kw">AS</span> ProductName,
+       th.ActualCost
+<span class="kw">FROM</span> Production.TransactionHistory <span class="kw">AS</span> th
+    <span class="kw">JOIN</span> Production.Product <span class="kw">AS</span> p
+        <span class="kw">ON</span> p.ProductID = th.ProductID
+<span class="kw">WHERE</span> th.ActualCost &gt; 0
+      <span class="kw">AND</span> th.ActualCost &lt; .21;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter4/fig-4-18-adaptive-join-plan.png"
+             alt="Adaptive Join with three inputs: Columnstore Index Scan on top, then Index Scan plus Filter, then Clustered Index Seek.">
+        <figcaption><b>Figure 4-18</b> — The giveaway: <b>three inputs</b>. Top = the shared Build input. The two lower branches are the Hash Match path (Index Scan + Filter) and the Nested Loops path (Clustered Index Seek).</figcaption>
+      </figure>
+
+      <p>
+        At compile time <b>both</b> join implementations are built into the plan. The operator runs the
+        Build phase — which is why it needs a memory grant and is blocking — and then compares the number
+        of rows actually in the hash table to a threshold.
+      </p>
+
+      <figure>
+        <img src="images/chapter4/fig-4-19-adaptive-threshold.png"
+             alt="Adaptive Threshold Rows property = 17.5647, BitmapCreator True.">
+        <figcaption><b>Figure 4-19</b> — <b>Adaptive Threshold Rows = 17.5647</b>. Above it → Hash Match. Below it → Nested Loops. The threshold varies per query, structure and statistics.</figcaption>
+      </figure>
+
+      <h3 class="step">How to tell which branch actually ran</h3>
+      <p>You need an <b>actual</b> plan — an estimated plan always shows both branches. Three tells:</p>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter4/fig-4-20-adaptive-join-properties.png"
+               alt="Adaptive Join properties: Actual Join Type HashMatch, Estimated Join Type HashMatch, Adaptive Threshold Rows 17.5647.">
+          <figcaption><b>1. Properties</b> — <b>Actual Join Type</b> vs <b>Estimated Join Type</b>. Both say HashMatch here.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter4/fig-4-21-adaptive-tooltips.png"
+               alt="Two tooltips: top input Actual Number of Rows 5, bottom input Actual Number of Rows 0.">
+          <figcaption><b>2. The pipes</b> — top input 5 rows, bottom input <b>0</b>: the Nested Loops branch never ran.</figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="images/chapter4/fig-4-22-not-executed-branch.png"
+             alt="Properties of the Index Seek showing Number of Executions = 0.">
+        <figcaption><b>3. Number of Executions = 0</b> at the end of the unused branch. This is the most reliable test — even a zero-row branch records at least one execution when it runs.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>Diagnosing Adaptive Join "misses"</b> The Extended Events event
+        <code class="inl">adaptive_join_skipped</code> tells you when and why the optimizer
+        <i>couldn't</i> use Adaptive Join for a query.
+      </div>
+      <p>
+        The trade-off is small and in your favour: if the row count turns out low, the Nested Loops
+        branch costs slightly more than a pure Nested Loops plan would have — but far less than a
+        Hash Match plan built for the wrong row count. If the row count is high, it behaves like a
+        normal Hash Match.
+      </p>
+    </section>
+
+    <section class="card" id="ch4-other">
+      <h2><span class="num">7</span> Joins that aren't joins</h2>
+      <p class="lede">Join operators turn up for EXISTS, IN, and plain old UNION ALL too.</p>
+
+      <p>
+        You already met one in Chapter 3: the Nested Loops that pairs an Index Seek with its Key Lookup.
+        Here are two more patterns.
+      </p>
+
+      <h3 class="step">Semi Join / Anti Semi Join</h3>
+      <div class="code">
+        <header><span>Listing 4-6 · EXISTS becomes a Semi Join</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> bom.ProductAssemblyID,
+       bom.PerAssemblyQty
+<span class="kw">FROM</span> Production.BillOfMaterials <span class="kw">AS</span> bom
+<span class="kw">WHERE EXISTS</span> (  <span class="kw">SELECT</span> *
+                <span class="kw">FROM</span> Production.BillOfMaterials <span class="kw">AS</span> bom2
+                <span class="kw">WHERE</span> bom.BillOfMaterialsID = bom2.ComponentID
+                      <span class="kw">AND</span> bom2.EndDate <span class="kw">IS NOT NULL</span>
+             );</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter4/fig-4-23-right-semi-join.png"
+             alt="Plan with two Clustered Index Scans joined by a Hash Match (Right Semi Join) at 45% cost.">
+        <figcaption><b>Figure 4-23</b> — A Hash Match implementing a <b>Right Semi Join</b>, not an Inner Join. Two scans of the same clustered index, one for each side of the EXISTS.</figcaption>
+      </figure>
+
+      <table>
+        <thead><tr><th>Logical operation</th><th>Comes from</th><th>Returns</th></tr></thead>
+        <tbody>
+          <tr><td><b>Semi Join</b></td><td><code class="inl">EXISTS</code>, <code class="inl">IN</code></td><td>One copy of each row that has <b>at least one</b> match. No columns from the other side.</td></tr>
+          <tr><td><b>Anti Semi Join</b></td><td><code class="inl">NOT EXISTS</code>, <code class="inl">NOT IN</code></td><td>One copy of each row that has <b>no</b> match.</td></tr>
+          <tr><td><b>Outer Join</b> (for contrast)</td><td><code class="inl">LEFT/RIGHT/FULL JOIN</code></td><td>All valid combinations <b>plus</b> one copy of each unmatched row from the preserved side.</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Left or Right is just a direction choice the optimizer makes based on the rest of the plan.
+        Once a probe finds a match, that row is returned and <b>no further comparisons are made</b> —
+        that's why semi joins are cheap.
+      </p>
+
+      <h3 class="step">Concatenation</h3>
+      <div class="code">
+        <header><span>Listing 4-7 · UNION ALL</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.LastName,
+       p.BusinessEntityID
+<span class="kw">FROM</span> Person.Person <span class="kw">AS</span> p
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> p.Name,
+       p.ProductID
+<span class="kw">FROM</span> Production.Product <span class="kw">AS</span> p;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter4/fig-4-24-concatenation-plan.png"
+             alt="Plan with a Concatenation operator feeding from two index scans.">
+        <figcaption><b>Figure 4-24</b> — <b>UNION ALL</b> ⇒ Concatenation. It reads the top input to exhaustion, then the second, appending in order. Two or more inputs allowed.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter4/fig-4-25-concatenation-properties.png"
+             alt="Concatenation properties with Defined Values and Output List expanded showing Union1002 (LastName + Name) and Union1003 (BusinessEntityID + ProductID), 20476 rows, 2% cost.">
+        <figcaption><b>Figure 4-25</b> — <b>Union1002</b> is the first column (LastName + Name), <b>Union1003</b> the second (BusinessEntityID + ProductID). 20,476 rows at 2% cost. Seeing <code class="inl">UnionNNNN</code> in an Output List is how you spot concatenation further up a plan.</figcaption>
+      </figure>
+      <div class="note">
+        <b>UNION vs UNION ALL</b>
+        <code class="inl">UNION ALL</code> → Concatenation only. <code class="inl">UNION</code> (which
+        removes duplicates) → Concatenation <b>plus</b> a Sort or Hash Match to de-duplicate. That extra
+        operator is usually the expensive part.
+      </div>
+      <div class="note tip">
+        <b>Other surprises</b> A variable in an <code class="inl">IN</code> clause can produce a
+        concatenation operation. And <code class="inl">APPLY</code> is implemented with join operators
+        too — covered in Chapter 7.
+      </div>
+    </section>
+
+    <section class="card" id="ch4-cheatsheet">
+      <h2><span class="num">★</span> Chapter 4 cheat sheet</h2>
+
+      <table>
+        <thead><tr><th>Join</th><th>Blocking?</th><th>Needs sorted input?</th><th>Watch out for</th></tr></thead>
+        <tbody>
+          <tr><td><b>Nested Loops</b></td><td>No</td><td>No</td><td>Inner branch runs <b>once per outer row</b> — check Number of Executions. Want <b>Outer References</b>, not Predicate.</td></tr>
+          <tr><td><b>Hash Match</b></td><td>Yes, during Build</td><td>No</td><td>Build input bigger than estimated ⇒ <b>spills to disk</b>. Also a clue for a missing index or non-SARGable predicate.</td></tr>
+          <tr><td><b>Merge Join</b></td><td>No</td><td><b>Yes</b></td><td>Sorts added to satisfy it; <b>Many to Many = True</b> using a tempdb worktable.</td></tr>
+          <tr><td><b>Adaptive Join</b></td><td>Yes, during Build</td><td>No</td><td>Batch mode only; both branches in the plan; check <b>Number of Executions</b> to see which ran.</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>Four physical operators, eight logical operations.</b> The plan shows both: e.g. <code class="inl">Hash Match (Right Semi Join)</code>.</li>
+        <li>On a Nested Loops inner branch, estimated rows is <b>per execution</b>; actual rows is the <b>total</b>. Compare them via Number of Executions.</li>
+        <li><b>Outer References</b> = good (pushed-down values enable seeks). <b>Predicate</b> = the inner side returns the same rows every time.</li>
+        <li>Rebinds/Rewinds only mean anything when a <b>spool, sort, or TVF</b> caches results downstream.</li>
+        <li>The optimizer <b>reorders inner joins</b> — the plan's join order needn't match your query's.</li>
+        <li><b>Compute Scalar costs are fiction</b> (0.0000001 × rows). Scalar UDFs hide real cost there.</li>
+        <li><b>Many to Many = True</b> on a Merge Join often means a missing uniqueness constraint or an expression wrapped around the join column.</li>
+        <li>Adaptive Join is only <i>slightly</i> worse than a perfect guess and much better than a wrong Hash Match.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's parting advice</b>
+        Don't expect to analyse a 2,000-line query's plan on day one. Reading plans is a skill built by
+        repetition — and the checklist from Chapter 2 is what keeps you oriented while you build it.
       </div>
     </section>
 
