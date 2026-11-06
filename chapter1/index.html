@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>T-SQL Fundamentals · Complete Book (Chapters 1–12) | Plain-English Study Companion</title>
-<meta name="description" content="Plain-English summaries of all twelve chapters of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, code samples, and original study diagrams.">
+<title>T-SQL Fundamentals · Complete Book (Chapters 1–12 + Appendix) | Plain-English Study Companion</title>
+<meta name="description" content="Plain-English summaries of the complete T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan: Chapters 1-12 plus the Getting Started appendix, with the book's figures, tables, code samples, and original study diagrams.">
 <style>
   :root{
     --paper:#f7f4ed;
@@ -239,27 +239,27 @@
   <div class="topbar-inner">
     <a class="brand" href="#top"><span class="brand-mark">1–12</span> T-SQL Fundamentals · Complete book</a>
     <div class="topbar-meta">
-      <span>Plain-English summaries</span><span class="dot"></span><span>16 figures + 9 tables + 18 diagrams</span><span class="dot"></span><span>434+ code samples</span>
+      <span>Plain-English summaries</span><span class="dot"></span><span>33 figures + 10 tables + 18 diagrams</span><span class="dot"></span><span>436+ code samples</span>
     </div>
-    <a class="pill" href="#ch12-variables">Jump to Chapter 12 ↓</a>
+    <a class="pill" href="#appendix">Jump to the Appendix ↓</a>
   </div>
 </header>
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <span class="eyebrow">📘 The complete book · Chapters 1–12 · T-SQL Fundamentals, 4th Edition</span>
+    <span class="eyebrow">📘 The complete book · Chapters 1–12 + Appendix · T-SQL Fundamentals, 4th Edition</span>
     <h1>The ideas behind the queries</h1>
     <p class="lede">A plain-English study companion for the whole of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — all twelve chapters — with the book’s figures, tables, and code, explained from the ground up.</p>
     <div class="chips">
-      <span class="chip">12 chapters · 525 book pages</span>
-      <span class="chip">16 figures + 9 tables from the book</span>
+      <span class="chip">12 chapters + appendix · 547 book pages</span>
+      <span class="chip">33 figures + 10 tables from the book</span>
       <span class="chip">18 original study diagrams</span>
-      <span class="chip">434+ code samples</span>
-      <span class="chip">~205 min read</span>
+      <span class="chip">436+ code samples</span>
+      <span class="chip">~215 min read</span>
     </div>
     <div class="hero-quote">
       <span>The complete-book version</span>
-      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets. Chapter 8 switches from reading to writing: inserts, deletes, updates, <code>MERGE</code>, key generation, and the <code>OUTPUT</code> clause. Chapter 9 puts a running history behind every row. Chapter 10 asks what happens when those statements run at the same time: transactions, locks, blocking, isolation levels, and deadlocks. Chapter 11 rebuilds the same data as a graph, where relationships themselves become tables you can query with arrows. Chapter 12 closes the book with the programmability layer: batches, flow, cursors, temporary tables, dynamic SQL, routines, and error handling.</p>
+      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets. Chapter 8 switches from reading to writing: inserts, deletes, updates, <code>MERGE</code>, key generation, and the <code>OUTPUT</code> clause. Chapter 9 puts a running history behind every row. Chapter 10 asks what happens when those statements run at the same time: transactions, locks, blocking, isolation levels, and deadlocks. Chapter 11 rebuilds the same data as a graph, where relationships themselves become tables you can query with arrows. Chapter 12 closes the book with the programmability layer: batches, flow, cursors, temporary tables, dynamic SQL, routines, and error handling. The appendix then gets your machine ready to run every sample: installing SQL Server or using Azure SQL, setting up SSMS, and creating the TSQLV6 sample database.</p>
     </div>
   </div>
 </section>
@@ -388,9 +388,17 @@
       <a href="#ch12-errors"><span class="n">12.8</span> Error handling</a>
       <a href="#ch12-recap"><span class="n">12.9</span> Recap &amp; key terms</a>
       <a href="#ch12-quiz"><span class="n">12.10</span> Check yourself</a>
+      <div class="toc-group">Appendix · Getting started</div>
+      <a href="#appx-azure"><span class="n">A.1</span> Azure SQL</a>
+      <a href="#appx-install"><span class="n">A.2</span> Installing SQL Server</a>
+      <a href="#appx-ssms"><span class="n">A.3</span> Installing SSMS</a>
+      <a href="#appx-sample"><span class="n">A.4</span> Source code &amp; TSQLV6</a>
+      <a href="#appx-work"><span class="n">A.5</span> Working in SSMS</a>
+      <a href="#appx-docs"><span class="n">A.6</span> Product documentation</a>
+      <a href="#appx-recap"><span class="n">A.7</span> Ready-to-start checklist</a>
     </nav>
     <div class="toc-foot">
-      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit; Chapter 8 turns that toolkit toward changing data; Chapter 9 records every change; Chapter 10 keeps it all correct when many sessions run at once; Chapter 11 models the data as a graph, and Chapter 12 covers the programmability layer. If you only have five minutes, read the twelve recaps.
+      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit; Chapter 8 turns that toolkit toward changing data; Chapter 9 records every change; Chapter 10 keeps it all correct when many sessions run at once; Chapter 11 models the data as a graph, and Chapter 12 covers the programmability layer, and the appendix gets your environment ready. If you only have five minutes, read the twelve recaps.
     </div>
   </aside>
 
@@ -11341,6 +11349,463 @@ END CATCH;</code></pre>
       </details>
     </section>
 
+    <!-- ================= APPENDIX ================= -->
+    <div class="part-divider" id="appendix">
+      <span class="part-eyebrow">Appendix · Getting started</span>
+      <h2>Setting up so you can run every sample</h2>
+      <p>The book closes with a practical appendix: how to get a SQL Server to run against, how to install a client tool, where to download the source code and the <code>TSQLV6</code> sample database, how to work inside SQL Server Management Studio, and how to get answers from the product documentation. Everything in Chapters 1–12 assumes this setup.</p>
+      <div class="part-chips">
+        <span>Book pages 527–547</span>
+        <span>17 figures + the data model</span>
+        <span>Box product or Azure SQL</span>
+      </div>
+    </div>
+
+    <!-- A.1 -->
+    <section class="section" id="appx-azure">
+      <div class="section-head">
+        <div class="sec-num">A.1</div>
+        <div>
+          <div class="kicker">Option one</div>
+          <h2>Getting started with Azure SQL</h2>
+        </div>
+      </div>
+      <p class="lead">You can run every sample in the book either on a Microsoft SQL Server box flavor (on premises) or on a cloud flavor such as <strong>Azure SQL Database</strong> or <strong>Azure SQL Managed Instance</strong> — whichever you already have. If you want to explore the cloud option, start here: <code>https://azure.microsoft.com/en-us/products/azure-sql/</code>.</p>
+      <div class="note">
+        <strong>One flavour caveat that matters for Chapters 10 and 11</strong>
+        Azure SQL Database enables the row-versioning isolation levels by default, so the locking-based examples in Chapter 10 need <code>READ_COMMITTED_SNAPSHOT</code> turned off first. Chapter 11’s SQL Graph samples need SQL Server 2019 or later, which both flavours satisfy.
+      </div>
+    </section>
+
+    <!-- A.2 -->
+    <section class="section" id="appx-install">
+      <div class="section-head">
+        <div class="sec-num">A.2</div>
+        <div>
+          <div class="kicker">Option two</div>
+          <h2>Installing a SQL Server box product</h2>
+        </div>
+      </div>
+      <p class="lead">This section is for those who want to run the samples against a box product and don’t already have an instance. Any edition of <strong>SQL Server 2022 or later</strong> will do.</p>
+
+      <h3 class="subhead">1 · Obtain the installation software</h3>
+      <p>The book recommends the <strong>Developer edition</strong>: the same feature set as Enterprise, licensed only for development and test in a non-production environment. Download it from <code>https://www.microsoft.com/en-us/sql-server/sql-server-downloads</code>.</p>
+      <ol class="checklist">
+        <li>Click <strong>Download now</strong> in the Developer edition section — this fetches a small file named <code>SQL2022-SSEI-Dev.exe</code>.</li>
+        <li>Open it and choose the installation type <strong>Custom</strong>.</li>
+        <li>Specify a target folder for the installation media (the default is fine).</li>
+        <li>Click <strong>Install</strong> and wait for the media to download. Setup then launches automatically and opens the SQL Server Installation Center.</li>
+      </ol>
+      <p>If you would rather finish later, close the Installation Center — you never need to download the media again. Just run <code>setup.exe</code> from the installation media folder when you are ready.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-1</span><span class="fig-src">From the book, p. 529</span></div>
+          <img class="fig-img" src="images/figure-a-1.png" alt="Screenshot of the SQL Server Installation Center showing the Planning, Installation, Maintenance, Tools, Resources, Advanced and Options sections.">
+          <div class="fig-body">
+            <p class="fig-cap">SQL Server Installation Center</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the hub every SQL Server setup task starts from. Everything below happens inside the <em>Installation</em> section on the left.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">2 · Install the database engine</h3>
+      <ol class="checklist">
+        <li>Start <code>setup.exe</code> to open the SQL Server Installation Center (Figure A-1).</li>
+        <li>In the left pane choose <strong>Installation</strong>.</li>
+        <li>In the right pane choose <strong>“New SQL Server standalone installation or add features to an existing installation.”</strong> The Edition page appears.</li>
+      </ol>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-2</span><span class="fig-src">From the book, p. 529</span></div>
+          <img class="fig-img" src="images/figure-a-2.png" alt="Screenshot of the Edition page of the SQL Server setup wizard with the Specify a free edition option and Developer selected.">
+          <div class="fig-body">
+            <p class="fig-cap">The Edition page</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> make sure <strong>Developer</strong> is selected under “Specify a free edition”, then click Next.</p>
+          </div>
+        </div>
+      </figure>
+
+      <ol class="checklist" start="4">
+        <li>Confirm <strong>Developer</strong> is selected and click Next.</li>
+        <li>Accept the license terms and click Next.</li>
+        <li>On the Install Rules page, make sure nothing is blocking you, then click Next.</li>
+        <li>On the Azure Extension for SQL Server page, <strong>deselect</strong> “The Azure Extension for SQL Server Feature” and click Next.</li>
+        <li>On the Feature Selection page (Figure A-3), select <strong>Database Engine Services</strong> — for this book you need nothing else — and click Next.</li>
+      </ol>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-3</span><span class="fig-src">From the book, p. 530</span></div>
+          <img class="fig-img" src="images/figure-a-3.png" alt="Screenshot of the Feature Selection page of the SQL Server setup wizard with the Database Engine Services feature selected.">
+          <div class="fig-body">
+            <p class="fig-cap">The Feature Selection page</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> Database Engine Services is the only feature the book uses. Everything else — Analysis Services, Reporting Services, Integration Services, Machine Learning — is out of scope.</p>
+          </div>
+        </div>
+      </figure>
+
+      <ol class="checklist" start="9">
+        <li>The Instance Configuration page appears (Figure A-4).</li>
+      </ol>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-4</span><span class="fig-src">From the book, p. 531</span></div>
+          <img class="fig-img" src="images/figure-a-4.png" alt="Screenshot of the Instance Configuration page of the SQL Server setup wizard with the Default instance and Named instance options.">
+          <div class="fig-body">
+            <p class="fig-cap">The Instance Configuration page</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> choose <strong>Default instance</strong> if no default instance exists yet on the machine, otherwise pick <strong>Named instance</strong> and give it a name such as <code>SQL2022</code>. You will later connect using just the computer name (<code>SHIRE</code>) for a default instance, or <code>computer\instance</code> (<code>SHIRE\SQL2022</code>) for a named one.</p>
+          </div>
+        </div>
+      </figure>
+
+      <ol class="checklist" start="10">
+        <li>Click Next. You don’t need to change anything on the Server Configuration page’s Service Accounts or Collation tabs for this book.</li>
+        <li>Click Next again to reach the Database Engine Configuration page (Figure A-5).</li>
+      </ol>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-5</span><span class="fig-src">From the book, p. 532</span></div>
+          <img class="fig-img" src="images/figure-a-5.png" alt="Screenshot of the Database Engine Configuration page of the SQL Server setup wizard showing Windows authentication mode selected and the current user added as a SQL Server administrator.">
+          <div class="fig-body">
+            <p class="fig-cap">The Database Engine Configuration page</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> on the Server Configuration tab, keep <strong>Windows authentication mode</strong> and click <strong>Add Current User</strong> so your own login gets the <code>sysadmin</code> server role — unrestricted access to the engine. Your user name appears where the book shows <code>SHIRE\Gandalf</code>. You can change data directories on the Data Directories tab; the TempDB, MaxDOP, Memory, and FILESTREAM tabs need no attention here.</p>
+          </div>
+        </div>
+      </figure>
+
+      <ol class="checklist" start="12">
+        <li>Click Next to see the Ready To Install summary.</li>
+        <li>Check the summary, then click <strong>Install</strong>. The Installation Progress page (Figure A-6) tracks each feature.</li>
+      </ol>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-6</span><span class="fig-src">From the book, p. 533</span></div>
+          <img class="fig-img" src="images/figure-a-6.png" alt="Screenshot of the Installation Progress page of the SQL Server setup wizard showing a progress bar and per-feature status.">
+          <div class="fig-body">
+            <p class="fig-cap">The Installation Progress page</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> a general progress bar plus a line per feature being installed. This stays open for the rest of the setup.</p>
+          </div>
+        </div>
+      </figure>
+
+      <ol class="checklist" start="14">
+        <li>When it finishes, the Complete page appears (Figure A-7) and should report success.</li>
+        <li>Click <strong>Close</strong>.</li>
+      </ol>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-7</span><span class="fig-src">From the book, p. 533</span></div>
+          <img class="fig-img" src="images/figure-a-7.png" alt="Screenshot of the Complete page of the SQL Server setup wizard indicating that the installation finished successfully.">
+          <div class="fig-body">
+            <p class="fig-cap">The Complete page</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> confirmation that the database engine installed. If a feature failed, this page tells you which one and links to the log.</p>
+          </div>
+        </div>
+      </figure>
+    </section>
+
+    <!-- A.3 -->
+    <section class="section" id="appx-ssms">
+      <div class="section-head">
+        <div class="sec-num">A.3</div>
+        <div>
+          <div class="kicker">Client tool</div>
+          <h2>Downloading and installing SSMS</h2>
+        </div>
+      </div>
+      <p class="lead">Whichever engine you use, you need a client tool to develop and execute T-SQL. You can use either <strong>SQL Server Management Studio (SSMS)</strong> or <strong>Azure Data Studio (ADS)</strong>.</p>
+      <div class="grid grid-2">
+        <div class="card"><div class="mini">SSMS</div><p><code>https://learn.microsoft.com/en-us/sql/ssms</code> — the tool the book uses for every client-side example, and the one used throughout this companion.</p></div>
+        <div class="card"><div class="mini">Azure Data Studio</div><p><code>https://learn.microsoft.com/en-us/sql/azure-data-studio</code> — a bit more user input during setup, but equally usable.</p></div>
+      </div>
+      <p>Once the download completes, run the setup program: with SSMS you simply confirm the target folder, click <strong>Install</strong>, then <strong>Close</strong>. From here on, every example that involves a client tool assumes SSMS — but the book’s focus is the language, not the tool, so use whatever you are comfortable with.</p>
+    </section>
+
+    <!-- A.4 -->
+    <section class="section" id="appx-sample">
+      <div class="section-head">
+        <div class="sec-num">A.4</div>
+        <div>
+          <div class="kicker">Sample data</div>
+          <h2>Source code and the TSQLV6 database</h2>
+        </div>
+      </div>
+      <p class="lead">Download the source code from Pearson’s book page at <code>https://microsoftpressstore.com/TSQLFund4e/downloads</code>, then extract the compressed file to a local folder such as <code>C:\TSQLFundamentals</code>.</p>
+
+      <h3 class="subhead">What’s in the download <span class="tag">p. 534</span></h3>
+      <ul class="checklist">
+        <li><strong>One file per chapter</strong> containing that chapter’s source code, so you don’t have to type it — the file name matches the chapter title.</li>
+        <li><strong>A second file per chapter</strong> with the exercises, same name plus the suffix <em>Exercises</em>.</li>
+        <li><strong>A third file per chapter</strong> with the solutions, same name plus the suffix <em>Solutions</em>.</li>
+        <li><strong><code>orders.txt</code></strong> — a text file used for the bulk-insert practice in Chapter 8, “Data modification.”</li>
+        <li><strong><code>TSQLV6.sql</code></strong> — the script that creates the book’s sample database.</li>
+      </ul>
+
+      <h3 class="subhead">Creating the database on a box product <span class="tag">p. 535</span></h3>
+      <ol class="checklist">
+        <li>Double-click <code>TSQLV6.sql</code> in File Explorer to open it in SSMS. The Connect to Database Engine dialog box appears.</li>
+        <li>In the <strong>Server name</strong> box, enter the instance you want — <code>SHIRE</code> for a default instance on a machine called SHIRE, <code>SHIRE\SQL2022</code> for a named one.</li>
+        <li>In the <strong>Authentication</strong> box, make sure <em>Windows Authentication</em> is selected, and click <strong>Connect</strong>. The dialog box may appear twice — once for Object Explorer’s connection and once for the query window’s; follow the same steps for both.</li>
+        <li>With your cursor in the query window and <strong>no code selected</strong>, press <strong>F5</strong> to run the script. When it finishes you should see “Command(s) Completed Successfully” in the Messages pane and <code>TSQLV6</code> in the Available Databases box.</li>
+        <li>Close SSMS when you’re done.</li>
+      </ol>
+
+      <h3 class="subhead">Creating the database in Azure SQL Database <span class="tag">p. 535</span></h3>
+      <ol class="checklist">
+        <li>Double-click <code>TSQLV6.sql</code> to open it in SSMS.</li>
+        <li>In the <strong>Server Name</strong> box, enter the full DNS name, for example <code>myserver.database.windows.net</code>.</li>
+        <li>Enter the right authentication option and credentials, then click <strong>Options</strong>.</li>
+        <li>On the <strong>Connection Properties</strong> tab, type <code>master</code> in the “Connect to database” box and click <strong>Connect</strong> (again, possibly twice).</li>
+        <li>Skip Section A of the script — that part is for a box product.</li>
+        <li>Create an empty database called <code>TSQLV6</code>, either through the Azure portal (choose the server, then Create Database) or by running <code>CREATE DATABASE TSQLV6;</code> from Section B of the script. Add explicit options if you want something other than the default specifications.</li>
+      </ol>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the empty database on Azure SQL</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE DATABASE TSQLV6;</code></pre>
+      </div>
+      <ol class="checklist" start="7">
+        <li>Back in SSMS, right-click an empty area of the query pane and choose <strong>Connection | Change Connection</strong>. Click Options, specify <code>TSQLV6</code>, and click Connect — or simply pick <code>TSQLV6</code> from the Available Databases box.</li>
+        <li>Highlight the code in <strong>Section C</strong> (from “Create Schemas” to the end of the file) and press <strong>F5</strong>. On a slow connection this can take a few minutes.</li>
+        <li>Close SSMS when you’re done.</li>
+      </ol>
+
+      <h3 class="subhead">Figure A-8 · the TSQLV6 data model <span class="tag">p. 537</span></h3>
+      <p>Every sample in the book runs against this model: eleven tables (nine in the main model, plus the <code>dbo.Nums</code> helper table and the two <code>Stats</code> tables used by the statistics exercises) and four views. Because the book’s artwork is vector art, the model is reproduced here as a table.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Object</th><th>Kind</th><th>Columns</th><th>Keys</th></tr></thead>
+          <tbody>
+            <tr><td><code>HR.Employees</code></td><td>Table</td><td>empid, lastname, firstname, title, titleofcourtesy, birthdate, hiredate, address, city, region, postalcode, country, phone, mgrid</td><td>PK empid; mgrid → HR.Employees (self)</td></tr>
+            <tr><td><code>Production.Categories</code></td><td>Table</td><td>categoryid, categoryname, description</td><td>PK categoryid</td></tr>
+            <tr><td><code>Production.Suppliers</code></td><td>Table</td><td>supplierid, companyname, contactname, contacttitle, address, city, region, postalcode, country, phone, fax</td><td>PK supplierid</td></tr>
+            <tr><td><code>Production.Products</code></td><td>Table</td><td>productid, productname, supplierid, categoryid, unitprice, discontinued</td><td>PK productid; categoryid → Categories; supplierid → Suppliers</td></tr>
+            <tr><td><code>Sales.Customers</code></td><td>Table</td><td>custid, companyname, contactname, contacttitle, address, city, region, postalcode, country, phone, fax</td><td>PK custid</td></tr>
+            <tr><td><code>Sales.Shippers</code></td><td>Table</td><td>shipperid, companyname, phone</td><td>PK shipperid</td></tr>
+            <tr><td><code>Sales.Orders</code></td><td>Table</td><td>orderid, custid, empid, orderdate, requireddate, shippeddate, shipperid, freight, shipname, shipaddress, shipcity, shipregion, shippostalcode, shipcountry</td><td>PK orderid; custid → Customers; empid → Employees; shipperid → Shippers</td></tr>
+            <tr><td><code>Sales.OrderDetails</code></td><td>Table</td><td>orderid, productid, unitprice, qty, discount</td><td>PK (orderid, productid); orderid → Orders; productid → Products</td></tr>
+            <tr><td><code>Sales.OrderValues</code></td><td>View</td><td>orderid, custid, empid, shipperid, orderdate, requireddate, shippeddate, qty, val</td><td>—</td></tr>
+            <tr><td><code>Sales.CustOrders</code></td><td>View</td><td>custid, ordermonth, qty</td><td>—</td></tr>
+            <tr><td><code>Sales.EmpOrders</code></td><td>View</td><td>empid, ordermonth, qty, val, numorders</td><td>—</td></tr>
+            <tr><td><code>Sales.OrderTotalsByYear</code></td><td>View</td><td>orderyear, qty</td><td>—</td></tr>
+            <tr><td><code>dbo.Nums</code></td><td>Table</td><td>n</td><td>PK n</td></tr>
+            <tr><td><code>Stats.Tests</code></td><td>Table</td><td>testid</td><td>PK testid</td></tr>
+            <tr><td><code>Stats.Scores</code></td><td>Table</td><td>testid, studentid, score</td><td>PK (testid, studentid); testid → Stats.Tests</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Figure A-8 from the book, recreated as an HTML table — the book’s artwork is vector art that cannot be extracted as an image.</p>
+      <p>Four of these show up constantly in the book: <code>Sales.OrderValues</code> (one row per order with quantity and value), <code>Sales.CustOrders</code> and <code>Sales.EmpOrders</code> (monthly aggregates used for the running-total and <code>LAG</code> examples in Chapters 7 and 12), and <code>Sales.OrderTotalsByYear</code> (annual totals used for the temp-table comparisons).</p>
+    </section>
+
+    <!-- A.5 -->
+    <section class="section" id="appx-work">
+      <div class="section-head">
+        <div class="sec-num">A.5</div>
+        <div>
+          <div class="kicker">Working in SSMS</div>
+          <h2>From Connect to Server to your first query</h2>
+        </div>
+      </div>
+      <p class="lead">This section is not a complete guide to SSMS — just enough to get you productive. SSMS is updated periodically, so your screens may differ slightly from these screenshots.</p>
+
+      <h3 class="subhead">Startup options <span class="tag">p. 537</span></h3>
+      <ol class="checklist">
+        <li>Type <strong>SSMS</strong> in the Windows Start menu and choose SQL Server Management Studio.</li>
+        <li>If this is your first run: if a Connect to Server dialog box appears, click <strong>Cancel</strong> for now; then choose <strong>Tools | Options</strong>, go to <strong>Environment | Startup</strong>, and set “At Startup” to <strong>“Open Object Explorer and query window.”</strong> Click OK.</li>
+        <li>Close and restart SSMS to confirm it opens both panes. You should get the Connect to Server dialog box (Figure A-9).</li>
+      </ol>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-9</span><span class="fig-src">From the book, p. 538</span></div>
+          <img class="fig-img" src="images/figure-a-9.png" alt="Screenshot of the Connect to Server dialog box in SQL Server Management Studio showing Server type, Server name, Authentication and the Connect button.">
+          <div class="fig-body">
+            <p class="fig-cap">The Connect to Server dialog box</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> where you name the instance. Type the server name or pick it from the list; for Azure SQL Database use the full DNS name in the form <code>yourserver.database.windows.net</code>. Choose <strong>Windows Authentication</strong> (recommended) or SQL Server Authentication; for Azure SQL, also click Options and specify <code>TSQLV6</code> in “Connect to dataset” on the Connection Properties tab.</p>
+          </div>
+        </div>
+      </figure>
+
+      <ol class="checklist" start="4">
+        <li>Click <strong>Connect</strong>. SSMS opens as in Figure A-10.</li>
+      </ol>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-10</span><span class="fig-src">From the book, p. 539</span></div>
+          <img class="fig-img" src="images/figure-a-10.png" alt="Screenshot of the opening screen of SQL Server Management Studio with Object Explorer on the left, a query window on the right, and the Properties window at the far right.">
+          <div class="fig-body">
+            <p class="fig-cap">The opening screen of SSMS</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> <strong>Object Explorer</strong> on the left (manage the server, inspect object definitions graphically), the <strong>query window</strong> next to it (where you write T-SQL), and the <strong>Properties window</strong> on the right — press <strong>F4</strong> if it is closed, and use the Auto Hide button in its top-right corner to tuck it away.</p>
+          </div>
+        </div>
+      </figure>
+
+      <p>The book urges you to explore Object Explorer: navigate the tree and right-click nodes to see what is available. It is a convenient way to inspect your databases and objects graphically (Figure A-11) — and you can <strong>drag items from Object Explorer into the query window</strong>.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-11</span><span class="fig-src">From the book, p. 540</span></div>
+          <img class="fig-img" src="images/figure-a-11.png" alt="Screenshot of the Object Explorer in SQL Server Management Studio showing a database tree expanded to the Tables folder.">
+          <div class="fig-body">
+            <p class="fig-cap">The Object Explorer</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the tree of server objects. A tip worth memorising: drag a table’s <strong>Columns</strong> folder into the query window and SSMS writes out every column, comma-separated, for you.</p>
+          </div>
+        </div>
+      </figure>
+
+      <p>The code you run executes against whichever database the query window is connected to. You choose it from the <strong>Available Databases</strong> combo box (Figure A-12), and you can change server or database at any time by right-clicking an empty area of the query window and choosing <strong>Connection | Change Connection</strong>.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-12</span><span class="fig-src">From the book, p. 540</span></div>
+          <img class="fig-img" src="images/figure-a-12.png" alt="Screenshot of the Available Databases combo box on the SQL Editor toolbar in SQL Server Management Studio showing TSQLV6 selected.">
+          <div class="fig-body">
+            <p class="fig-cap">The Available Databases combo box</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the database selector on the SQL Editor toolbar. Make sure it reads <code>TSQLV6</code> before running anything from this book — every sample assumes that database.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">Your first query <span class="tag">p. 541</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · type this into the query window</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, orderdate FROM Sales.Orders;</code></pre>
+      </div>
+      <p>Press <strong>F5</strong> to execute, or click <strong>Execute</strong> (the green right-pointing triangle). The output lands in the Results pane (Figure A-13). You control where it goes from <strong>Query | Results To</strong> or the matching toolbar icons: <em>Results To Grid</em> (default), <em>Results To Text</em>, or <em>Results To File</em>.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-13</span><span class="fig-src">From the book, p. 541</span></div>
+          <img class="fig-img" src="images/figure-a-13.png" alt="Screenshot of SQL Server Management Studio after executing a query, showing the query window above and the Results pane below with a grid of orderid and orderdate rows.">
+          <div class="fig-body">
+            <p class="fig-cap">Executing the first query</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the grid of results below the code. This is the loop you will spend the whole book in: write code, press F5, read the grid.</p>
+          </div>
+        </div>
+      </figure>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-14</span><span class="fig-src">From the book, p. 542</span></div>
+          <img class="fig-img" src="images/figure-a-14.png" alt="Screenshot of a SQL Server Management Studio query window with part of the code highlighted, showing that only the selected code will execute.">
+          <div class="fig-body">
+            <p class="fig-cap">Executing only selected code</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> if any code is highlighted, SSMS executes <em>only that selection</em>; it runs the whole script only when nothing is highlighted. This is how you run one statement out of a long script file — and why the <code>TSQLV6.sql</code> instructions above insist on no selection before F5.</p>
+          </div>
+        </div>
+      </figure>
+
+      <div class="tip">
+        <strong>Rectangular selection — the best SSMS trick</strong>
+        Hold <strong>Alt</strong> before you start highlighting and you can select a rectangular block that doesn’t start at the beginning of the line (Figure A-15). <strong>Tab</strong> / <strong>Shift+Tab</strong> shift the whole rectangle, and anything you then type is repeated on every highlighted line.
+      </div>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-15</span><span class="fig-src">From the book, p. 543</span></div>
+          <img class="fig-img" src="images/figure-a-15.png" alt="Screenshot of a SQL Server Management Studio query window with a rectangular block of text highlighted across the middle of several lines.">
+          <div class="fig-body">
+            <p class="fig-cap">Highlighting a rectangular block</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> an Alt-drag selection spanning the same columns on several lines. Try it — it is the fastest way to edit a column list or add a prefix to a batch of lines.</p>
+          </div>
+        </div>
+      </figure>
+
+      <p>Finally, to work with the book’s script files: open them from <strong>File | Open | File</strong>, click the Open File icon on the standard toolbar, or just double-click a <code>.sql</code> file in File Explorer.</p>
+    </section>
+
+    <!-- A.6 -->
+    <section class="section" id="appx-docs">
+      <div class="section-head">
+        <div class="sec-num">A.6</div>
+        <div>
+          <div class="kicker">Getting help</div>
+          <h2>Working with the product documentation</h2>
+        </div>
+      </div>
+      <p class="lead">Think of the product documentation as your best friend while developing T-SQL. This section exists less to explain how to use it than to make you aware of it — too often people ask around for an answer they could find themselves in a minute.</p>
+      <p>Access it from the <strong>Help | View Help</strong> menu in SSMS. By default SSMS fetches help content from the internet, which most people prefer; you can also install it locally and read it in the <strong>Help Viewer</strong> (Help | Add and Remove Help Content, or <strong>Ctrl+Alt+F1</strong>), adding items from the Manage Content tab and clicking Update. The book’s author installs every item with “SQL” in its name for the versions he uses.</p>
+
+      <h3 class="subhead">The Index tab <span class="tag">p. 544</span></h3>
+      <p>Type what you are looking for in the search box at the bottom left of the Help window (Figure A-16). As you type, Help Viewer moves the first qualifying item to the top of the ordered subject list — type “window function” or a T-SQL keyword whose syntax you need. Click <strong>Add To Favorites</strong> to keep a topic handy, or <strong>Show Topic In Contents</strong> to sync it with the Contents tab.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-16</span><span class="fig-src">From the book, p. 544</span></div>
+          <img class="fig-img" src="images/figure-a-16.png" alt="Screenshot of the Help Viewer Index window showing a search box with an ordered list of matching help subjects.">
+          <div class="fig-body">
+            <p class="fig-cap">The Help Viewer Index window</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> subject lookup by name. This is the fastest route when you know the name of the feature — for example when you need the exact syntax of a clause you are typing.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">The Contents tab <span class="tag">p. 545</span></h3>
+      <p>Browse the topic tree instead (Figure A-17). If you simply want to see what T-SQL offers, navigate to the <strong>Transact-SQL Reference</strong> folder — under Reference, under SQL Server Documentation. The online equivalent is <code>https://learn.microsoft.com/en-us/sql/t-sql/language-reference</code>.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-17</span><span class="fig-src">From the book, p. 545</span></div>
+          <img class="fig-img" src="images/figure-a-17.png" alt="Screenshot of the Help Viewer Contents window showing a tree of documentation topics.">
+          <div class="fig-body">
+            <p class="fig-cap">The Help Viewer Contents window</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the browsable hierarchy. Use it when you want to explore a neighbourhood of features rather than look up one specific name.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">The Search tab <span class="tag">p. 546</span></h3>
+      <p>Use the Search tab (Figure A-18) to find articles containing the words you are after — a more abstract, search-engine-like query than the Index tab. To find a word inside an article you already have open, click <strong>Find In Topic</strong> on the toolbar or press <strong>Ctrl+F</strong>.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE A-18</span><span class="fig-src">From the book, p. 546</span></div>
+          <img class="fig-img" src="images/figure-a-18.png" alt="Screenshot of the Help Viewer Search tab showing a search box and a list of matching help articles.">
+          <div class="fig-body">
+            <p class="fig-cap">The Help Viewer Search tab</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> full-text search across the documentation — the right tool when you have a symptom or a phrase rather than a feature name.</p>
+          </div>
+        </div>
+      </figure>
+
+      <div class="tip">
+        <strong>The fastest help shortcut of all</strong>
+        While writing code in SSMS, put your cursor inside the syntax element you need help with and press <strong>F1</strong>. SSMS opens the syntax help page for that element, assuming one exists. Also worth knowing: searching the web for <code>T-SQL &lt;feature&gt;</code> almost always lands on the official learn.microsoft.com article first — try <em>T-SQL PIVOT</em>.
+      </div>
+    </section>
+
+    <!-- A.7 -->
+    <section class="section" id="appx-recap">
+      <div class="section-head">
+        <div class="sec-num">A.7</div>
+        <div>
+          <div class="kicker">Checklist</div>
+          <h2>Ready to start</h2>
+        </div>
+      </div>
+      <p class="lead">You’re set up when every one of these is true.</p>
+      <ul class="checklist">
+        <li><strong>You have an engine</strong> — an Azure SQL Database/Managed Instance, or a local SQL Server 2022 (or later) instance, Developer edition being the usual choice.</li>
+        <li><strong>You have a client tool</strong> — SSMS or Azure Data Studio installed.</li>
+        <li><strong>SSMS opens Object Explorer and a query window</strong> at startup, and you know your server name (<code>SHIRE</code>, <code>SHIRE\SQL2022</code>, or <code>yourserver.database.windows.net</code>).</li>
+        <li><strong>The TSQLV6 database exists</strong> and appears in the Available Databases box.</li>
+        <li><strong>You ran your first query</strong> — <code>SELECT orderid, orderdate FROM Sales.Orders;</code> — and saw rows in the Results pane.</li>
+        <li><strong>You know the three execution habits:</strong> F5 runs everything when nothing is highlighted and only the selection when something is; Alt-drag selects a rectangle; F1 opens help for the element under your cursor.</li>
+        <li><strong>You have the source code</strong> from Pearson’s book page, extracted locally, with the per-chapter <em>Exercises</em> and <em>Solutions</em> files to hand.</li>
+      </ul>
+      <div class="note">
+        <strong>That’s the whole book</strong>
+        Chapters 1–12 plus this appendix cover everything in <em>T-SQL Fundamentals, Fourth Edition</em>. As the author puts it in the Chapter 12 conclusion: T-SQL and its foundations are very deep topics — you can spend a lifetime writing T-SQL and still keep learning. This book is just the beginning.
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -11348,12 +11813,12 @@ END CATCH;</code></pre>
   <div class="footer-inner">
     <div>
       <h3>About this summary</h3>
-      <p>A study companion for <strong>the complete book</strong> — Chapters 1–12 of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292; Chapter 8, pages 293–342; Chapter 9, pages 343–366; Chapter 10, pages 367–408; Chapter 11, pages 409–490; Chapter 12, pages 491–525.</p>
-      <p class="fine">All sixteen figures and nine tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, 5, 8, and 12 have no figures or tables; eighteen diagrams are original study aids rather than book artwork — the join-types, subquery-types, and table-expression diagrams, the four Chapter 8 diagrams (insert routes, identity vs. sequence, MERGE outcomes, OUTPUT flow), the Chapter 9 anatomy diagram, the redrawing of Figure 9-2, the three Chapter 10 diagrams (lock duration by isolation level, locking vs. row versioning, and the deadlock embrace), the three Chapter 11 diagrams redrawn from Figures 11-2, 11-3, and 11-4, and the three Chapter 12 diagrams (batch boundaries, the six steps of a cursor, and TRY…CATCH control flow). The book’s Figure 9-2 and all four Chapter 11 figures are vector art that cannot be extracted as images, so they were redrawn: Figure 9-2 from its predicates, Figure 11-1 as an HTML table listing the seven traditional tables, and Figures 11-2 through 11-4 as SVG. Chapter 12 has no exercises section — the book says so explicitly — while Chapter 11 has four exercises with solutions. This page is an unofficial study aid; the book remains the authoritative source.</p>
+      <p>A study companion for <strong>the complete book</strong> — Chapters 1–12 and the Appendix of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292; Chapter 8, pages 293–342; Chapter 9, pages 343–366; Chapter 10, pages 367–408; Chapter 11, pages 409–490; Chapter 12, pages 491–525; Appendix, pages 527–547.</p>
+      <p class="fine">All 33 figures and 10 tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, 5, 8, and 12 have no figures or tables; eighteen diagrams are original study aids rather than book artwork — the join-types, subquery-types, and table-expression diagrams, the four Chapter 8 diagrams (insert routes, identity vs. sequence, MERGE outcomes, OUTPUT flow), the Chapter 9 anatomy diagram, the redrawing of Figure 9-2, the three Chapter 10 diagrams (lock duration by isolation level, locking vs. row versioning, and the deadlock embrace), the three Chapter 11 diagrams redrawn from Figures 11-2, 11-3, and 11-4, and the three Chapter 12 diagrams (batch boundaries, the six steps of a cursor, and TRY…CATCH control flow). The book’s Figure 9-2 and all four Chapter 11 figures are vector art that cannot be extracted as images, so they were redrawn: Figure 9-2 from its predicates, Figure 11-1 as an HTML table listing the seven traditional tables, and Figures 11-2 through 11-4 as SVG. Chapter 12 has no exercises section — the book says so explicitly — while Chapter 11 has four exercises with solutions. Figure A-8 (the TSQLV6 data model) is vector art, so it is reproduced as an HTML table. This page is an unofficial study aid; the book remains the authoritative source.</p>
     </div>
     <div>
       <h3>Navigate</h3>
-      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#ch8-insert" style="color:#9fe0d6">Chapter 8</a> · <a href="#ch9-intro" style="color:#9fe0d6">Chapter 9</a> · <a href="#ch10-trans" style="color:#9fe0d6">Chapter 10</a> · <a href="#ch11-intro" style="color:#9fe0d6">Chapter 11</a> · <a href="#ch12-variables" style="color:#9fe0d6">Chapter 12</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch11-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch12-quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#ch8-insert" style="color:#9fe0d6">Chapter 8</a> · <a href="#ch9-intro" style="color:#9fe0d6">Chapter 9</a> · <a href="#ch10-trans" style="color:#9fe0d6">Chapter 10</a> · <a href="#ch11-intro" style="color:#9fe0d6">Chapter 11</a> · <a href="#ch12-variables" style="color:#9fe0d6">Chapter 12</a> · <a href="#appendix" style="color:#9fe0d6">Appendix</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch11-practice" style="color:#9fe0d6">Practice</a> · <a href="#appx-recap" style="color:#9fe0d6">Setup</a></p>
       <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
     </div>
   </div>
@@ -11366,7 +11831,7 @@ END CATCH;</code></pre>
   "use strict";
 
   /* ---------- tiny T-SQL highlighter ---------- */
-  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP OUTPUT IDENTITY SEQUENCE EXEC PROC MATCHED BULK DECLARE GO USING PIVOT UNPIVOT APPLY CROSS OUTER INNER JOIN LEFT RIGHT FULL UNION EXCEPT INTERSECT WITH CUBE ROLLUP WHILE BREAK CONTINUE RETURN BEGIN CATCH NOCOUNT MINVALUE MAXVALUE CYCLE CACHE START INCREMENT NO GENERATED ALWAYS PERIOD SYSTEM_TIME SYSTEM_VERSIONING HISTORY_TABLE HISTORY_RETENTION_PERIOD HIDDEN TRAN COMMIT ROLLBACK CONTAINED ZONE CLUSTERED INDEX DAYS WEEKS MONTHS YEARS INFINITE KILL SERIALIZABLE SNAPSHOT UNCOMMITTED REPEATABLE XACT_ABORT IMPLICIT_TRANSACTIONS LOCK_ESCALATION NOLOCK HOLDLOCK READCOMMITTEDLOCK ALLOW_SNAPSHOT_ISOLATION MATCH SHORTEST_PATH LAST_NODE STRING_AGG LAST_VALUE NODE EDGE CONNECTION WITHIN GROUP GRAPH TRUNCATE DECLARE WHILE BEGIN TRY CATCH THROW BREAK CONTINUE CURSOR FETCH OPEN CLOSE DEALLOCATE EXEC PROC FUNCTION TRIGGER ALTER PRINT TYPE").split(" "));
+  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE DATABASE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP OUTPUT IDENTITY SEQUENCE EXEC PROC MATCHED BULK DECLARE GO USING PIVOT UNPIVOT APPLY CROSS OUTER INNER JOIN LEFT RIGHT FULL UNION EXCEPT INTERSECT WITH CUBE ROLLUP WHILE BREAK CONTINUE RETURN BEGIN CATCH NOCOUNT MINVALUE MAXVALUE CYCLE CACHE START INCREMENT NO GENERATED ALWAYS PERIOD SYSTEM_TIME SYSTEM_VERSIONING HISTORY_TABLE HISTORY_RETENTION_PERIOD HIDDEN TRAN COMMIT ROLLBACK CONTAINED ZONE CLUSTERED INDEX DAYS WEEKS MONTHS YEARS INFINITE KILL SERIALIZABLE SNAPSHOT UNCOMMITTED REPEATABLE XACT_ABORT IMPLICIT_TRANSACTIONS LOCK_ESCALATION NOLOCK HOLDLOCK READCOMMITTEDLOCK ALLOW_SNAPSHOT_ISOLATION MATCH SHORTEST_PATH LAST_NODE STRING_AGG LAST_VALUE NODE EDGE CONNECTION WITHIN GROUP GRAPH TRUNCATE DECLARE WHILE BEGIN TRY CATCH THROW BREAK CONTINUE CURSOR FETCH OPEN CLOSE DEALLOCATE EXEC PROC FUNCTION TRIGGER ALTER PRINT TYPE").split(" "));
   var TYPES = new Set(["INT","VARCHAR","NVARCHAR","NCHAR","DATE","DATETIME","SMALLDATETIME","DATETIME2","DATETIMEOFFSET","TIME","MONEY","BIT","DECIMAL","NUMERIC","BIGINT","SMALLINT","TINYINT","FLOAT","TEXT","CHAR","VARBINARY","SQL_VARIANT","SYSNAME","ROWVERSION"]);
   var FUNCS = new Set(["SYSDATETIME","GETDATE","GETUTCDATE","SYSUTCDATETIME","SYSDATETIMEOFFSET","COUNT","YEAR","MONTH","DAY","CAST","CONVERT","PARSE","TRY_CAST","TRY_CONVERT","TRY_PARSE","COALESCE","ISNULL","DATEADD","DATEDIFF","DATEDIFF_BIG","DATEPART","DATENAME","DATETRUNC","EOMONTH","GENERATE_SERIES","STRING_SPLIT","STRING_AGG","CONCAT","CONCAT_WS","SUBSTRING","LEFT","RIGHT","LEN","DATALENGTH","CHARINDEX","PATINDEX","REPLACE","TRANSLATE","STUFF","UPPER","LOWER","RTRIM","LTRIM","TRIM","FORMAT","COMPRESS","DECOMPRESS","LAST_VALUE","ERROR_NUMBER","ERROR_MESSAGE","ERROR_SEVERITY","ERROR_STATE","ERROR_LINE","ERROR_PROCEDURE","QUOTENAME","ROW_NUMBER","DB_NAME","OBJECT_NAME","SPID","TRANCOUNT","NODE_ID","EDGE_ID","FROM_ID","TO_ID",
     "OBJECT_ID_FROM_NODE_ID","GRAPH_ID_FROM_NODE_ID","NODE_ID_FROM_PARTS","OBJECT_ID_FROM_EDGE_ID","GRAPH_ID_FROM_EDGE_ID","EDGE_ID_FROM_PARTS","SCOPE_IDENTITY","IDENT_CURRENT","NEWID","NEWSEQUENTIALID","OBJECT_ID","OBJECTPROPERTY","COLUMNPROPERTY","SERVERPROPERTY","DATABASEPROPERTYEX","SCHEMA_NAME","TYPE_NAME"]);
