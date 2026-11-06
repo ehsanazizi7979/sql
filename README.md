@@ -7,8 +7,8 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1 through 9** — 93 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 95 syntax-highlighted,
+One self-contained HTML file covering **Chapters 1 through 10** — 101 figures embedded as inline
+base64 images (works offline, no server, no external assets) and 100 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -22,6 +22,7 @@ copyable T-SQL listings.
 | 7 | Memory Issues | 185–218 | 7-1 … 7-12 | 7-1 … 7-16 |
 | 8 | Locking, Blocking, and Concurrency | 219–262 | 8-1 … 8-14 | 8-1 … 8-13 |
 | 9 | tempdb Usage and Performance | 263–292 | 9-1 … 9-8 | 9-1 … 9-14 |
+| 10 | Latches | 293–306 | 10-1 … 10-8 | 10-1 … 10-5 |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -263,6 +264,25 @@ contention, and how to size and place tempdb correctly.
 - Listing 9-12 — Capturing currently waiting sessions
 - Listing 9-13 — Capturing latch waits
 - Listing 9-14 — Detecting the sessions that consume the most tempdb space
+
+### Chapter 10 — Latches
+
+Lightweight synchronization inside SQL Server's memory: latch types, the three
+wait families, hotspots on ever-increasing index keys, and the three fixes.
+
+- Figure 10-1 — Performance metrics during page latch contention
+- Figure 10-2 — Wait statistics with page latch contention
+- Figure 10-3 — Output from the `sys.dm_db_index_operational_stats` function
+- Figure 10-4 — Performance metrics with `OPTIMIZE_FOR_SEQUENTIAL_KEY` enabled
+- Figure 10-5 — Wait statistics with `OPTIMIZE_FOR_SEQUENTIAL_KEY` enabled
+- Figure 10-6 — Performance metrics with hash partitioning
+- Figure 10-7 — Wait statistics with hash partitioning
+- Figure 10-8 — Latch statistics
+- Listing 10-1 — Creating tables to store the logs
+- Listing 10-2 — Analyzing page latch index statistics
+- Listing 10-3 — Enabling the `OPTIMIZE_FOR_SEQUENTIAL_KEY` option
+- Listing 10-4 — Implementing hash partitioning
+- Listing 10-5 — Analyzing latch statistics
 
 ## Viewing it
 
