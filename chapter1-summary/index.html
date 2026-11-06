@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapters 1–18 · SQL Fundamentals and Big Data — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Learning SQL · Complete Book Study Guide and Appendices</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -211,7 +211,7 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapters 1–18, in plain English</h1>
+  <h1>Learning SQL, in plain English</h1>
   <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
   and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
   data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
@@ -231,12 +231,13 @@
   <b>Ch. 15 — Metadata:</b> querying information about database objects.
   <b>Ch. 16 — Analytic Functions:</b> rankings, running totals and comparisons across rows.
   <b>Ch. 17 — Working with Large Databases:</b> partitioning, clustering, sharding and big data.
-  <b>Ch. 18 — SQL and Big Data:</b> querying files and databases together with Apache Drill.</p>
+  <b>Ch. 18 — SQL and Big Data:</b> querying files and databases together with Apache Drill.
+  <b>Appendices &amp; back matter:</b> the book's ER diagram, solutions guide, index and closing notes.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–318 (PDF pp. 19–336)</span>
-    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14 + 10 + 11 + 10 + 11 + 10 + 11 + 11 + 11 + 11</span>
-    <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8, Figures 6-1…6-4, Figure 13-1</span>
-    <span><b>Reading time:</b> ~231 min</span>
+    <span><b>Coverage:</b> Chapters 1–18 and back matter (PDF pp. 19–379)</span>
+    <span><b>Sections:</b> Chapters 1–18, Appendices A–B and back matter</span>
+    <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8, Figures 6-1…6-4, Figures 13-1 and A-1</span>
+    <span><b>Reading time:</b> ~240 min</span>
   </div>
   <div class="jump">
     <a href="#tldr">↓ Chapter 1 · A Little Background</a>
@@ -257,6 +258,9 @@
     <a href="#ch16">↓ Chapter 16 · Analytic Functions</a>
     <a href="#ch17">↓ Chapter 17 · Working with Large Databases</a>
     <a href="#ch18">↓ Chapter 18 · SQL and Big Data</a>
+    <a href="#app-a">↓ Appendix A · ER Diagram</a>
+    <a href="#app-b">↓ Appendix B · Exercise Solutions</a>
+    <a href="#back-matter">↓ Index &amp; Closing Notes</a>
   </div>
 </header>
 
@@ -498,6 +502,16 @@
     <li><a href="#ch18-flatten">Flattening and grouping actors</a></li>
     <li><a href="#ch18-rentals">Rentals and payments</a></li>
     <li><a href="#ch18-federated">Cross-source joins &amp; recap</a></li>
+  </ol>
+  <div class="brand" style="margin-top:18px">Appendices &amp; back matter</div>
+  <ol>
+    <li><a href="#app-a-intro">Reading the ER diagram</a></li>
+    <li><a href="#app-a-paths">Useful relationship paths</a></li>
+    <li><a href="#app-a-query">A join using the diagram</a></li>
+    <li><a href="#app-b-intro">Using the solutions</a></li>
+    <li><a href="#app-b-map">Solutions by chapter</a></li>
+    <li><a href="#app-b-compare">Comparing answers</a></li>
+    <li><a href="#back-matter">Index &amp; closing notes</a></li>
   </ol>
 </nav>
 
@@ -7050,18 +7064,143 @@ HAVING sum(cast(cust_payments.payment_data.Amount as decimal(4,2))) &gt; 80;</co
   <tr><td>Use nested arrays</td><td>FLATTEN, access fields, then group carefully</td></tr>
   <tr><td>Combine stores</td><td>Fully qualify sources and reconcile join-key types</td></tr>
   </tbody></table>
-  <p>There are no end-of-chapter exercises. This is the last chapter; Appendix A contains the example
-  database ER diagram and Appendix B contains the book's exercise solutions.</p>
+  <p>There are no end-of-chapter exercises. This is the last chapter; continue with
+  <a href="#app-a">Appendix A's ER diagram</a> and <a href="#app-b">Appendix B's solutions guide</a>.</p>
+</section>
+<div class="chap" id="app-a">
+  <div class="kicker">Appendix A · book pages 319–320 (PDF pp. 337–338)</div>
+  <h2><span class="num">A.0</span>ER Diagram for the Example Database</h2>
+  <p>A map of the Sakila tables and the relationships used throughout the book.</p>
+</div>
+<section id="app-a-intro">
+  <h2><span class="num">A.1</span>Reading the ER diagram</h2>
+  <p class="lede">An entity-relationship diagram is a map for finding how tables connect.</p>
+  <p>Each rectangle represents a table, its rows list columns and types, and connecting lines represent
+  relationships. Primary keys identify records; foreign keys link to related records. The marks at each
+  end of a line indicate how many rows can participate: zero, one or many. For example, a rental belongs
+  to one customer, while a customer can have zero or many rentals. This diagram is the book's teaching
+  subset, not necessarily every table or column in a particular Sakila installation.</p>
+  <figure><a href="images/figA-1-er.png" target="_blank" rel="noopener"><img src="images/figA-1-er.png" alt="Book ER diagram linking customer, payment, address, city, country, rental, inventory, film, actor, film_actor, category and film_category tables." loading="lazy"></a>
+  <figcaption><b>Figure A-1.</b> The book's example database ER diagram (book p. 320). Select the image to open it at full size.</figcaption></figure>
+</section>
+<section id="app-a-paths">
+  <h2><span class="num">A.2</span>Useful relationship paths</h2>
+  <table><thead><tr><th>Question</th><th>Follow these links</th></tr></thead><tbody>
+  <tr><td>Where does a customer live?</td><td>customer → address → city → country</td></tr>
+  <tr><td>What film was rented?</td><td>customer → rental → inventory → film</td></tr>
+  <tr><td>Which actors are in a film?</td><td>film → film_actor → actor</td></tr>
+  <tr><td>Which categories describe a film?</td><td>film → film_category → category</td></tr>
+  <tr><td>Who made a payment?</td><td>payment → customer; payment can also link to rental</td></tr>
+  </tbody></table>
+  <p>Link tables such as film_actor and film_category represent many-to-many relationships. Joining
+  them can produce multiple rows per film; decide whether your question needs each relationship, a
+  count, or a distinct film before aggregating.</p>
+</section>
+<section id="app-a-query">
+  <h2><span class="num">A.3</span>Use the map to build a join</h2>
+  <p>For a customer's rented films, follow the rental → inventory → film path. This illustrative query
+  returns one row per matching rental, not necessarily one row per distinct title:</p>
+  <div class="code"><div class="bar"><span>Study example · follow the foreign keys</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.customer_id, c.first_name, c.last_name, f.title, r.rental_date
+FROM customer c
+JOIN rental r ON r.customer_id = c.customer_id
+JOIN inventory i ON i.inventory_id = r.inventory_id
+JOIN film f ON f.film_id = i.film_id
+ORDER BY c.customer_id, r.rental_date;</code></pre></div>
+  <p>Inner joins omit customers without a matching rental. Use an appropriate outer join if those
+  customers should remain, and verify the real database schema before relying on the diagram.</p>
+</section>
+<div class="chap" id="app-b">
+  <div class="kicker">Appendix B · book pages 321–348 (PDF pp. 339–366)</div>
+  <h2><span class="num">B.0</span>Solutions to Exercises</h2>
+  <p>The book's worked solutions cover exercises from Chapters 3 through 16.</p>
+</div>
+<section id="app-b-intro">
+  <h2><span class="num">B.1</span>How to use the solutions</h2>
+  <p class="lede">Try a problem first, then compare the logic—not just the spelling of the SQL.</p>
+  <p>The appendix repeats the exercises, shows the author's SQL or reasoning, and often includes sample
+  output. This page already has independently worked answers in each chapter; follow the links below or
+  consult Appendix B in the repository PDF for the book's full solutions and result sets. SQL can have
+  several correct forms. Check row counts, duplicates, NULLs, ties and edge cases before deciding that
+  two answers are equivalent.</p>
+</section>
+<section id="app-b-map">
+  <h2><span class="num">B.2</span>Find a solution</h2>
+  <p>Page numbers below are where each chapter's answers <em>begin</em> in the book; the PDF page is
+  shown in parentheses. The links go to the independently worked exercises in this study guide.</p>
+  <table><thead><tr><th>Chapter</th><th>Practice focus</th><th>Appendix B starts</th></tr></thead><tbody>
+  <tr><td><a href="#exercises">3</a></td><td>SELECT, filtering, sorting, joins</td><td>321 (PDF 339)</td></tr>
+  <tr><td><a href="#ch4-exercises">4</a></td><td>Boolean conditions</td><td>324 (PDF 342)</td></tr>
+  <tr><td><a href="#ch5-exercises">5</a></td><td>Joining tables</td><td>325 (PDF 343)</td></tr>
+  <tr><td><a href="#ch6-exercises">6</a></td><td>Set operations</td><td>327 (PDF 345)</td></tr>
+  <tr><td><a href="#ch7-exercises">7</a></td><td>Strings, numbers and dates</td><td>330 (PDF 348)</td></tr>
+  <tr><td><a href="#ch8-exercises">8</a></td><td>Aggregates and groups</td><td>330 (PDF 348)</td></tr>
+  <tr><td><a href="#ch9-exercises">9</a></td><td>Subqueries</td><td>332 (PDF 350)</td></tr>
+  <tr><td><a href="#ch10-exercises">10</a></td><td>Outer and cross joins</td><td>336 (PDF 354)</td></tr>
+  <tr><td><a href="#ch11-exercises">11</a></td><td>CASE expressions</td><td>338 (PDF 356)</td></tr>
+  <tr><td><a href="#ch12-exercise">12</a></td><td>Transactions</td><td>339 (PDF 357)</td></tr>
+  <tr><td><a href="#ch13-exercises">13</a></td><td>Constraints and indexes</td><td>340 (PDF 358)</td></tr>
+  <tr><td><a href="#ch14-exercises">14</a></td><td>Views</td><td>340 (PDF 358)</td></tr>
+  <tr><td><a href="#ch15-exercises">15</a></td><td>Metadata and generated DDL</td><td>342 (PDF 360)</td></tr>
+  <tr><td><a href="#ch16-exercises">16</a></td><td>Ranks and previous-month values</td><td>345 (PDF 363)</td></tr>
+  </tbody></table>
+</section>
+<section id="app-b-compare">
+  <h2><span class="num">B.3</span>Comparing answers and checking details</h2>
+  <p>The book's early examples sort actors by select-list position and filter surnames with IN:</p>
+  <div class="code"><div class="bar"><span>Book solutions · Exercises 3-1 and 3-2</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT actor_id, first_name, last_name
+FROM actor
+ORDER BY 3,2;
+
+SELECT actor_id, first_name, last_name
+FROM actor
+WHERE last_name IN ('WILLIAMS','DAVIS');</code></pre></div>
+  <p>ORDER BY 3,2 means last_name then first_name in this SELECT list. Explicit names can be easier
+  to maintain if the list changes.</p>
+  <h3>Different window boundaries can change the answer</h3>
+  <p>For 16-1 and 16-2 the book uses RANK, while this guide uses ROW_NUMBER with tie-breakers. The
+  supplied sales values are distinct, so their ranks agree on this data; with ties, RANK shares ranks
+  and skips numbers, while ROW_NUMBER assigns unique positions. For 16-3, the book filters to 2020
+  <em>before</em> applying LAG:</p>
+  <div class="code"><div class="bar"><span>Book solution · Exercise 16-3</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT year_no, month_no, tot_sales,
+  lag(tot_sales) over (order by month_no) prev_month_sales
+FROM sales_fact
+WHERE year_no = 2020;</code></pre></div>
+  <p>That produces NULL for January because December 2019 was filtered out. The
+  <a href="#ch16-exercises">guide's alternative</a> applies LAG across both years first, so January
+  sees December's 21436. Both illustrate the question's boundary ambiguity; choose the interpretation
+  required and remember LAG sees the previous available row, not necessarily the previous calendar month.</p>
+  <h3>Treat example DDL as teaching material</h3>
+  <p>The book's 12-1 transfer uses both <span class="inline">avail_balance</span> and
+  <span class="inline">available_balance</span> although its table lists the former. Its 15-2 generated
+  index statements do not preserve every index property and show PRIMARY as an ordinary index. Use the
+  <a href="#ch12-exercise">transaction</a> and <a href="#ch15-exercises">metadata</a> notes here for
+  safer adaptations, validate against your schema, and test in a disposable environment.</p>
+</section>
+<section id="back-matter">
+  <h2><span class="num">C</span>Index &amp; closing notes</h2>
+  <p>The book's alphabetical index (book pages 349–360, PDF pp. 367–378) is a lookup tool rather than
+  another lesson. Search the PDF for a term or use this page's table of contents to return to a topic.
+  Examples include <a href="#ch5">joins</a>, <a href="#ch9">subqueries</a>,
+  <a href="#ch12">transactions</a>, <a href="#ch13">indexes</a>,
+  <a href="#ch16">window functions</a> and <a href="#ch18">big data</a>.</p>
+  <p>The <b>About the Author</b> note describes Alan Beaulieu's database design and consulting work.
+  The <b>colophon</b> identifies the cover animal as the Andean marsupial tree frog, describes its
+  life cycle and threats, and credits the cover art and typefaces. These are publication notes, not SQL
+  lessons; the descriptions reflect the 2020 edition.</p>
+  <div class="card"><h3 style="margin-top:0">You reached the end</h3><p>Return to the
+  <a href="#tldr">beginning</a>, revisit the <a href="#app-a">schema map</a>, or practice using the
+  <a href="#app-b-map">exercise guide</a>.</p></div>
 </section>
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–18 of <i>Learning SQL: Generate,
-  Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
-  ISBN 9781492057611). Figures 1-1…1-3, 6-1…6-4 and 13-1 and the Table 2-6…2-8 crops are reproduced from
-  the PDF in this repository for personal study; please buy the book if you like it. SQL snippets include
-  the book's teaching examples. Exercise answers for Chapters 3–16 are worked here, not copied from the book —
-  its own solutions live in Appendix B. Diagrams marked <i>original</i> are drawn for this page.</p>
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–18 and the back matter of
+  <i>Learning SQL: Generate, Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu
+  (O'Reilly Media, 2020, ISBN 9781492057611). Figures 1-1…1-3, 6-1…6-4, 13-1 and A-1 and the
+  Table 2-6…2-8 crops are reproduced from the PDF in this repository for personal study; please buy
+  the book if you like it. SQL snippets include the book's teaching examples. Exercise answers in the
+  chapter sections are independently worked; Appendix B's comparison quotes selected book solutions.
+  Diagrams marked <i>original</i> are drawn for this page.</p>
 </footer>
 </div>
 
