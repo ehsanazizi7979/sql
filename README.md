@@ -7,8 +7,8 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1 through 8** — 85 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 81 syntax-highlighted,
+One self-contained HTML file covering **Chapters 1 through 9** — 93 figures embedded as inline
+base64 images (works offline, no server, no external assets) and 95 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -21,6 +21,7 @@ copyable T-SQL listings.
 | 6 | CPU Load | 159–183 | 6-1 … 6-9 | 6-1 … 6-16 |
 | 7 | Memory Issues | 185–218 | 7-1 … 7-12 | 7-1 … 7-16 |
 | 8 | Locking, Blocking, and Concurrency | 219–262 | 8-1 … 8-14 | 8-1 … 8-13 |
+| 9 | tempdb Usage and Performance | 263–292 | 9-1 … 9-8 | 9-1 … 9-14 |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -234,6 +235,34 @@ is really a missing index.
 - Listing 8-11 — Lock escalation demo (Session 2)
 - Listing 8-12 — Blocked process report (partial)
 - Listing 8-13 — Capturing lock escalations with xEvents
+
+### Chapter 9 — tempdb Usage and Performance
+
+Temporary objects and their real cost, the version store, spills, allocation-page
+contention, and how to size and place tempdb correctly.
+
+- Figure 9-1 — Cardinality estimations: temporary tables versus table variables
+- Figure 9-2 — Cardinality estimations: table variables and the `WHERE` clause
+- Figure 9-3 — Using a temporary table to store intermediate data
+- Figure 9-4 — Temporary object caching: log records after the first call
+- Figure 9-5 — Temporary object caching: log records after the second call
+- Figure 9-6 — Version store growth and cleanup
+- Figure 9-7 — Sort warning in SSMS
+- Figure 9-8 — `PAGELATCH` waits
+- Listing 9-1 — tempdb space usage
+- Listing 9-2 — Cardinality estimations: temporary table creation
+- Listing 9-3 — Cardinality estimations: selecting data from temporary objects
+- Listing 9-4 — Cardinality estimations: selecting data with the `WHERE` clause
+- Listing 9-5 — Temporary object caching: the stored procedure
+- Listing 9-6 — Temporary object caching: running the stored procedure
+- Listing 9-7 — Using table-valued parameters
+- Listing 9-8 — Detecting the five oldest row-versioning transactions
+- Listing 9-9 — Version store usage per database
+- Listing 9-10 — Using xEvents to detect queries that spill to tempdb
+- Listing 9-11 — Counting the number of spills
+- Listing 9-12 — Capturing currently waiting sessions
+- Listing 9-13 — Capturing latch waits
+- Listing 9-14 — Detecting the sessions that consume the most tempdb space
 
 ## Viewing it
 
