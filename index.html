@@ -230,9 +230,9 @@
       figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">4 chapters covered</span>
-      <span class="badge">25 book listings</span>
-      <span class="badge">61 figures</span>
+      <span class="badge">5 chapters covered</span>
+      <span class="badge">37 book listings</span>
+      <span class="badge">98 figures</span>
       <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
@@ -281,6 +281,17 @@
     <a class="mini" href="#ch4-adaptive">Adaptive Join</a>
     <a class="mini" href="#ch4-other">Joins that aren't joins</a>
     <a class="mini" href="#ch4-cheatsheet">Cheat sheet</a>
+
+    <div class="grp">Chapter 5 · Sorting and Aggregating</div>
+    <a class="mini" href="#ch5-sort">Sorting data</a>
+    <a class="mini" href="#ch5-sort-variants">Top N Sort &amp; Distinct Sort</a>
+    <a class="mini" href="#ch5-warnings">Sort warnings</a>
+    <a class="mini" href="#ch5-stream-aggregate">Stream Aggregate</a>
+    <a class="mini" href="#ch5-hash-aggregate">Hash Match (Aggregate)</a>
+    <a class="mini" href="#ch5-having">HAVING &amp; Filter</a>
+    <a class="mini" href="#ch5-spools">Spools</a>
+    <a class="mini" href="#ch5-window">Window functions</a>
+    <a class="mini" href="#ch5-cheatsheet">Cheat sheet</a>
   </nav>
 
   <main>
@@ -2479,6 +2490,661 @@ Table <span class="str">'SalesOrderDetail'</span>. Scan count 1, logical reads 2
         <b>The chapter's parting advice</b>
         Don't expect to analyse a 2,000-line query's plan on day one. Reading plans is a skill built by
         repetition — and the checklist from Chapter 2 is what keeps you oriented while you build it.
+      </div>
+    </section>
+
+
+    <div class="chapterbar" id="chapter5">
+      <span class="cnum">Chapter 5</span>
+      <div>
+        <h2>Sorting and Aggregating Data</h2>
+        <p>ORDER BY, GROUP BY, HAVING and window functions — and the operators behind them:
+        Sort, Top N Sort, Distinct Sort, Stream Aggregate, Hash Match (Aggregate), Filter,
+        Segment, Sequence Project and the spools. Plans get complicated here; the method for
+        reading them doesn't.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch5-sort">
+      <h2><span class="num">1</span> Sorting data</h2>
+      <p class="lede">Rows come back in no guaranteed order. The moment you ask for one, either an index already provides it — or you pay for a Sort.</p>
+
+      <div class="code">
+        <header><span>Listing 5-1 · a simple ORDER BY</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  pi.Shelf
+<span class="kw">FROM</span>    Production.ProductInventory <span class="kw">AS</span> pi
+<span class="kw">ORDER BY</span> pi.Shelf;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-1-sort-plan.png"
+             alt="Plan with SELECT, Sort at 76% cost and Clustered Index Scan at 24%.">
+        <figcaption><b>Figure 5-1</b> — Clustered Index Scan (1,069 rows) → Sort (76% of the cost) → SELECT. No WHERE clause, so the scan was unavoidable; no index on Shelf, so the sort was too.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter5/fig-5-2-unordered-scan-props.png"
+             alt="Scan properties: Number of Rows Read 1069, Object index PK_ProductInventory_ProductID_LocationID, Ordered False.">
+        <figcaption><b>Figure 5-2</b> — <b>Ordered = False</b>. The scan doesn't care what order the rows come out in, so the Sort above has to do the work.</figcaption>
+      </figure>
+
+      <h3 class="step">The Ordered property — two ways to scan</h3>
+      <table>
+        <thead><tr><th>Retrieval method</th><th>What it does</th><th>Order</th><th>Disk access</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Ordered</b></td>
+            <td>Navigate to the first leaf page, then follow page pointers to the end.</td>
+            <td>Logical index order — <b>guaranteed</b></td>
+            <td>Random (jumping around the pages)</td>
+          </tr>
+          <tr>
+            <td><b>IAM</b></td>
+            <td>Use Index Allocation Map pages to find every page belonging to the index — like a table scan.</td>
+            <td>"Semi-random"</td>
+            <td><b>Sequential</b> (fast, unless pages are fragmented at OS level)</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        <b>Why this matters</b> With <b>Ordered = False</b> the engine may use either method, whichever
+        is faster. With <b>Ordered = True</b> it <b>must</b> take the ordered path. And if the ORDER BY
+        happens to match the index key — e.g. <code class="inl">ORDER BY ProductID</code> instead of
+        <code class="inl">Shelf</code> — the optimizer sets Ordered = True and the Sort operator
+        <b>disappears entirely</b>.
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter5/fig-5-3-order-by-property.png"
+               alt="Order By property of the Sort operator showing a single sort column with ascending order.">
+          <figcaption><b>Figure 5-3</b> — The Sort's <b>Order By</b> property. No direction specified ⇒ <b>ascending</b>, the default.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter5/fig-5-4-ordered-scan-tooltip.png"
+               alt="Tooltip of a Clustered Index Scan showing Ordered True at the bottom.">
+          <figcaption><b>Figure 5-4</b> — Same scan, this time with <b>Ordered = True</b> in the tooltip. Rows now arrive presorted, so no Sort is needed.</figcaption>
+        </figure>
+      </div>
+
+      <h3 class="step">Dealing with an expensive Sort</h3>
+      <p>
+        76% sounds alarming, but this plan has <b>two</b> operators — 76% of very little is still very
+        little. The percentage only becomes meaningful when there are many operators.
+      </p>
+      <p>Ask two questions, in order:</p>
+      <ol>
+        <li><b>Why is the Sort here?</b> It may be for your ORDER BY — or added by the optimizer to feed
+          a Merge Join, or for a DISTINCT, or for a window function. In big plans the reason isn't always obvious.</li>
+        <li><b>Is it actually necessary?</b> Common culprits:
+          <ul>
+            <li>an <code class="inl">ORDER BY</code> left in from debugging that production doesn't need,</li>
+            <li>a missing index on the sort columns (here: an index on <code class="inl">Shelf</code>),</li>
+            <li>no WHERE clause — you're sorting far more rows than you return.</li>
+          </ul>
+        </li>
+      </ol>
+      <div class="note warn">
+        <b>Multiple sorts?</b> If a plan contains several Sort operators, check whether they're all
+        needed or whether a rewrite could achieve the same result with fewer. Sorting is expensive —
+        never sort by accident.
+      </div>
+    </section>
+
+    <section class="card" id="ch5-sort-variants">
+      <h2><span class="num">2</span> Top N Sort and Distinct Sort</h2>
+      <p class="lede">Two specialisations of the same operator, both still blocking.</p>
+
+      <h3 class="step">Top N Sort</h3>
+      <div class="code">
+        <header><span>Listing 5-2 · TOP with ORDER BY</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT TOP</span> (50)
+   p.LastName,
+   p.FirstName
+<span class="kw">FROM</span> Person.Person <span class="kw">AS</span> p
+<span class="kw">ORDER BY</span> p.FirstName <span class="kw">DESC</span>;</code></pre>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter5/fig-5-5-top-n-sort-plan.png"
+               alt="Plan with SELECT, Top N Sort and Index Scan on IX_Person_LastName_FirstName_MiddleName.">
+          <figcaption><b>Figure 5-5</b> — The nonclustered index is chosen because it's <b>smaller</b> than the clustered index, so scanning it is cheaper.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter5/fig-5-6-top-n-sort-props.png"
+               alt="Top N Sort properties showing the TOP expression value 50.">
+          <figcaption><b>Figure 5-6</b> — The <b>Top</b> property records the 50. Still blocking: all 19,972 rows are read and sorted before any are returned.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note">
+        <b>Two sort algorithms under one icon</b>
+        Below 100 rows, the sort uses a mechanism that leans on <b>CPU more than memory</b>.
+        Above 100 rows, it switches to a <b>memory-intensive</b> mechanism, because the CPU cost of the
+        other approach would be prohibitive. You can see the switch in the data pipe leaving the Sort.
+      </div>
+
+      <h3 class="step">Distinct Sort</h3>
+      <div class="code">
+        <header><span>Listing 5-3 · DISTINCT without ORDER BY</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT DISTINCT</span>
+   p.LastName,
+   p.FirstName,
+   p.MiddleName,
+   p.Suffix
+<span class="kw">FROM</span> Person.Person <span class="kw">AS</span> p;</code></pre>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter5/fig-5-7-distinct-sort-plan.png"
+               alt="Plan with SELECT, Sort (Distinct Sort) and Clustered Index Scan.">
+          <figcaption><b>Figure 5-7</b> — No ORDER BY anywhere, yet here's a Sort. It's doing double duty.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter5/fig-5-8-distinct-sort-props.png"
+               alt="Distinct Sort properties: Order By lists all four columns, Distinct True.">
+          <figcaption><b>Figure 5-8</b> — <b>Order By</b> lists <i>every</i> column in the SELECT list. Sorting on all of them makes duplicates adjacent, so they can be skipped as they stream out.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="card" id="ch5-warnings">
+      <h2><span class="num">3</span> Sort warnings, and how to chase one down</h2>
+      <p class="lede">A Sort warning is a story: starting at the Sort, you walk right until you find the operator whose estimate went wrong.</p>
+
+      <div class="code">
+        <header><span>Listing 5-4 · a query that spills</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> sod.CarrierTrackingNumber,
+       sod.LineTotal
+<span class="kw">FROM</span> Sales.SalesOrderDetail <span class="kw">AS</span> sod
+<span class="kw">WHERE</span> sod.UnitPrice = sod.LineTotal
+<span class="kw">ORDER BY</span> sod.ModifiedDate <span class="kw">DESC</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-9-sort-warning-plan.png"
+             alt="Plan: SELECT, Sort with warning at 40%, Filter 3%, two Compute Scalars 1% each, Clustered Index Scan 55%.">
+        <figcaption><b>Figure 5-9</b> — Scan → Compute Scalar → Compute Scalar → <b>Filter</b> → <b>Sort (warning)</b> → SELECT. Remember that Filter; it's the culprit.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter5/fig-5-10-sort-warning-icon.png"
+               alt="The Sort operator icon with a yellow warning triangle.">
+          <figcaption><b>Figure 5-10</b> — The yellow triangle (SQL Server 2012+). Details are in Properties, not the tooltip.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter5/fig-5-11-sort-warning-detail.png"
+               alt="Warning text: Operator used tempdb to spill data with spill level 1 and 1 spilled thread, wrote 346 pages and read 346 pages with granted memory 2928KB and used memory 2928KB.">
+          <figcaption><b>Figure 5-11</b> — The full text: <b>346 pages</b> written to and read from tempdb, against a <b>2,928 KB</b> memory grant.</figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-12-est-vs-actual-rows.png"
+             alt="Sort properties: Actual Number of Rows 74612, Estimated Number of Rows 12131.7, SortSpillDetails with GrantedMemoryKb 2928 and 338 reads/writes.">
+        <figcaption><b>Figure 5-12</b> — The smoking gun: estimated <b>12,131.7</b>, actual <b>74,612</b> — nearly six times more rows than memory was granted for.</figcaption>
+      </figure>
+
+      <h3 class="step">Walking the plan to find the bad estimate</h3>
+      <ol class="biglist">
+        <li><b>Clustered Index Scan:</b> estimated 121,317, actual 121,317. Fine — nothing wrong here.</li>
+        <li><b>Two Compute Scalars:</b> one evaluates the query's calculations, the other just aliases
+          <code class="inl">LineTotal</code> (a computed column — this is how you spot one in a plan).
+          Neither changes row estimates.</li>
+        <li><b>Filter:</b> this is the problem. It compares <code class="inl">UnitPrice = LineTotal</code>,
+          and because <code class="inl">LineTotal</code> is a <b>calculated value</b>, the predicate can't be
+          pushed into the scan. The optimizer then applies a <b>fixed 10% guess</b> — 12,131.7 out of 121,317 —
+          because it has no statistics for an expression. Actual: <b>74,612</b> (61%).</li>
+        <li><b>Sort:</b> sized its memory grant for ~12k rows, received 74k, and <b>spilled</b>.</li>
+      </ol>
+
+      <figure>
+        <img src="images/chapter5/fig-5-15-filter-predicate.png"
+             alt="Filter Predicate property showing the fully-qualified comparison of UnitPrice and LineTotal.">
+        <figcaption><b>Figure 5-15</b> — The Filter's <b>Predicate</b>. Strip the brackets and it's just <code class="inl">sod.UnitPrice = sod.LineTotal</code>.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter5/fig-5-13-compute-scalar-1.png"
+               alt="First Compute Scalar operator showing a pair of calculations on the LineTotal columns.">
+          <figcaption><b>Figure 5-13</b> — The first Compute Scalar: two calculations on the data in the query. Harmless.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter5/fig-5-14-compute-scalar-2.png"
+               alt="Second Compute Scalar operator aliasing LineTotal, showing it is a computed column.">
+          <figcaption><b>Figure 5-14</b> — The second just aliases the result. This is how a <b>computed column</b> shows up in a plan.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note tip">
+        <b>The general lesson</b>
+        A Sort is only as good as its row estimate, because the estimate decides its memory grant.
+        When you see a spill, don't tune the Sort — walk <b>right</b> until you find the operator whose
+        <b>estimated vs actual rows</b> diverge, and fix <i>that</i>. Here the fix is to make the predicate
+        sargable, e.g. compare against the raw columns that produce <code class="inl">LineTotal</code>.
+      </div>
+    </section>
+
+    <section class="card" id="ch5-stream-aggregate">
+      <h2><span class="num">4</span> Stream Aggregate</h2>
+      <p class="lede">Aggregate as you read. Fast, memory-light — and it requires ordered input.</p>
+
+      <div class="code">
+        <header><span>Listing 5-5 · GROUP BY with COUNT</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> c.TerritoryID,
+       <span class="kw">COUNT</span>(*)
+<span class="kw">FROM</span> Sales.Customer <span class="kw">AS</span> c
+<span class="kw">GROUP BY</span> c.TerritoryID;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-16-stream-aggregate-plan.png"
+             alt="Plan with SELECT, Compute Scalar, Stream Aggregate and Index Scan on IX_Customer_TerritoryID.">
+        <figcaption><b>Figure 5-16</b> — The optimizer picks the <code class="inl">IX_Customer_TerritoryID</code> index precisely so the data arrives <b>already ordered by TerritoryID</b>. No Sort needed.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter5/fig-5-17-ordered-index-scan-props.png"
+               alt="Index Scan properties with Ordered True highlighted.">
+          <figcaption><b>Figure 5-17</b> — <b>Ordered = True</b> confirms the input arrives in index order. This is the whole reason Stream Aggregate is possible.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter5/fig-5-18-stream-aggregate-groupby.png"
+               alt="Stream Aggregate Group By property showing TerritoryID.">
+          <figcaption><b>Figure 5-18</b> — The <b>Group By</b> property names the grouping columns.</figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-19-stream-aggregate-defined.png"
+             alt="Stream Aggregate Defined Values showing countstar with AggType COUNT* and type BIGINT.">
+        <figcaption><b>Figure 5-19</b> — <b>Defined Values</b> reveal the actual calculation: <code class="inl">AggType = countstar</code>, output type <b>BIGINT</b>.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter5/fig-5-20-count-conversion.png"
+             alt="Compute Scalar Defined Values showing an implicit conversion expression, Logical Operation Compute Scalar.">
+        <figcaption><b>Figure 5-20</b> — And there's the mystery Compute Scalar: <code class="inl">COUNT</code> returns <b>INT</b>, the aggregate produced <b>BIGINT</b>, so an implicit <code class="inl">CONVERT_IMPLICIT</code> was needed. Use <code class="inl">COUNT_BIG</code> and this operator disappears.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>The trap in Stream Aggregate</b>
+        It requires sorted input. If no index provides that order, the optimizer must add a
+        <b>Sort</b> first — and you've just paid for a blocking operator to enable a streaming one.
+        That's the signal to consider an index sorted on the GROUP BY columns.
+      </div>
+    </section>
+
+    <section class="card" id="ch5-hash-aggregate">
+      <h2><span class="num">5</span> Hash Match (Aggregate)</h2>
+      <p class="lede">Same operator as the join, different job: build a hash table keyed on the GROUP BY columns.</p>
+
+      <div class="code">
+        <header><span>Listing 5-6 · AVG without ordered input</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> sod.UnitPrice,
+       <span class="kw">AVG</span>(sod.UnitPriceDiscount)
+<span class="kw">FROM</span> Sales.SalesOrderDetail <span class="kw">AS</span> sod
+<span class="kw">GROUP BY</span> sod.UnitPrice;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-21-hash-match-aggregate-plan.png"
+             alt="Plan with SELECT, Compute Scalar, Hash Match (Aggregate) and Clustered Index Scan.">
+        <figcaption><b>Figure 5-21</b> — No useful index order for UnitPrice ⇒ <b>Hash Match (Aggregate)</b> instead of Stream Aggregate. Note there's no Sort.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter5/fig-5-22-hash-match-aggregate-props.png"
+             alt="Hash Match aggregate properties: Defined Values Expr1006 COUNT* and Expr1007 SUM of UnitPriceDiscount, Hash Keys Build UnitPrice, Output List.">
+        <figcaption><b>Figure 5-22</b> — Note what the two aggregates are: <b>Expr1006 = COUNT(*)</b> and <b>Expr1007 = SUM(UnitPriceDiscount)</b>. Neither is an AVG — the hash table is keyed on <code class="inl">UnitPrice</code>.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>AVG doesn't exist as an operator</b>
+        SQL Server computes <code class="inl">AVG</code> as <b>SUM ÷ COUNT</b>. It accumulates both in the
+        hash table, then a Compute Scalar does the division:
+      </div>
+      <div class="code">
+        <header><span>The Compute Scalar that produces the AVG</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>[Expr1001] = Scalar Operator(
+    <span class="kw">CASE WHEN</span> [Expr1006] = (0) <span class="kw">THEN NULL</span>
+    <span class="kw">ELSE</span> [Expr1007] / <span class="kw">CONVERT_IMPLICIT</span>(money, [Expr1006], 0)
+    <span class="kw">END</span>)</code></pre>
+        <div class="cap">Expr1007 (the SUM) ÷ Expr1006 (the COUNT), with a guard for divide-by-zero and an implicit cast of the count to <b>money</b>.</div>
+      </div>
+
+      <p>
+        Hash Match (Aggregate) usually needs <b>less memory</b> than Hash Match (Join), because its hash
+        table holds only the grouping key plus the running results — not whole rows.
+      </p>
+      <div class="note tip">
+        <b>How to turn a Hash Match (Aggregate) into a Stream Aggregate</b>
+        Give the optimizer an index that is <b>covering and sorted on the GROUP BY columns</b> — add a
+        covering index, or narrow an existing one until it covers. You can also pre-aggregate with an
+        <b>indexed view</b>, but then you pay to maintain the view on every write.
+      </div>
+    </section>
+
+    <section class="card" id="ch5-having">
+      <h2><span class="num">6</span> HAVING, and the Filter operator</h2>
+      <p class="lede">Filtering aggregates has to happen after aggregation — so a Filter operator appears.</p>
+
+      <div class="code">
+        <header><span>Listing 5-7 · HAVING on an aggregate</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> sod.UnitPrice,
+       <span class="kw">AVG</span>(sod.UnitPriceDiscount)
+<span class="kw">FROM</span> Sales.SalesOrderDetail <span class="kw">AS</span> sod
+<span class="kw">GROUP BY</span> sod.UnitPrice
+<span class="kw">HAVING</span> <span class="kw">AVG</span>(sod.UnitPriceDiscount) &gt; .2</code></pre>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter5/fig-5-23-having-filter-plan.png"
+               alt="Plan with SELECT, Filter, Compute Scalar, Hash Match (Aggregate) and Clustered Index Scan.">
+          <figcaption><b>Figure 5-23</b> — A <b>Filter</b> appears after the Compute Scalar. 121,317 rows in, 287 out of the aggregate.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter5/fig-5-24-filter-predicate-having.png"
+               alt="Filter operator Predicate property with the aggregate comparison.">
+          <figcaption><b>Figure 5-24</b> — The Filter's Predicate applies the HAVING comparison to the aggregated output.</figcaption>
+        </figure>
+      </div>
+
+      <p>
+        The optimizer <b>can't</b> evaluate <code class="inl">AVG(...) &gt; .2</code> before aggregating —
+        the average doesn't exist yet. So the Filter must sit after the aggregate.
+      </p>
+      <div class="note tip">
+        <b>But it will push down whatever it can</b>
+        Change the HAVING to something that doesn't involve an aggregate — e.g.
+        <code class="inl">HAVING sod.UnitPrice &gt; 800</code> — and the optimizer effectively rewrites
+        HAVING as WHERE, pushing the predicate all the way into the <b>Clustered Index Scan</b>.
+        Writing it as WHERE yourself has the same effect, and is clearer.
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-25-filter-pushed-to-scan.png"
+             alt="Plan with SELECT, Compute Scalar, Hash Match (Aggregate) and a Clustered Index Scan that carries the predicate — no Filter operator.">
+        <figcaption><b>Figure 5-25</b> — With a non-aggregate HAVING: <b>no Filter operator</b>. The predicate lives in the scan, so far fewer rows reach the aggregation.</figcaption>
+      </figure>
+      <p>
+        Even when the Filter is unavoidable it's cheap: fewer rows go back to the client, and if the
+        aggregated result feeds the rest of a larger query, everything downstream works on far fewer rows.
+      </p>
+    </section>
+
+    <section class="card" id="ch5-spools">
+      <h2><span class="num">7</span> Spools — the optimizer's memo pad</h2>
+      <p class="lede">A spool stores results in a temp worktable so they can be reused instead of recomputed.</p>
+
+      <table>
+        <thead><tr><th></th><th>Lazy Spool</th><th>Eager Spool</th></tr></thead>
+        <tbody>
+          <tr><td><b>Behaviour</b></td><td><b>Streaming</b> — asks the child for a row, stores it, passes it on immediately.</td><td><b>Blocking</b> — drains the child completely, then returns rows from the worktable.</td></tr>
+          <tr><td><b>When used</b></td><td>The default; whenever caching results pays off.</td><td>Avoided generally, but ideal for <b>Halloween protection</b> (Chapter 6).</td></tr>
+        </tbody>
+      </table>
+      <p>
+        The physical flavours are <b>Index Spool</b>, <b>Table Spool</b>, <b>Row Count Spool</b> and
+        <b>Window Spool</b>. All spool data is held in a clustered index; an Index Spool adds a
+        nonclustered index on top so rows can be found quickly.
+      </p>
+
+      <h3 class="step">Table Spool</h3>
+      <div class="code">
+        <header><span>Listing 5-8 · a correlated subquery with SUM</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> sp.BusinessEntityID,
+       sp.TerritoryID,
+       (   <span class="kw">SELECT SUM</span>(TaxAmt)
+           <span class="kw">FROM</span> Sales.SalesOrderHeader <span class="kw">AS</span> soh
+           <span class="kw">WHERE</span> soh.TerritoryID = sp.TerritoryID)
+<span class="kw">FROM</span> Sales.SalesPerson <span class="kw">AS</span> sp
+<span class="kw">WHERE</span> sp.TerritoryID <span class="kw">IS NOT NULL</span>
+<span class="kw">ORDER BY</span> sp.TerritoryID;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-26-table-spool-plan.png"
+             alt="Plan: SELECT, Compute Scalar, Nested Loops (Left Outer Join), Sort, Clustered Index Scan on SalesPerson; plus Table Spool (Lazy Spool), Hash Match (Aggregate) 29% and Clustered Index Scan on SalesOrderHeader 68%.">
+        <figcaption><b>Figure 5-26</b> — Outer input: 14 SalesPerson rows. Inner input: the <b>Table Spool</b> over a Hash Match aggregate. Without the spool, that 68%-cost scan would run 14 times.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>The join is resolved by Predicate, not Outer References</b>
+        Nothing is pushed down, so the inner input produces the <b>same 10 rows</b> (one per distinct
+        TerritoryID) every time. That's precisely when a spool shines: run it once, then serve all 13
+        subsequent executions from the worktable.
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-27-table-spool-rebinds-rewinds.png"
+             alt="Table Spool properties: Actual Number of Rows 14, Actual Rebinds 10, Actual Rewinds 4 — plus a Predicate dialog.">
+        <figcaption><b>Figure 5-27</b> — Properties of the spool (with its Predicate shown). The Hash Match and the 68% scan each execute <b>once</b>; the other 13 executions are served from the worktable.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>Node ID = the spool-sharing clue</b> A Table Spool has a <b>Node ID</b>. If a second spool reuses
+        the same data, its properties show both its own Node ID <i>and</i> a <b>Primary Node ID</b> pointing
+        at the first spool. That's how you trace which spools share a worktable — you'll meet it again in Chapter 6.
+      </div>
+
+      <h3 class="step">Index Spool</h3>
+      <p>Add an index the optimizer can seek on, and the whole inner branch changes:</p>
+
+      <div class="code">
+        <header><span>Listing 5-9 · index to enable a seek</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE INDEX</span> IX_SalesOrderHeader_TerritoryID
+<span class="kw">ON</span> Sales.SalesOrderHeader
+(
+    TerritoryID
+)
+<span class="kw">INCLUDE</span>
+(
+    TaxAmt
+);</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-28-index-spool-plan.png"
+             alt="Plan with Index Seek, Stream Aggregate, Index Spool replacing the Hash Match and Table Spool.">
+        <figcaption><b>Figure 5-28</b> — Now: Index Seek → <b>Stream Aggregate</b> → <b>Index Spool</b>. The blocking Hash Match is gone, and the join uses <b>Outer References</b> (TerritoryID pushed down).</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 5-10 · clean up after yourself</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DROP INDEX</span> IX_SalesOrderHeader_TerritoryID <span class="kw">ON</span> Sales.SalesOrderHeader;</code></pre>
+      </div>
+
+      <p>
+        Trace the 14 outer rows and the arithmetic becomes visible:
+      </p>
+      <ul>
+        <li><b>Row 1</b> (TerritoryID = 1): <b>Rebind</b>. The 1 is pushed down; the Index Seek finds
+          matching rows; Stream Aggregate returns a single summed row; the spool stores it.</li>
+        <li><b>Rows 2 and 3</b> (also TerritoryID = 1): <b>Rewinds</b>. The spool returns the stored
+          result immediately — Stream Aggregate and the seek are <b>not</b> called.</li>
+        <li><b>Row 4</b> (TerritoryID = 2, new value): <b>Rebind</b> again.</li>
+      </ul>
+      <p>
+        14 rows, 10 distinct values ⇒ the spool shows <b>10 Rebinds and 4 Rewinds</b>, while the Stream
+        Aggregate and Index Seek show only <b>10 executions</b>.
+      </p>
+    </section>
+
+    <section class="card" id="ch5-window">
+      <h2><span class="num">8</span> Window functions</h2>
+      <p class="lede">OVER (PARTITION BY … ORDER BY …) brings two new operators: Segment and Sequence Project.</p>
+
+      <div class="code">
+        <header><span>Listing 5-11 · ROW_NUMBER over a partition</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> soh.CustomerID,
+       soh.SubTotal,
+       <span class="kw">ROW_NUMBER</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> soh.CustomerID
+                     <span class="kw">ORDER BY</span> soh.OrderDate <span class="kw">ASC</span>) <span class="kw">AS</span> RowNum,
+       soh.OrderDate
+<span class="kw">FROM</span> Sales.SalesOrderHeader <span class="kw">AS</span> soh
+<span class="kw">WHERE</span> soh.OrderDate <span class="kw">BETWEEN</span> <span class="str">'20130101'</span>
+                    <span class="kw">AND</span>     <span class="str">'20130701'</span></code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-29-window-segment-sequence-plan.png"
+             alt="Plan: Clustered Index Scan 86%, Sort 14%, Segment, Sequence Project (Compute Scalar), SELECT.">
+        <figcaption><b>Figure 5-29</b> — Scan → <b>Sort</b> (by CustomerID, then OrderDate) → <b>Segment</b> → <b>Sequence Project (Compute Scalar)</b>. The sort is unavoidable: the partitioning needs ordering.</figcaption>
+      </figure>
+
+      <table>
+        <thead><tr><th>Operator</th><th>Job</th><th>Property to look at</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Segment</b></td>
+            <td>Splits the ordered stream into partitions, marking where each new segment starts.</td>
+            <td><b>Group By</b> (here CustomerID); output column <code class="inl">Segment1002</code> marks segment boundaries.</td>
+          </tr>
+          <tr>
+            <td><b>Sequence Project</b></td>
+            <td>Used <b>exclusively</b> by ranking functions. Walks the marked, ordered data assigning values.</td>
+            <td>Here it just counts rows within each segment — like an IDENTITY per partition.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter5/fig-5-30-segment-props.png"
+               alt="Segment operator Group By property showing CustomerID and an output column Segment1002.">
+          <figcaption><b>Figure 5-30</b> — Segment's <b>Group By</b> = CustomerID.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter5/fig-5-31-sequence-project-props.png"
+               alt="Sequence Project properties showing the sequence function and output.">
+          <figcaption><b>Figure 5-31</b> — Sequence Project performing the numbering within each segment.</figcaption>
+        </figure>
+      </div>
+
+      <h3 class="step">When windowing gets real</h3>
+      <div class="code">
+        <header><span>Listing 5-12 · a windowed aggregate alongside a ranking function</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> soh.CustomerID,
+       soh.SubTotal,
+       <span class="kw">AVG</span>(soh.SubTotal) <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> soh.CustomerID) <span class="kw">AS</span> AverageSubTotal,
+       <span class="kw">ROW_NUMBER</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> soh.CustomerID <span class="kw">ORDER BY</span> soh.OrderDate <span class="kw">ASC</span>) <span class="kw">AS</span> RowNum
+<span class="kw">FROM</span> Sales.SalesOrderHeader <span class="kw">AS</span> soh
+<span class="kw">WHERE</span> soh.OrderDate
+<span class="kw">BETWEEN</span> <span class="str">'20130101'</span> <span class="kw">AND</span> <span class="str">'20130701'</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-32-window-complex-plan.png"
+             alt="Large plan: Clustered Index Scan 77%, Sort 12%, Segment, Table Spool (Lazy Spool), Nested Loops, plus a second branch with Table Spool, Stream Aggregate, Compute Scalar and Nested Loops, ending in Segment and Sequence Project.">
+        <figcaption><b>Figure 5-32</b> — This is the plan that looks intimidating. Read it in three moves, below.</figcaption>
+      </figure>
+
+      <h3 class="step">Reading Figure 5-32 in three moves</h3>
+      <ol class="biglist">
+        <li>
+          <b>Right-hand branch — get and order the data.</b> Scan (77%) → Sort (12%) → Segment →
+          <b>Table Spool (Lazy Spool)</b>, which becomes the outer input of a Nested Loops.
+        </li>
+        <li>
+          <b>Middle branch — compute the AVG.</b> Table Spool → Stream Aggregate →
+          Compute Scalar. The spool can serve <b>both</b> consumers, which is the whole point.
+        </li>
+        <li>
+          <b>The two Nested Loops — reconcile row counts.</b> Aggregation <i>shrinks</i> the row count:
+          the Stream Aggregate outputs <b>2,464</b> rows but the spool holds <b>2,784</b>. The outer Nested
+          Loops re-attaches the per-row details to the per-customer averages, then feeds the final Segment
+          and Sequence Project for <code class="inl">ROW_NUMBER</code>.
+        </li>
+      </ol>
+
+      <div class="note">
+        <b>A Table Spool behaving differently</b> In Figure 5-32 the spool handles <b>segmented</b> data:
+        instead of reading one row, storing it and passing it on, it reads <b>all rows of a segment</b>
+        before releasing the segment's result. Same operator, different behaviour because of what's upstream.
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter5/fig-5-33-window-plan-details.png"
+               alt="Portion of the plan showing Clustered Index Scan, Sort, Segment and Table Spool.">
+          <figcaption><b>Figure 5-33</b> — Move 1, enlarged.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter5/fig-5-34-window-spool-details.png"
+               alt="Portion showing Table Spool feeding Stream Aggregate, Compute Scalar and the nested loops.">
+          <figcaption><b>Figure 5-34</b> — Move 2, enlarged: where the spool's stored data is reused.</figcaption>
+        </figure>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter5/fig-5-35-window-stream-aggregate-props.png"
+               alt="Stream Aggregate properties showing count and sum expressions for the CustomerID aggregate.">
+          <figcaption><b>Figure 5-35</b> — Stream Aggregate creating a <b>count</b> and a <b>sum</b> of SubTotal per CustomerID.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter5/fig-5-36-window-compute-scalar.png"
+               alt="Compute Scalar expression creating Expr1001 as a null-guarded average.">
+          <figcaption><b>Figure 5-36</b> — Compute Scalar turns count + sum into the average (<code class="inl">Expr1001</code>) — the same SUM ÷ COUNT pattern as Listing 5-6.</figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="images/chapter5/fig-5-37-window-final-details.png"
+             alt="Final portion of the plan showing Segment and Sequence Project feeding SELECT.">
+        <figcaption><b>Figure 5-37</b> — The tail end: Segment → Sequence Project satisfy <code class="inl">ROW_NUMBER</code>. No final Sort, because this query has no ORDER BY.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>The skill being demonstrated</b>
+        Track the synthetic column names. <code class="inl">Expr1004</code>/<code class="inl">Expr1005</code>
+        are born in the Stream Aggregate; <code class="inl">Expr1001</code> is built from them in the
+        Compute Scalar; then they disappear into the output. Following those names is how you prove you
+        understand a plan, rather than just describing the icons.
+      </div>
+    </section>
+
+    <section class="card" id="ch5-cheatsheet">
+      <h2><span class="num">★</span> Chapter 5 cheat sheet</h2>
+
+      <table>
+        <thead><tr><th>Operator</th><th>Streaming or blocking?</th><th>Needs sorted input?</th><th>Uses memory?</th></tr></thead>
+        <tbody>
+          <tr><td><b>Sort</b> / <b>Top N Sort</b> / <b>Distinct Sort</b></td><td><b>Blocking</b></td><td>No</td><td>Yes — can <b>spill to tempdb</b></td></tr>
+          <tr><td><b>Stream Aggregate</b></td><td>Streaming</td><td><b>Yes</b></td><td>No</td></tr>
+          <tr><td><b>Hash Match (Aggregate)</b></td><td>Blocking (builds a hash table)</td><td>No</td><td>Yes, but less than a join</td></tr>
+          <tr><td><b>Filter</b></td><td>Streaming</td><td>No</td><td>No</td></tr>
+          <tr><td><b>Segment</b></td><td>Streaming</td><td><b>Yes</b></td><td>No</td></tr>
+          <tr><td><b>Sequence Project</b></td><td>Streaming</td><td><b>Yes</b> (+ segment marks)</td><td>No</td></tr>
+          <tr><td><b>Table / Index Spool</b></td><td>Lazy = streaming, Eager = blocking</td><td>No</td><td>Worktable in tempdb</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>Ordered = True</b> on a scan means "the optimizer needs this order" — which is how a Sort gets eliminated.</li>
+        <li><b>Distinct Sort</b> = a Sort that both orders and de-duplicates, often with no ORDER BY in the query.</li>
+        <li>A <b>Sort warning</b> is a memory-grant problem caused by a bad estimate upstream. Walk right to find it.</li>
+        <li><b>Non-sargable predicates get a fixed 10% guess</b> — the root cause of most spill warnings.</li>
+        <li><b>Stream Aggregate</b> needs ordered input; <b>Hash Match</b> doesn't. An index sorted on the GROUP BY columns flips one to the other.</li>
+        <li><b>AVG is SUM ÷ COUNT</b> — look for both aggregates plus a Compute Scalar doing the division.</li>
+        <li><b>HAVING on an aggregate</b> forces a Filter after aggregation; HAVING on a plain column gets pushed into the scan.</li>
+        <li><b>Spools exist to avoid re-running sub-branches</b> — Rebinds + Rewinds tell you how many runs were saved.</li>
+        <li><b>Window functions</b> = Sort → Segment → Sequence Project. The Sort is the price of partitioning.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        These plans illustrate following properties and values as they move between operators — the
+        fundamental skill of plan reading. And the recurring warning: <b>no operator is inherently
+        problematic</b>. Don't set out to eliminate a Sort or a Hash Match; set out to understand why the
+        query needs one.
       </div>
     </section>
 
