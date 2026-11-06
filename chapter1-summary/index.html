@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapters 1–13 · SQL Fundamentals, Transactions, Indexes and Constraints — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Chapters 1–14 · SQL Fundamentals, Transactions, Indexes and Views — Simple Summary (Learning SQL, 3rd Ed.)</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -211,7 +211,7 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapters 1–13, in plain English</h1>
+  <h1>Chapters 1–14, in plain English</h1>
   <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
   and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
   data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
@@ -226,12 +226,13 @@
   <b>Ch. 10 — Joins Revisited:</b> preserving unmatched rows and building combinations.
   <b>Ch. 11 — Conditional Logic:</b> making data-dependent decisions with CASE.
   <b>Ch. 12 — Transactions:</b> grouping changes into a safe unit of work.
-  <b>Ch. 13 — Indexes and Constraints:</b> speeding lookups and enforcing data rules.</p>
+  <b>Ch. 13 — Indexes and Constraints:</b> speeding lookups and enforcing data rules.
+  <b>Ch. 14 — Views:</b> presenting stored queries as tables.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–238 (PDF pp. 19–256)</span>
-    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14 + 10 + 11 + 10 + 11</span>
+    <span><b>Book pages:</b> 1–250 (PDF pp. 19–268)</span>
+    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14 + 10 + 11 + 10 + 11 + 10</span>
     <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8, Figures 6-1…6-4, Figure 13-1</span>
-    <span><b>Reading time:</b> ~168 min</span>
+    <span><b>Reading time:</b> ~180 min</span>
   </div>
   <div class="jump">
     <a href="#tldr">↓ Chapter 1 · A Little Background</a>
@@ -247,6 +248,7 @@
     <a href="#ch11">↓ Chapter 11 · Conditional Logic</a>
     <a href="#ch12">↓ Chapter 12 · Transactions</a>
     <a href="#ch13">↓ Chapter 13 · Indexes and Constraints</a>
+    <a href="#ch14">↓ Chapter 14 · Views</a>
   </div>
 </header>
 
@@ -424,6 +426,18 @@
     <li><a href="#ch13-constraints">Constraint types</a></li>
     <li><a href="#ch13-foreign">Foreign keys and actions</a></li>
     <li><a href="#ch13-exercises">Exercises &amp; recap</a></li>
+  </ol>
+  <div class="brand" style="margin-top:18px">Chapter 14 · Views</div>
+  <ol>
+    <li><a href="#ch14-intro">The chapter in one paragraph</a></li>
+    <li><a href="#ch14-create">Creating and querying a view</a></li>
+    <li><a href="#ch14-security">Views and security</a></li>
+    <li><a href="#ch14-aggregate">Views for aggregation</a></li>
+    <li><a href="#ch14-complexity">Hiding complexity</a></li>
+    <li><a href="#ch14-partitions">Combining partitioned data</a></li>
+    <li><a href="#ch14-simple-update">Updating a simple view</a></li>
+    <li><a href="#ch14-join-update">Updating a join view</a></li>
+    <li><a href="#ch14-exercises">Exercises &amp; recap</a></li>
   </ol>
 </nav>
 
@@ -5745,17 +5759,287 @@ ON payment (payment_date, amount);</code></pre></div>
   <tr><td>Protect relationships</td><td>Use foreign keys and choose parent update/delete actions deliberately.</td></tr>
   <tr><td>Control cost</td><td>Indexes take space and add write work; avoid redundant ones.</td></tr>
   </tbody></table>
-  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 14, <em>Views</em>,
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p><a href="#ch14">Chapter 14, <em>Views</em></a>,
   explores named queries that present data through a virtual table.</p></div>
+</section>
+<div class="chap" id="ch14">
+  <div class="kicker">Chapter 14 · book pages 239–250 (PDF pp. 257–268)</div>
+  <h2><span class="num">14.0</span>Views</h2>
+  <p>Give a query a name and present its result like a table.</p>
+</div>
+<section id="ch14-intro">
+  <h2><span class="num">14.1</span>The chapter in one paragraph</h2>
+  <p class="lede">A view gives users a stable way to query a defined slice or transformation of data.</p>
+  <p>Define a view with <span class="inline">CREATE VIEW</span>, then query it much like a table.
+  Views can hide joins, expose summaries, limit columns or rows, and combine multiple sources. Some
+  views can also be updated, but the rules are engine-specific. A view alone is not a security policy:
+  permissions, ownership and other access paths still matter.</p>
+  <div class="simple"><span class="tag">Original diagram · a view as an interface</span>
+  underlying tables → named SELECT definition → view → application query
+  </div>
+  <p>An ordinary view stores its definition rather than an independent copy of its result. Other database
+  features such as materialized or indexed views can store results and require their own refresh or
+  maintenance rules.</p>
+  <div class="note"><span class="tag">Practice safely</span>Creating views changes schema; UPDATE and
+  INSERT through an updatable view can change underlying tables. Use a disposable practice database,
+  check existing objects and permissions, and review your engine's transaction behavior.</div>
+</section>
+<section id="ch14-create">
+  <h2><span class="num">14.2</span>Create and query a view</h2>
+  <p>The book creates a view with four named columns, including a partially masked email expression:
+  first two characters, five asterisks, and the last four characters.</p>
+  <div class="code"><div class="bar"><span>Book example · MySQL view</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE VIEW customer_vw
+ (customer_id,
+  first_name,
+  last_name,
+  email
+ )
+AS
+SELECT
+  customer_id,
+  first_name,
+  last_name,
+  concat(substr(email,1,2), '*****', substr(email, -4)) email
+FROM customer;</code></pre></div>
+  <div class="code"><div class="bar"><span>Book examples · query and inspect</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT first_name, last_name, email
+FROM customer_vw;
+
+DESCRIBE customer_vw;</code></pre></div>
+  <p>In the sample, Mary Smith's masked address is MA*****.org and the view returns 599 rows. DESCRIBE
+  is MySQL syntax. The computed view column is a presentation of the base email, not a replacement of it.</p>
+  <p>Views can be grouped, filtered and joined. The book finds two repeated J-first-name groups and ten
+  payment rows of at least 11:</p>
+  <div class="code"><div class="bar"><span>Book examples · group and join</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT first_name, count(*), min(last_name), max(last_name)
+FROM customer_vw
+WHERE first_name LIKE 'J%'
+GROUP BY first_name
+HAVING count(*) &gt; 1
+ORDER BY 1;
+
+SELECT cv.first_name, cv.last_name, p.amount
+FROM customer_vw cv
+  INNER JOIN payment p
+  ON cv.customer_id = p.customer_id
+WHERE p.amount &gt;= 11;</code></pre></div>
+</section>
+<section id="ch14-security">
+  <h2><span class="num">14.3</span>Views and security</h2>
+  <p>A view can omit columns or restrict rows. The book's active-customer view adds a condition to the
+  masked-email definition:</p>
+  <div class="code"><div class="bar"><span>Book example · active customers</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE VIEW active_customer_vw
+ (customer_id,
+  first_name,
+  last_name,
+  email
+ )
+AS
+SELECT
+  customer_id,
+  first_name,
+  last_name,
+  concat(substr(email,1,2), '*****', substr(email, -4)) email
+FROM customer
+WHERE active = 1;</code></pre></div>
+  <div class="note"><span class="tag">Masking is not authorization</span>Grant access to the intended
+  view while restricting base-table and other indirect access; verify definer/invoker privileges and
+  engine-specific security behavior. A partial mask still reveals information and may not be safe for
+  short or unusual values. Security requirements need a reviewed design, not just this example.</div>
+</section>
+<section id="ch14-aggregate">
+  <h2><span class="num">14.4</span>Reuse an aggregation</h2>
+  <p>This book view joins payments through rentals, inventory, films and categories, then totals payments
+  by category:</p>
+  <div class="code"><div class="bar"><span>Book example · sales by category</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE VIEW sales_by_film_category
+AS
+SELECT
+  c.name AS category,
+  SUM(p.amount) AS total_sales
+FROM payment AS p
+  INNER JOIN rental AS r ON p.rental_id = r.rental_id
+  INNER JOIN inventory AS i ON r.inventory_id = i.inventory_id
+  INNER JOIN film AS f ON i.film_id = f.film_id
+  INNER JOIN film_category AS fc ON f.film_id = fc.film_id
+  INNER JOIN category AS c ON fc.category_id = c.category_id
+GROUP BY c.name
+ORDER BY total_sales DESC;</code></pre></div>
+  <p>A view can keep the query interface stable while its implementation changes, but replacing it with
+  precomputed data introduces freshness and maintenance questions. If a film can belong to multiple
+  categories, its payments can contribute to more than one category; category totals may double-count
+  when added together. Use an outer query's ORDER BY whenever result ordering matters.</p>
+</section>
+<section id="ch14-complexity">
+  <h2><span class="num">14.5</span>Hide a complicated query behind a name</h2>
+  <p>The book's film_stats view presents a film's descriptive data along with category and counts of
+  actors, inventory, and rentals:</p>
+  <div class="code"><div class="bar"><span>Book example · film statistics</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE VIEW film_stats
+AS
+SELECT f.film_id, f.title, f.description, f.rating,
+ (SELECT c.name
+  FROM category c
+    INNER JOIN film_category fc
+    ON c.category_id = fc.category_id
+  WHERE fc.film_id = f.film_id) category_name,
+ (SELECT count(*)
+  FROM film_actor fa
+  WHERE fa.film_id = f.film_id
+ ) num_actors,
+ (SELECT count(*)
+  FROM inventory i
+  WHERE i.film_id = f.film_id
+ ) inventory_cnt,
+ (SELECT count(*)
+  FROM inventory i
+    INNER JOIN rental r
+    ON i.inventory_id = r.inventory_id
+  WHERE i.film_id = f.film_id
+ ) num_rentals
+FROM film f;</code></pre></div>
+  <p>The category lookup is scalar: if a film has multiple categories, it can fail in MySQL; if it has
+  none, it returns NULL. The book suggests unused subqueries need not run, but optimizers differ—inspect
+  the actual plan rather than assuming a particular execution strategy.</p>
+</section>
+<section id="ch14-partitions">
+  <h2><span class="num">14.6</span>Combine separate sources</h2>
+  <p>A view can present current and historical tables as one logical set. The book uses UNION ALL to
+  preserve rows from both tables:</p>
+  <div class="code"><div class="bar"><span>Book example · current and historical payments</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE VIEW payment_all
+ (payment_id,
+  customer_id,
+  staff_id,
+  rental_id,
+  amount,
+  payment_date,
+  last_update
+ )
+AS
+SELECT payment_id, customer_id, staff_id, rental_id,
+  amount, payment_date, last_update
+FROM payment_historic
+UNION ALL
+SELECT payment_id, customer_id, staff_id, rental_id,
+  amount, payment_date, last_update
+FROM payment_current;</code></pre></div>
+  <p>These tables are illustrative. UNION ALL does not deduplicate overlapping records: partition
+  boundaries and data consistency must be designed carefully. A view makes querying simpler but does
+  not itself guarantee partition pruning or performance.</p>
+</section>
+<section id="ch14-simple-update">
+  <h2><span class="num">14.7</span>Updating a simple view</h2>
+  <p>In the book's MySQL setup, an update to the direct last_name column of customer_vw updates the
+  underlying customer row:</p>
+  <div class="code"><div class="bar"><span>Book examples · update through a view</span><button class="copy">Copy</button></div><pre><code class="sql">UPDATE customer_vw
+SET last_name = 'SMITH-ALLEN'
+WHERE customer_id = 1;
+
+SELECT first_name, last_name, email
+FROM customer
+WHERE customer_id = 1;</code></pre></div>
+  <p>The computed email column cannot be updated directly in the book's example; MySQL reports error
+  1348. Its attempted INSERT through this view also fails. Whether a view or individual column is
+  updatable or insertable depends on its definition, required base columns, permissions, engine and
+  version. Aggregates, DISTINCT and UNION commonly prevent updates; consult your server's rules.</p>
+  <div class="note"><span class="tag">Filtered views and writes</span>An update through a filtered view
+  may make the row disappear from the view. Where supported, WITH CHECK OPTION can require writes to
+  remain visible under the view's condition; behavior and cascading rules are engine-specific.</div>
+</section>
+<section id="ch14-join-update">
+  <h2><span class="num">14.8</span>Updating a join view</h2>
+  <p>The book joins customer, address, city and country to make a customer-details view:</p>
+  <div class="code"><div class="bar"><span>Book example · join view</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE VIEW customer_details
+AS
+SELECT c.customer_id,
+  c.store_id,
+  c.first_name,
+  c.last_name,
+  c.address_id,
+  c.active,
+  c.create_date,
+  a.address,
+  ct.city,
+  cn.country,
+  a.postal_code
+FROM customer c
+  INNER JOIN address a
+  ON c.address_id = a.address_id
+  INNER JOIN city ct
+  ON a.city_id = ct.city_id
+  INNER JOIN country cn
+  ON ct.country_id = cn.country_id;</code></pre></div>
+  <p>In the book's MySQL example, updating customer columns and updating the address column in separate
+  statements succeed. Attempting to modify both underlying tables in one statement through the view
+  raises error 1393:</p>
+  <div class="code"><div class="bar"><span>Book examples · modify underlying rows</span><button class="copy">Copy</button></div><pre><code class="sql">UPDATE customer_details
+SET last_name = 'SMITH-ALLEN', active = 0
+WHERE customer_id = 1;
+
+UPDATE customer_details
+SET address = '999 Mockingbird Lane'
+WHERE customer_id = 1;
+
+UPDATE customer_details
+SET last_name = 'SMITH-ALLEN',
+  active = 0,
+  address = '999 Mockingbird Lane'
+WHERE customer_id = 1;</code></pre></div>
+  <p>The last statement is the book's deliberately failing example; the first two change data. An address
+  may be shared by multiple customers, so updating the underlying address can affect what other people
+  see. Join-view update and insert behavior varies by database and version; some support INSTEAD OF
+  triggers for custom handling.</p>
+</section>
+<section id="ch14-exercises">
+  <h2><span class="num">14.9</span>Exercises &amp; recap</h2>
+  <p class="lede">Try the book's exercises first. These are independently worked answers, not the book's
+  Appendix B solutions. Create views only in a disposable practice schema.</p>
+  <h3>14-1 · Film, category and actor view</h3>
+  <p>Make a view that supports the book's query:</p>
+  <div class="code"><div class="bar"><span>Book exercise · query the view</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT title, category_name, first_name, last_name
+FROM film_ctgry_actor
+WHERE last_name = 'FAWCETT';</code></pre></div>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · view definition</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE VIEW film_ctgry_actor AS
+SELECT f.title, c.name AS category_name, a.first_name, a.last_name
+FROM film f
+  INNER JOIN film_category fc ON fc.film_id = f.film_id
+  INNER JOIN category c ON c.category_id = fc.category_id
+  INNER JOIN film_actor fa ON fa.film_id = f.film_id
+  INNER JOIN actor a ON a.actor_id = fa.actor_id;</code></pre></div>
+  <p>The book shows 40 rows for Bob and Julia Fawcett in its sample. A film with multiple categories
+  and multiple actors produces one row per category–actor combination. There is no guaranteed ordering
+  without an outer ORDER BY.</p></details>
+  <h3>14-2 · Country names and total customer payments</h3>
+  <p>Create a view over every country using a scalar subquery for <span class="inline">tot_payments</span>.</p>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · correlated scalar subquery</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE VIEW country_payment_totals AS
+SELECT co.country,
+  (SELECT SUM(p.amount)
+   FROM city ct
+     INNER JOIN address a ON a.city_id = ct.city_id
+     INNER JOIN customer c ON c.address_id = a.address_id
+     INNER JOIN payment p ON p.customer_id = c.customer_id
+   WHERE ct.country_id = co.country_id) AS tot_payments
+FROM country co;</code></pre></div>
+  <p>The outer country table keeps countries with no matching payments. SUM then returns NULL; use
+  COALESCE around the subquery if the report intentionally displays zero instead. This attributes
+  payments using the customer's current address, not necessarily their address when the payment was made.</p></details>
+  <h3>Quick reference</h3>
+  <table><thead><tr><th>Need</th><th>Remember</th></tr></thead><tbody>
+  <tr><td>Reuse a query</td><td>CREATE VIEW gives a SELECT definition a name.</td></tr>
+  <tr><td>Hide sensitive data</td><td>Combine a carefully designed view with correct permissions.</td></tr>
+  <tr><td>Combine sources</td><td>UNION ALL preserves duplicates; design partition boundaries.</td></tr>
+  <tr><td>Write through a view</td><td>Changes may affect base tables; updatability and privileges vary.</td></tr>
+  <tr><td>Order results</td><td>Use ORDER BY in the outer query when order is required.</td></tr>
+  </tbody></table>
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 15, <em>Metadata</em>,
+  explores information about database objects and their definitions.</p></div>
 </section>
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–13 of <i>Learning SQL: Generate,
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–14 of <i>Learning SQL: Generate,
   Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
   ISBN 9781492057611). Figures 1-1…1-3, 6-1…6-4 and 13-1 and the Table 2-6…2-8 crops are reproduced from
   the PDF in this repository for personal study; please buy the book if you like it. SQL snippets include
-  the book's teaching examples. Exercise answers for Chapters 3–13 are worked here, not copied from the book —
+  the book's teaching examples. Exercise answers for Chapters 3–14 are worked here, not copied from the book —
   its own solutions live in Appendix B. Diagrams marked <i>original</i> are drawn for this page.</p>
 </footer>
 </div>
@@ -5778,7 +6062,7 @@ const io=new IntersectionObserver(es=>{
 },{rootMargin:'-15% 0px -75% 0px'});
 document.querySelectorAll('main section').forEach(s=>io.observe(s));
 
-const KW=/\b(create|table|insert|into|values|select|from|where|inner|outer|left|right|cross|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max|union|all|any|with|intersect|except|case|when|then|else|end|start|transaction|commit|rollback|savepoint|index|explain|cascade|restrict|check)\b/gi;
+const KW=/\b(create|table|view|insert|into|values|select|from|where|inner|outer|left|right|cross|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max|union|all|any|with|intersect|except|case|when|then|else|end|start|transaction|commit|rollback|savepoint|index|explain|cascade|restrict|check)\b/gi;
 function hl(src){
   const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const toks=[];
