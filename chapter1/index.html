@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>T-SQL Fundamentals — Chapters 1–6 | Plain-English Study Companion</title>
-<meta name="description" content="Plain-English summaries of Chapters 1–6 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, and code samples.">
+<title>T-SQL Fundamentals — Chapters 1–7 | Plain-English Study Companion</title>
+<meta name="description" content="Plain-English summaries of Chapters 1–7 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, and code samples.">
 <style>
   :root{
     --paper:#f7f4ed;
@@ -236,28 +236,28 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="#top"><span class="brand-mark">1–6</span> T-SQL Fundamentals · Chapters 1–6</a>
+    <a class="brand" href="#top"><span class="brand-mark">1–7</span> T-SQL Fundamentals · Chapters 1–7</a>
     <div class="topbar-meta">
-      <span>Plain-English summaries</span><span class="dot"></span><span>12 figures + 3 tables</span><span class="dot"></span><span>100+ code samples</span>
+      <span>Plain-English summaries</span><span class="dot"></span><span>13 figures + 3 tables</span><span class="dot"></span><span>100+ code samples</span>
     </div>
-    <a class="pill" href="#ch6-basics">Jump to Chapter 6 ↓</a>
+    <a class="pill" href="#ch7-window">Jump to Chapter 7 ↓</a>
   </div>
 </header>
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <span class="eyebrow">📘 Chapters 1–6 · T-SQL Fundamentals, 4th Edition</span>
+    <span class="eyebrow">📘 Chapters 1–7 · T-SQL Fundamentals, 4th Edition</span>
     <h1>The ideas behind the queries</h1>
-    <p class="lede">A plain-English study companion for Chapters 1–6 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
+    <p class="lede">A plain-English study companion for Chapters 1–7 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
     <div class="chips">
-      <span class="chip">6 chapters · 230 book pages</span>
-      <span class="chip">12 figures + 3 tables from the book</span>
+      <span class="chip">7 chapters · 292 book pages</span>
+      <span class="chip">13 figures + 3 tables from the book</span>
       <span class="chip">100+ code samples</span>
-      <span class="chip">~90 min read</span>
+      <span class="chip">~110 min read</span>
     </div>
     <div class="hero-quote">
-      <span>The six-chapter version</span>
-      <p>Chapter 1 gives you the mental model. Chapter 2 turns it into a single-table query. Chapter 3 combines tables with joins. Chapter 4 nests queries with subqueries. Chapter 5 names and reuses query results. Chapter 6 combines result sets with UNION, INTERSECT, and EXCEPT — and shows how to emulate the ALL variants T-SQL lacks.</p>
+      <span>The seven-chapter version</span>
+      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets.</p>
     </div>
   </div>
 </section>
@@ -325,9 +325,18 @@
       <a href="#ch6-practice"><span class="n">6.7</span> Practice: 6 exercises</a>
       <a href="#ch6-recap"><span class="n">6.8</span> Recap &amp; key terms</a>
       <a href="#ch6-quiz"><span class="n">6.9</span> Check yourself</a>
+      <div class="toc-group">Chapter 7 · Data analysis</div>
+      <a href="#ch7-window"><span class="n">7.1</span> Window functions</a>
+      <a href="#ch7-pivot"><span class="n">7.2</span> Pivoting data</a>
+      <a href="#ch7-unpivot"><span class="n">7.3</span> Unpivoting data</a>
+      <a href="#ch7-grouping"><span class="n">7.4</span> Grouping sets</a>
+      <a href="#ch7-timeseries"><span class="n">7.5</span> Time series</a>
+      <a href="#ch7-practice"><span class="n">7.6</span> Practice: 8 exercises</a>
+      <a href="#ch7-recap"><span class="n">7.7</span> Recap &amp; key terms</a>
+      <a href="#ch7-quiz"><span class="n">7.8</span> Check yourself</a>
     </nav>
     <div class="toc-foot">
-      <strong>Reading tip:</strong> Chapters 1–5 build up to Chapter 6, where you combine result sets. If you only have five minutes, read the six recaps.
+      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit. If you only have five minutes, read the seven recaps.
     </div>
   </aside>
 
@@ -4414,6 +4423,950 @@ ORDER BY sortcol, country, region, city;</code></pre>
       </details>
     </section>
 
+    <!-- ================= CHAPTER 7 ================= -->
+    <div class="part-divider" id="chapter-7">
+      <span class="part-eyebrow">Chapter 7 · T-SQL for data analysis</span>
+      <h2>The analysis toolkit</h2>
+      <p>Window functions compute aggregates, rankings, and offsets without losing detail. <code>PIVOT</code> rotates rows into columns, <code>UNPIVOT</code> rotates columns back into rows, grouping sets produce multiple levels of totals in one query, and time-series bucketing turns raw readings into analyzable intervals.</p>
+      <div class="part-chips">
+        <span>Book pages 231–292</span>
+        <span>1 figure + 1 table</span>
+        <span>8 practice exercises</span>
+      </div>
+    </div>
+
+    <!-- 7.1 -->
+    <section class="section" id="ch7-window">
+      <div class="section-head">
+        <div class="sec-num">7.1</div>
+        <div>
+          <div class="kicker">Window functions</div>
+          <h2>Aggregates without losing the detail</h2>
+        </div>
+      </div>
+      <p class="lead">A window function computes a scalar value for each row from a subset of related rows. The subset is defined by an <code>OVER</code> clause. Unlike a grouped query, a window function keeps every detail row.</p>
+
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="mini">PARTITION BY</div>
+          <h3>Split into groups</h3>
+          <p>Restricts the window to rows with the same partitioning values as the current row — for example, one window per employee or customer.</p>
+        </div>
+        <div class="card">
+          <div class="mini">ORDER BY</div>
+          <h3>Give the window direction</h3>
+          <p>Defines ordering for ranking and frames. This is <strong>window ordering</strong>, not presentation ordering.</p>
+        </div>
+        <div class="card">
+          <div class="mini">ROWS BETWEEN …</div>
+          <h3>Define the frame</h3>
+          <p>Selects a subset of rows, such as <code>UNBOUNDED PRECEDING</code> to <code>CURRENT ROW</code> for a running total.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Why not a grouped query or a subquery?</strong>
+        A grouped query loses the detail rows. A subquery starts from a fresh view of the data, so you must repeat the outer query’s filters and joins. A window function sees the underlying query’s result set and adds a column without collapsing rows.
+      </div>
+      <div class="warn">
+        <strong>Window functions are allowed only in SELECT and ORDER BY.</strong>
+        To filter on a window function, compute it in an inner query, alias it, and filter in the outer query.
+      </div>
+
+      <h3 class="subhead">Ranking window functions</h3>
+      <p>T-SQL supports four ranking functions: <code>ROW_NUMBER</code>, <code>RANK</code>, <code>DENSE_RANK</code>, and <code>NTILE</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · ranking functions</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, custid, val,
+  ROW_NUMBER() OVER(ORDER BY val) AS rownum,
+  RANK()       OVER(ORDER BY val) AS rank,
+  DENSE_RANK() OVER(ORDER BY val) AS dense_rank,
+  NTILE(10)   OVER(ORDER BY val) AS ntile
+FROM Sales.OrderValues
+ORDER BY val;</code></pre>
+      </div>
+      <ul>
+        <li><code>ROW_NUMBER</code> assigns unique sequential integers. With ties, it needs a tiebreaker to be deterministic.</li>
+        <li><code>RANK</code> gives tied rows the same rank, then skips numbers (1, 2, 2, 4).</li>
+        <li><code>DENSE_RANK</code> gives tied rows the same rank without gaps (1, 2, 2, 3).</li>
+        <li><code>NTILE(n)</code> divides the rows into <em>n</em> roughly equal tiles.</li>
+      </ul>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · ranking with PARTITION BY</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, custid, val,
+  ROW_NUMBER() OVER(PARTITION BY custid
+                    ORDER BY val) AS rownum
+FROM Sales.OrderValues
+ORDER BY custid, val;</code></pre>
+      </div>
+      <p>Here row numbers restart for each customer. Window ordering has nothing to do with presentation ordering; the outer <code>ORDER BY custid, val</code> is what sorts the output.</p>
+
+      <h3 class="subhead">Offset window functions</h3>
+      <p><code>LAG</code> looks back; <code>LEAD</code> looks ahead. <code>FIRST_VALUE</code> and <code>LAST_VALUE</code> return the first or last value in the frame.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · LAG and LEAD</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, orderid, val,
+  LAG(val)  OVER(PARTITION BY custid
+                 ORDER BY orderdate, orderid) AS prevval,
+  LEAD(val) OVER(PARTITION BY custid
+                 ORDER BY orderdate, orderid) AS nextval
+FROM Sales.OrderValues
+ORDER BY custid, orderdate, orderid;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · FIRST_VALUE and LAST_VALUE</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, orderid, val,
+  FIRST_VALUE(val) OVER(PARTITION BY custid
+                        ORDER BY orderdate, orderid
+                        ROWS BETWEEN UNBOUNDED PRECEDING
+                                 AND CURRENT ROW) AS firstval,
+  LAST_VALUE(val)  OVER(PARTITION BY custid
+                        ORDER BY orderdate, orderid
+                        ROWS BETWEEN CURRENT ROW
+                                 AND UNBOUNDED FOLLOWING) AS lastval
+FROM Sales.OrderValues
+ORDER BY custid, orderdate, orderid;</code></pre>
+      </div>
+      <div class="note">
+        <strong>Be explicit with the frame</strong>
+        If you specify an <code>ORDER BY</code> without a frame, the default bottom delimiter is <code>CURRENT ROW</code>. That is not what you want for <code>LAST_VALUE</code>. Use <code>ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING</code>.
+      </div>
+      <p>SQL Server 2022 adds <code>IGNORE NULLS</code> / <code>RESPECT NULLS</code> for offset functions. <code>IGNORE NULLS</code> skips missing values when looking for the previous or next known value.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · LAST_VALUE IGNORE NULLS</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, custid, orderdate, shippeddate,
+  LAST_VALUE(shippeddate) IGNORE NULLS
+    OVER(PARTITION BY custid
+         ORDER BY orderdate, orderid
+         ROWS UNBOUNDED PRECEDING) AS lastknownshippeddate
+FROM Sales.Orders
+WHERE custid IN (9, 20, 32, 73)
+  AND orderdate &gt;= '20220101'
+ORDER BY custid, orderdate, orderid;</code></pre>
+      </div>
+
+      <h3 class="subhead">Aggregate window functions</h3>
+      <p>An empty <code>OVER()</code> exposes the entire result set. <code>OVER(PARTITION BY custid)</code> exposes only the current customer’s rows. Adding a frame gives you running and moving aggregates.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · grand total and customer total</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, custid, val,
+  SUM(val) OVER() AS totalvalue,
+  SUM(val) OVER(PARTITION BY custid) AS custtotalvalue
+FROM Sales.OrderValues;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · percentage of grand total and customer total</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, custid, val,
+  100. * val / SUM(val) OVER() AS pctall,
+  100. * val / SUM(val) OVER(PARTITION BY custid) AS pctcust
+FROM Sales.OrderValues;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · running total with a frame</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+SELECT empid, ordermonth, val,
+  SUM(val) OVER(PARTITION BY empid
+                ORDER BY ordermonth
+                ROWS BETWEEN UNBOUNDED PRECEDING
+                         AND CURRENT ROW) AS runval
+FROM Sales.EmpOrders;</code></pre>
+      </div>
+
+      <h3 class="subhead">The WINDOW clause (SQL Server 2022+)</h3>
+      <p>When several window functions share the same specification, name it once with the <code>WINDOW</code> clause. It sits between <code>HAVING</code> and <code>ORDER BY</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · named window specification</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, ordermonth, val,
+  SUM(val) OVER W AS runsum,
+  MIN(val) OVER W AS runmin,
+  MAX(val) OVER W AS runmax,
+  AVG(val) OVER W AS runavg
+FROM Sales.EmpOrders
+WINDOW W AS (PARTITION BY empid
+             ORDER BY ordermonth
+             ROWS BETWEEN UNBOUNDED PRECEDING
+                      AND CURRENT ROW);</code></pre>
+      </div>
+      <p>You can also name only part of a specification and add the rest in the <code>OVER</code> clause.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · partial window name</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, orderid, val,
+  FIRST_VALUE(val) OVER(PO
+                        ROWS BETWEEN UNBOUNDED PRECEDING
+                                 AND CURRENT ROW) AS firstval,
+  LAST_VALUE(val)  OVER(PO
+                        ROWS BETWEEN CURRENT ROW
+                                 AND UNBOUNDED FOLLOWING) AS lastval
+FROM Sales.OrderValues
+WINDOW PO AS (PARTITION BY custid
+              ORDER BY orderdate, orderid)
+ORDER BY custid, orderdate, orderid;</code></pre>
+      </div>
+    </section>
+
+    <!-- 7.2 -->
+    <section class="section" id="ch7-pivot">
+      <div class="section-head">
+        <div class="sec-num">7.2</div>
+        <div>
+          <div class="kicker">Pivoting data</div>
+          <h2>Rotate rows into columns</h2>
+        </div>
+      </div>
+      <p class="lead">Pivoting rotates data from rows to columns, usually with an aggregate along the way. Every pivot has three logical phases: <strong>grouping</strong> (on rows), <strong>spreading</strong> (on columns), and <strong>aggregation</strong>.</p>
+
+      <div class="grid grid-3">
+        <div class="card"><div class="mini">1 · Grouping</div><h3>Which rows?</h3><p>The grouping element, such as <code>empid</code>, determines the rows of the result.</p></div>
+        <div class="card"><div class="mini">2 · Spreading</div><h3>Which columns?</h3><p>The spreading element, such as <code>custid</code>, determines the result columns.</p></div>
+        <div class="card"><div class="mini">3 · Aggregation</div><h3>What value?</h3>
+        <p>The aggregation element and function, such as <code>SUM(qty)</code>, fill the intersections.</p></div>
+      </div>
+
+      <details>
+        <summary>Sample data · create and populate dbo.Orders (Listing 7-1)</summary>
+        <div class="answer">
+          <p>The rest of the chapter uses this small table. Run it once in <code>TSQLV6</code>.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · Listing 7-1</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+DROP TABLE IF EXISTS dbo.Orders;
+CREATE TABLE dbo.Orders
+(
+  orderid   INT        NOT NULL
+    CONSTRAINT PK_Orders PRIMARY KEY,
+  orderdate DATE       NOT NULL,
+  empid     INT        NOT NULL,
+  custid    VARCHAR(5) NOT NULL,
+  qty       INT        NOT NULL
+);
+INSERT INTO dbo.Orders(orderid, orderdate, empid, custid, qty)
+VALUES
+  (30001, '20200802', 3, 'A', 10),
+  (10001, '20201224', 2, 'A', 12),
+  (10005, '20201224', 1, 'B', 20),
+  (40001, '20210109', 2, 'A', 40),
+  (10006, '20210118', 1, 'C', 14),
+  (20001, '20210212', 2, 'B', 12),
+  (40005, '20220212', 3, 'A', 10),
+  (20002, '20220216', 1, 'C', 20),
+  (30003, '20220418', 2, 'B', 15),
+  (30004, '20200418', 3, 'C', 22),
+  (30007, '20220907', 3, 'D', 30);
+SELECT * FROM dbo.Orders;</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <p>The book pivots total quantity by employee (rows) and customer (columns). The target result is:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>empid</th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><code>NULL</code></td><td>20</td><td>34</td><td><code>NULL</code></td></tr>
+            <tr><td>2</td><td>52</td><td>27</td><td><code>NULL</code></td><td><code>NULL</code></td></tr>
+            <tr><td>3</td><td>20</td><td><code>NULL</code></td><td>22</td><td>30</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Table 7-1 from the book, recreated in HTML.</p>
+
+      <h3 class="subhead">Pivoting with a grouped query</h3>
+      <p>The standard solution uses one <code>CASE</code> expression per target column, wrapped in an aggregate. The <code>CASE</code> returns the quantity only for the matching customer; otherwise it returns NULL, which the aggregate ignores.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · pivot with a grouped query</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid,
+  SUM(CASE WHEN custid = 'A' THEN qty END) AS A,
+  SUM(CASE WHEN custid = 'B' THEN qty END) AS B,
+  SUM(CASE WHEN custid = 'C' THEN qty END) AS C,
+  SUM(CASE WHEN custid = 'D' THEN qty END) AS D
+FROM dbo.Orders
+GROUP BY empid;</code></pre>
+      </div>
+      <p>You must know the spreading values ahead of time. If you don’t, you need dynamic SQL — the book covers that in Chapter 12.</p>
+
+      <h3 class="subhead">Pivoting with the PIVOT operator</h3>
+      <p>T-SQL also has a proprietary <code>PIVOT</code> table operator. It figures out the grouping columns by elimination: everything that is not the spreading or aggregation element becomes a grouping element. That is why you feed it a table expression containing only the pivoting elements.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · PIVOT operator</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, A, B, C, D
+FROM (SELECT empid, custid, qty
+      FROM dbo.Orders) AS D
+  PIVOT(SUM(qty) FOR custid IN(A, B, C, D)) AS P;</code></pre>
+      </div>
+      <div class="warn">
+        <strong>Always use a table expression with PIVOT</strong>
+        If you apply <code>PIVOT</code> directly to <code>dbo.Orders</code>, the unused columns <code>orderid</code> and <code>orderdate</code> become implicit grouping columns, so you get one row per order instead of one row per employee. A table expression also protects you if someone adds columns to the base table later.
+      </div>
+      <p>You can also pivot the other way: customers on rows, employees on columns. Because the target column names start with digits, delimit them with square brackets.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · transposed PIVOT</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, [1], [2], [3]
+FROM (SELECT empid, custid, qty
+      FROM dbo.Orders) AS D
+  PIVOT(SUM(qty) FOR empid IN([1], [2], [3])) AS P;</code></pre>
+      </div>
+    </section>
+
+    <!-- 7.3 -->
+    <section class="section" id="ch7-unpivot">
+      <div class="section-head">
+        <div class="sec-num">7.3</div>
+        <div>
+          <div class="kicker">Unpivoting data</div>
+          <h2>Rotate columns back into rows</h2>
+        </div>
+      </div>
+      <p class="lead">Unpivoting is the reverse: it turns multiple source columns into two result columns — one for the source column name and one for its value. It has three phases: producing copies, extracting values, and eliminating irrelevant rows.</p>
+
+      <details>
+        <summary>Sample data · create and populate EmpCustOrders</summary>
+        <div class="answer">
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · create the pivoted table</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+DROP TABLE IF EXISTS dbo.EmpCustOrders;
+CREATE TABLE dbo.EmpCustOrders
+(
+  empid INT NOT NULL
+    CONSTRAINT PK_EmpCustOrders PRIMARY KEY,
+  A VARCHAR(5) NULL,
+  B VARCHAR(5) NULL,
+  C VARCHAR(5) NULL,
+  D VARCHAR(5) NULL
+);
+INSERT INTO dbo.EmpCustOrders(empid, A, B, C, D)
+  SELECT empid, A, B, C, D
+  FROM (SELECT empid, custid, qty
+        FROM dbo.Orders) AS D
+    PIVOT(SUM(qty) FOR custid IN(A, B, C, D)) AS P;
+SELECT * FROM dbo.EmpCustOrders;</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <h3 class="subhead">Unpivoting with CROSS APPLY</h3>
+      <p>First produce copies of each row — one per customer column — with a cross join to a small table of customer IDs. Then extract the value from the matching column. A <code>CROSS JOIN</code> cannot reference the left table’s columns in the right-side table expression, so use <code>CROSS APPLY</code>, which evaluates the left side first.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · CROSS APPLY unpivot</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, custid, qty
+FROM dbo.EmpCustOrders
+  CROSS APPLY (VALUES('A', A),('B', B),('C', C),('D', D)) AS C(custid, qty)
+WHERE qty IS NOT NULL;</code></pre>
+      </div>
+      <p>The <code>WHERE qty IS NOT NULL</code> filter removes irrelevant intersections. With <code>CROSS APPLY</code>, you control whether to keep or remove them.</p>
+
+      <h3 class="subhead">Unpivoting with the UNPIVOT operator</h3>
+      <p>The proprietary <code>UNPIVOT</code> operator is more concise. It always removes NULL intersections as part of its logic.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · UNPIVOT operator</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, custid, qty
+FROM dbo.EmpCustOrders
+  UNPIVOT(qty FOR custid IN(A, B, C, D)) AS U;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS dbo.EmpCustOrders;</code></pre>
+      </div>
+      <div class="note">
+        <strong>APPLY vs. UNPIVOT</strong>
+        Use <code>CROSS APPLY</code> when you need to keep rows with NULLs. Use <code>UNPIVOT</code> when you want the concise form and always want to eliminate NULLs.
+      </div>
+    </section>
+
+    <!-- 7.4 -->
+    <section class="section" id="ch7-grouping">
+      <div class="section-head">
+        <div class="sec-num">7.4</div>
+        <div>
+          <div class="kicker">Grouping sets</div>
+          <h2>Multiple levels of totals in one query</h2>
+        </div>
+      </div>
+      <p class="lead">A grouping set is a set of expressions you group by. Normally one grouped query defines one grouping set. T-SQL lets you define several in the same query, which is ideal for reporting.</p>
+
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="mini">GROUPING SETS</div>
+          <h3>List them explicitly</h3>
+          <p>Define exactly the grouping sets you want, including the empty set <code>()</code> for the grand total.</p>
+        </div>
+        <div class="card">
+          <div class="mini">CUBE</div>
+          <h3>All combinations</h3>
+          <p>Produces the power set of grouping sets — every possible combination of the input columns.</p>
+        </div>
+        <div class="card">
+          <div class="mini">ROLLUP</div>
+          <h3>A hierarchy</h3>
+          <p>Produces only the leading combinations of a hierarchy, such as year → month → day.</p>
+        </div>
+      </div>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · GROUPING SETS</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, custid, SUM(qty) AS sumqty
+FROM dbo.Orders
+GROUP BY
+  GROUPING SETS
+  (
+    (empid, custid),
+    (empid),
+    (custid),
+    ()
+  );</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · CUBE</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, custid, SUM(qty) AS sumqty
+FROM dbo.Orders
+GROUP BY CUBE(empid, custid);</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · ROLLUP</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT
+  YEAR(orderdate) AS orderyear,
+  MONTH(orderdate) AS ordermonth,
+  DAY(orderdate) AS orderday,
+  SUM(qty) AS sumqty
+FROM dbo.Orders
+GROUP BY ROLLUP(YEAR(orderdate), MONTH(orderdate), DAY(orderdate));</code></pre>
+      </div>
+      <p><code>CUBE(a, b)</code> produces <code>(a, b)</code>, <code>(a)</code>, <code>(b)</code>, and <code>()</code>. <code>ROLLUP(a, b)</code> produces only <code>(a, b)</code>, <code>(a)</code>, and <code>()</code> — it assumes a hierarchy.</p>
+
+      <h3 class="subhead">Identifying the grouping set</h3>
+      <p>When a query defines multiple grouping sets, a NULL in the result might be a real value or a placeholder. The <code>GROUPING</code> function returns 1 when a column is <em>not</em> part of the current grouping set and 0 when it is. <code>GROUPING_ID</code> returns a single integer bitmap for all grouping columns.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · GROUPING</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT
+  GROUPING(empid) AS grpemp,
+  GROUPING(custid) AS grpcust,
+  empid, custid, SUM(qty) AS sumqty
+FROM dbo.Orders
+GROUP BY CUBE(empid, custid);</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · GROUPING_ID</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT
+  GROUPING_ID(empid, custid) AS groupingset,
+  empid, custid, SUM(qty) AS sumqty
+FROM dbo.Orders
+GROUP BY CUBE(empid, custid);</code></pre>
+      </div>
+      <p>With <code>GROUPING_ID(empid, custid)</code>, the integer 0 means both columns are detail elements; 1 means only <code>empid</code> is a detail; 2 means only <code>custid</code>; 3 means both are aggregate elements (the grand total).</p>
+    </section>
+
+    <!-- 7.5 -->
+    <section class="section" id="ch7-timeseries">
+      <div class="section-head">
+        <div class="sec-num">7.5</div>
+        <div>
+          <div class="kicker">Time series</div>
+          <h2>Bucket, aggregate, and fill the gaps</h2>
+        </div>
+      </div>
+      <p class="lead">Time-series data is a series of measurements taken at regular intervals. Analysis usually means organizing the readings into <strong>buckets</strong> and aggregating each bucket. The tricky parts are custom bucket boundaries and missing buckets.</p>
+
+      <details>
+        <summary>Sample data · create Sensors and SensorMeasurements</summary>
+        <div class="answer">
+          <p>The book uses two sensors with readings about every four hours. Sensor 2 is offline for some periods, which creates gaps.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · sample data</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+DROP TABLE IF EXISTS dbo.SensorMeasurements, dbo.Sensors;
+CREATE TABLE dbo.Sensors
+(
+  sensorid    INT         NOT NULL
+    CONSTRAINT PK_Sensors PRIMARY KEY,
+  description VARCHAR(50) NOT NULL
+);
+INSERT INTO dbo.Sensors(sensorid, description)
+VALUES
+  (1, 'Restaurant Fancy Schmancy beer fridge'),
+  (2, 'Restaurant Fancy Schmancy wine cellar');
+CREATE TABLE dbo.SensorMeasurements
+(
+  sensorid    INT NOT NULL
+    CONSTRAINT FK_SensorMeasurements_Sensors REFERENCES dbo.Sensors,
+  ts          DATETIME2(0)  NOT NULL,
+  temperature NUMERIC(5, 2) NOT NULL, -- Fahrenheit
+  humidity    NUMERIC(5, 2) NOT NULL, -- percent
+  CONSTRAINT PK_SensorMeasurements PRIMARY KEY(sensorid, ts)
+);
+INSERT INTO dbo.SensorMeasurements(sensorid, ts, temperature, humidity)
+VALUES
+  (1, '20220609 06:00:03', 39.16, 86.28),
+  (1, '20220609 09:59:57', 39.72, 83.44),
+  (1, '20220609 13:59:59', 38.93, 84.33),
+  (1, '20220609 18:00:00', 39.42, 79.66),
+  (1, '20220609 22:00:01', 40.08, 94.44),
+  (1, '20220610 01:59:57', 41.26, 90.42),
+  (1, '20220610 05:59:59', 40.89, 72.94),
+  (1, '20220610 09:59:58', 40.03, 84.48),
+  (1, '20220610 14:00:03', 41.23, 93.47),
+  (1, '20220610 17:59:59', 39.32, 88.09),
+  (1, '20220610 21:59:57', 41.19, 92.89),
+  (1, '20220611 01:59:58', 40.88, 89.23),
+  (1, '20220611 06:00:03', 41.14, 82.27),
+  (1, '20220611 10:00:00', 39.20, 86.00),
+  (1, '20220611 14:00:02', 39.41, 74.92),
+  (1, '20220611 18:00:02', 41.12, 87.37),
+  (1, '20220611 21:59:59', 40.67, 84.63),
+  (1, '20220612 02:00:02', 41.15, 86.16),
+  (1, '20220612 06:00:02', 39.23, 74.59),
+  (1, '20220612 10:00:00', 41.40, 86.80),
+  (1, '20220612 14:00:00', 41.20, 79.97),
+  (1, '20220612 18:00:03', 40.11, 92.84),
+  (1, '20220612 22:00:03', 40.87, 94.23),
+  (1, '20220613 02:00:00', 39.03, 92.44),
+  (1, '20220613 05:59:57', 40.19, 94.72),
+  (1, '20220613 10:00:02', 39.55, 87.77),
+  (1, '20220613 14:00:02', 38.94, 89.06),
+  (1, '20220613 18:00:03', 40.88, 73.81),
+  (1, '20220613 21:59:57', 41.24, 86.56),
+  (1, '20220614 02:00:00', 40.25, 76.64),
+  (1, '20220614 06:00:01', 40.73, 90.66),
+  (1, '20220614 10:00:03', 40.82, 92.76),
+  (1, '20220614 13:59:58', 39.70, 73.74),
+  (1, '20220614 17:59:57', 39.65, 89.38),
+  (1, '20220614 22:00:02', 39.47, 73.36),
+  (1, '20220615 02:00:03', 39.14, 77.89),
+  (1, '20220615 06:00:00', 40.82, 86.84),
+  (1, '20220615 09:59:57', 39.91, 90.09),
+  (1, '20220615 13:59:57', 41.34, 82.88),
+  (1, '20220615 18:00:01', 40.51, 86.58),
+  (1, '20220615 22:00:00', 41.23, 83.85),
+  (2, '20220609 06:00:01', 54.95, 75.39),
+  (2, '20220609 10:00:03', 56.94, 71.34),
+  (2, '20220609 13:59:59', 54.07, 68.09),
+  (2, '20220609 18:00:02', 54.05, 65.50),
+  (2, '20220609 22:00:00', 53.37, 66.28),
+  (2, '20220610 01:59:58', 56.33, 79.90),
+  (2, '20220610 05:59:58', 57.00, 65.88),
+  (2, '20220610 10:00:02', 54.64, 61.10),
+  (2, '20220610 14:00:01', 53.48, 69.76),
+  (2, '20220610 17:59:57', 55.15, 65.85),
+  (2, '20220610 22:00:02', 54.48, 75.90),
+  (2, '20220611 02:00:00', 54.55, 62.28),
+  (2, '20220611 06:00:01', 54.56, 66.36),
+  (2, '20220611 09:59:58', 55.92, 77.53),
+  (2, '20220611 14:00:02', 55.89, 68.57),
+  (2, '20220611 18:00:01', 54.82, 62.04),
+  (2, '20220611 22:00:01', 55.58, 76.20),
+  (2, '20220613 01:59:58', 56.29, 62.33),
+  (2, '20220615 10:00:03', 53.24, 70.67),
+  (2, '20220615 13:59:59', 55.93, 77.60),
+  (2, '20220615 18:00:01', 54.05, 66.56),
+  (2, '20220615 21:59:58', 54.66, 61.13);</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <h3 class="subhead">The DATE_BUCKET function</h3>
+      <p><code>DATE_BUCKET(datepart, bucketwidth, ts, origin)</code> returns the start of the time bucket that contains <code>ts</code>. The <code>origin</code> is the anchor for the buckets; the default is <code>1900-01-01 00:00:00.000</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · DATE_BUCKET with variables</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE
+  @ts          AS DATETIME2(0) = '20220102 12:00:03',
+  @bucketwidth AS INT = 12,
+  @origin      AS DATETIME2(0) = '20220101 00:05:00';
+SELECT DATE_BUCKET(hour, @bucketwidth, @ts, @origin);</code></pre>
+      </div>
+      <p>This defines 12-hour buckets starting at <code>2022-01-01 00:05:00</code>. The timestamp <code>2022-01-02 12:00:03</code> falls in the third bucket, so the function returns <code>2022-01-02 00:05:00</code>.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 7-1</span><span class="fig-src">From the book · p. 267</span></div>
+          <img class="fig-img" src="images/figure-7-1.png" alt="Diagram showing how DATE_BUCKET works: a 12-hour bucket width, an origin of 2022-01-01 00:05:00, an input timestamp of 2022-01-02 12:00:03, and the output start of the containing bucket, 2022-01-02 00:05:00.">
+          <div class="fig-body">
+            <p class="fig-cap">Understanding how the DATE_BUCKET function works</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the origin anchors the buckets. With a 12-hour width, the buckets start at 00:05 and 12:05 each day. The input timestamp falls in the bucket that starts at <code>2022-01-02 00:05:00</code>, which is the function’s result.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">Custom bucket computation (without DATE_BUCKET)</h3>
+      <p>If you are on an older version, compute the bucket start in four steps: whole units between origin and timestamp, a correction for partial hours, whole buckets, and finally add those hours to the origin.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · custom bucket start</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE
+  @ts          AS DATETIME2(0) = '20220102 12:00:03',
+  @bucketwidth AS INT = 12,
+  @origin      AS DATETIME2(0) = '20220101 00:05:00';
+SELECT
+  DATEADD(
+    hour,
+    (DATEDIFF(hour, @origin, @ts)
+      - CASE
+          WHEN DATEADD(hour, DATEDIFF(hour, @origin, @ts), @origin)
+                 &gt; @ts THEN 1
+          ELSE 0
+        END) / @bucketwidth * @bucketwidth,
+    @origin) AS bucketstart;</code></pre>
+      </div>
+      <p>The <code>CASE</code> corrects <code>DATEDIFF</code>, which ignores minutes and seconds. Dividing by the bucket width and multiplying back gives the number of hours in whole buckets.</p>
+
+      <h3 class="subhead">Apply the bucket logic to a table</h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · DATE_BUCKET on SensorMeasurements</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE
+  @bucketwidth AS INT = 12,
+  @origin      AS DATETIME2(0) = '19000101 00:00:00';
+SELECT sensorid, ts,
+  DATE_BUCKET(hour, @bucketwidth, ts, @origin) AS bucketstart
+FROM dbo.SensorMeasurements;</code></pre>
+      </div>
+      <p>To analyze the buckets, compute the bucket start in a CTE, then group by sensor and bucket and aggregate the measures.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · aggregate per bucket</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE
+  @bucketwidth AS INT = 12,
+  @origin      AS DATETIME2(0) = '19000101 00:00:00';
+WITH C AS
+(
+  SELECT sensorid, ts, temperature,
+    DATE_BUCKET(hour, @bucketwidth, ts, @origin) AS bucketstart
+  FROM dbo.SensorMeasurements
+)
+SELECT sensorid, bucketstart,
+  DATEADD(hour, @bucketwidth, bucketstart) AS bucketend,
+  MIN(temperature) AS mintemp,
+  MAX(temperature) AS maxtemp,
+  AVG(temperature) AS avgtemp
+FROM C
+GROUP BY sensorid, bucketstart
+ORDER BY sensorid, bucketstart;</code></pre>
+      </div>
+      <p>For 7-day buckets with Monday as the start, use <code>day</code> as the date part, a width of 7, and an origin that is a Monday (for example, <code>1900-01-01</code>).</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · 7-day buckets</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE
+  @bucketwidth AS INT = 7,
+  @origin      AS DATE = '19000101';
+WITH C AS
+(
+  SELECT sensorid, ts, temperature,
+    DATEADD(
+      day,
+      (DATEDIFF(day, @origin, ts)
+        - CASE
+            WHEN DATEADD(day, DATEDIFF(day, @origin, ts), @origin)
+                   &gt; ts THEN 1
+            ELSE 0
+          END) / @bucketwidth * @bucketwidth,
+      @origin) AS bucketstart
+  FROM dbo.SensorMeasurements
+)
+SELECT sensorid, bucketstart,
+  DATEADD(day, @bucketwidth, bucketstart) AS bucketend,
+  MIN(temperature) AS mintemp,
+  MAX(temperature) AS maxtemp,
+  AVG(temperature) AS avgtemp
+FROM C
+GROUP BY sensorid, bucketstart
+ORDER BY sensorid, bucketstart;</code></pre>
+      </div>
+
+      <h3 class="subhead">Gap filling: keep empty buckets</h3>
+      <p>If a sensor was offline, some buckets have no rows. Generate every possible bucket start time, then left join it to the aggregated data so the empty buckets still appear with NULL measures.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · gap filling with GENERATE_SERIES</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE
+  @bucketwidth AS INT = 12,
+  @startperiod AS DATETIME2(0) = '20220609 00:00:00',
+  @endperiod   AS DATETIME2(0) = '20220615 12:00:00';
+WITH TS AS
+(
+  SELECT DATEADD(hour, value * @bucketwidth, @startperiod) AS ts
+  FROM GENERATE_SERIES(0, DATEDIFF(hour, @startperiod, @endperiod) / @bucketwidth) AS N
+),
+C1 AS
+(
+  SELECT sensorid, ts, temperature,
+    DATE_BUCKET(hour, @bucketwidth, ts, @startperiod) AS bucketstart
+  FROM dbo.SensorMeasurements
+),
+C2 AS
+(
+  SELECT sensorid, bucketstart,
+    MIN(temperature) AS mintemp,
+    MAX(temperature) AS maxtemp,
+    AVG(temperature) AS avgtemp
+  FROM C1
+  GROUP BY sensorid, bucketstart
+)
+SELECT S.sensorid, TS.ts AS bucketstart,
+  DATEADD(hour, @bucketwidth, TS.ts) AS bucketend,
+  mintemp, maxtemp, avgtemp
+FROM dbo.Sensors AS S
+  CROSS JOIN TS
+  LEFT OUTER JOIN C2
+    ON S.sensorid = C2.sensorid
+    AND TS.ts = C2.bucketstart
+ORDER BY sensorid, bucketstart;</code></pre>
+      </div>
+      <p>On versions before SQL Server 2022, replace <code>GENERATE_SERIES</code> with the sample database’s <code>dbo.GetNums(low, high)</code> function, which returns a column called <code>n</code>.</p>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS
+  dbo.Orders,
+  dbo.EmpYearOrders,
+  dbo.EmpCustOrders,
+  dbo.SensorMeasurements,
+  dbo.Sensors;</code></pre>
+      </div>
+    </section>
+
+    <!-- 7.6 -->
+    <section class="section" id="ch7-practice">
+      <div class="section-head">
+        <div class="sec-num">7.6</div>
+        <div>
+          <div class="kicker">Practice</div>
+          <h2>Eight exercises, with the book’s solutions</h2>
+        </div>
+      </div>
+      <p class="lead">Try each one before opening the solution. The exercises use <code>dbo.Orders</code>, <code>Sales.OrderValues</code>, <code>dbo.EmpYearOrders</code>, and the sensor tables created earlier in this chapter.</p>
+
+      <details>
+        <summary>Exercise 1 · Rank and dense rank per customer</summary>
+        <div class="answer">
+          <p>Partition by <code>custid</code>, order by <code>qty</code>.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT custid, orderid, qty,
+  RANK() OVER(PARTITION BY custid ORDER BY qty) AS rnk,
+  DENSE_RANK() OVER(PARTITION BY custid ORDER BY qty) AS drnk
+FROM dbo.Orders;</code></pre>
+          </div>
+          <p>With the <code>WINDOW</code> clause: <code>RANK() OVER W</code> and <code>DENSE_RANK() OVER W</code>, where <code>W AS (PARTITION BY custid ORDER BY qty)</code>.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 2 · Distinct values with row numbers</summary>
+        <div class="answer">
+          <p>Remove duplicates first, then compute row numbers in the outer query.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>WITH C AS
+(
+  SELECT DISTINCT val
+  FROM Sales.OrderValues
+)
+SELECT val, ROW_NUMBER() OVER(ORDER BY val) AS rownum
+FROM C;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 3 · Difference from previous and next order quantity</summary>
+        <div class="answer">
+          <p>Use <code>LAG</code> and <code>LEAD</code> with a partition by customer and a tiebreaker.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT custid, orderid, qty,
+  qty - LAG(qty) OVER(PARTITION BY custid
+                      ORDER BY orderdate, orderid) AS diffprev,
+  qty - LEAD(qty) OVER(PARTITION BY custid
+                       ORDER BY orderdate, orderid) AS diffnext
+FROM dbo.Orders;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 4 · Order counts per employee and year</summary>
+        <div class="answer">
+          <p>Pivot with a grouped query or with the <code>PIVOT</code> operator.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · grouped query</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT empid,
+  COUNT(CASE WHEN orderyear = 2020 THEN orderyear END) AS cnt2020,
+  COUNT(CASE WHEN orderyear = 2021 THEN orderyear END) AS cnt2021,
+  COUNT(CASE WHEN orderyear = 2022 THEN orderyear END) AS cnt2022
+FROM (SELECT empid, YEAR(orderdate) AS orderyear
+      FROM dbo.Orders) AS D
+GROUP BY empid;</code></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · PIVOT operator</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT empid, [2020] AS cnt2020, [2021] AS cnt2021, [2022] AS cnt2022
+FROM (SELECT empid, YEAR(orderdate) AS orderyear
+      FROM dbo.Orders) AS D
+  PIVOT(COUNT(orderyear) FOR orderyear IN([2020], [2021], [2022])) AS P;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 5 · Unpivot EmpYearOrders</summary>
+        <div class="answer">
+          <p>Use <code>CROSS APPLY</code> or <code>UNPIVOT</code>, and filter out zeros.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · CROSS APPLY</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT empid, orderyear, numorders
+FROM dbo.EmpYearOrders
+  CROSS APPLY (VALUES(2020, cnt2020),
+                     (2021, cnt2021),
+                     (2022, cnt2022)) AS A(orderyear, numorders)
+WHERE numorders &lt;&gt; 0;</code></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · UNPIVOT</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT empid, CAST(RIGHT(orderyear, 4) AS INT) AS orderyear, numorders
+FROM dbo.EmpYearOrders
+  UNPIVOT(numorders FOR orderyear IN(cnt2020, cnt2021, cnt2022)) AS U
+WHERE numorders &lt;&gt; 0;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 6 · Grouping sets with an identifier</summary>
+        <div class="answer">
+          <p>Use <code>GROUPING SETS</code> for the three requested sets and <code>GROUPING_ID</code> to identify each row’s set.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT
+  GROUPING_ID(empid, custid, YEAR(Orderdate)) AS groupingset,
+  empid, custid, YEAR(Orderdate) AS orderyear, SUM(qty) AS sumqty
+FROM dbo.Orders
+GROUP BY
+  GROUPING SETS
+  (
+    (empid, custid, YEAR(orderdate)),
+    (empid, YEAR(orderdate)),
+    (custid, YEAR(orderdate))
+  );</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 7 · Weekly order counts, week starting Sunday</summary>
+        <div class="answer">
+          <p>Use <code>DATE_BUCKET(week, 1, orderdate, '19000107')</code> — a Sunday — then group by the week start.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>WITH C AS
+(
+  SELECT
+    DATE_BUCKET(week, 1, orderdate, CAST('19000107' AS DATE)) AS startofweek
+  FROM Sales.Orders
+)
+SELECT
+  startofweek, DATEADD(day, 6, startofweek) AS endofweek,
+  COUNT(*) AS numorders
+FROM C
+GROUP BY startofweek
+ORDER BY startofweek;</code></pre>
+          </div>
+          <p>On older versions, use the custom bucket expression with <code>week</code> as the date part and <code>1900-01-07</code> as the origin.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 8 · Fiscal year totals per shipper (July–June)</summary>
+        <div class="answer">
+          <p>Use July 1 as the origin, the year part, and a width of 1. Then group by shipper and fiscal-year start.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>DECLARE
+  @bucketwidth AS INT = 1,
+  @origin      AS DATE = '19000701';
+WITH C AS
+(
+  SELECT shipperid, qty, val,
+    DATE_BUCKET(year, @bucketwidth, orderdate, @origin) AS startofyear
+  FROM Sales.OrderValues
+)
+SELECT shipperid, startofyear,
+  DATEADD(day, -1, DATEADD(year, @bucketwidth, startofyear)) AS endofyear,
+  SUM(qty) AS totalqty,
+  SUM(val) AS totalval
+FROM C
+GROUP BY shipperid, startofyear
+ORDER BY shipperid, startofyear;</code></pre>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- 7.7 -->
+    <section class="section" id="ch7-recap">
+      <div class="section-head">
+        <div class="sec-num">7.7</div>
+        <div>
+          <div class="kicker">Takeaways</div>
+          <h2>Chapter 7 in ten bullets</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li><strong>A window function computes a scalar per row</strong> from a window defined by <code>OVER</code>, without collapsing the detail rows.</li>
+        <li><strong>The window has three parts:</strong> <code>PARTITION BY</code> splits the rows, <code>ORDER BY</code> orders them, and a frame such as <code>ROWS BETWEEN …</code> selects a subset.</li>
+        <li><strong>Ranking functions:</strong> <code>ROW_NUMBER</code> (unique), <code>RANK</code> (ties, gaps), <code>DENSE_RANK</code> (ties, no gaps), and <code>NTILE</code> (tiles).</li>
+        <li><strong>Offset functions:</strong> <code>LAG</code>, <code>LEAD</code>, <code>FIRST_VALUE</code>, and <code>LAST_VALUE</code>; SQL Server 2022 adds <code>IGNORE NULLS</code>.</li>
+        <li><strong>Aggregate window functions</strong> support frames, enabling running totals, moving averages, and percentages of totals.</li>
+        <li><strong>Window functions are allowed only in SELECT and ORDER BY.</strong> To filter on one, use a table expression.</li>
+        <li><strong>Pivot = group + spread + aggregate.</strong> Use a grouped query with <code>CASE</code>, or the <code>PIVOT</code> operator with a table expression.</li>
+        <li><strong>Unpivot = copies + extract + eliminate.</strong> Use <code>CROSS APPLY</code> to keep NULLs or <code>UNPIVOT</code> to drop them.</li>
+        <li><strong>Grouping sets:</strong> <code>GROUPING SETS</code> lists them, <code>CUBE</code> produces all combinations, <code>ROLLUP</code> produces a hierarchy; <code>GROUPING</code>/<code>GROUPING_ID</code> identify each row’s set.</li>
+        <li><strong>Time series:</strong> bucketize with <code>DATE_BUCKET</code> or a custom computation, aggregate per bucket, and gap-fill with a generated series plus a left join.</li>
+      </ul>
+
+      <h3 class="subhead">Chapter 7 key terms</h3>
+      <dl class="terms">
+        <div class="term"><dt>Window function</dt><dd>A function that computes a value per row from a window of related rows, defined by <code>OVER</code>.</dd></div>
+        <div class="term"><dt>Window partition</dt><dd>The subset of rows with the same <code>PARTITION BY</code> values as the current row.</dd></div>
+        <div class="term"><dt>Window frame</dt><dd>The subset of rows between two delimiters, such as <code>UNBOUNDED PRECEDING</code> and <code>CURRENT ROW</code>.</dd></div>
+        <div class="term"><dt>Ranking function</dt><dd>A window function such as <code>ROW_NUMBER</code>, <code>RANK</code>, <code>DENSE_RANK</code>, or <code>NTILE</code>.</dd></div>
+        <div class="term"><dt>Offset function</dt><dd>A window function such as <code>LAG</code> or <code>LEAD</code> that returns a value from a row at a given offset.</dd></div>
+        <div class="term"><dt>IGNORE NULLS</dt><dd>An option for offset functions that skips NULLs when searching for a known value.</dd></div>
+        <div class="term"><dt>Pivoting</dt><dd>Rotating rows into columns, with grouping, spreading, and aggregation.</dd></div>
+        <div class="term"><dt>Unpivoting</dt><dd>Rotating columns into rows, producing a name column and a value column.</dd></div>
+        <div class="term"><dt>Grouping set</dt><dd>A set of expressions that defines a group in a grouped query.</dd></div>
+        <div class="term"><dt>CUBE</dt><dd>A <code>GROUP BY</code> subclause that produces all possible grouping sets (the power set).</dd></div>
+        <div class="term"><dt>ROLLUP</dt><dd>A <code>GROUP BY</code> subclause that produces the leading combinations of a hierarchy.</dd></div>
+        <div class="term"><dt>GROUPING_ID</dt><dd>A function that returns an integer bitmap identifying the current grouping set.</dd></div>
+        <div class="term"><dt>DATE_BUCKET</dt><dd>A function that returns the start of the time bucket containing a timestamp.</dd></div>
+        <div class="term"><dt>Gap filling</dt><dd>Adding missing buckets to a time-series result, typically with a generated series and a left join.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 7.8 -->
+    <section class="section" id="ch7-quiz">
+      <div class="section-head">
+        <div class="sec-num">7.8</div>
+        <div>
+          <div class="kicker">Check yourself</div>
+          <h2>Six quick questions</h2>
+        </div>
+      </div>
+      <p class="lead">Try to answer before opening each one. If you can explain it in your own words, you’ve got the chapter.</p>
+
+      <details>
+        <summary>What are the three parts of a window specification?</summary>
+        <div class="answer">The window-partition clause (<code>PARTITION BY</code>), the window-order clause (<code>ORDER BY</code>), and the window-frame clause (<code>ROWS BETWEEN …</code>). An empty <code>OVER()</code> exposes the entire underlying result set.</div>
+      </details>
+      <details>
+        <summary>What is the difference between RANK and DENSE_RANK?</summary>
+        <div class="answer">Both give tied rows the same rank. <code>RANK</code> then skips numbers (1, 2, 2, 4), while <code>DENSE_RANK</code> leaves no gaps (1, 2, 2, 3).</div>
+      </details>
+      <details>
+        <summary>Why should you use a table expression with PIVOT?</summary>
+        <div class="answer"><code>PIVOT</code> treats every column that is not the spreading or aggregation element as an implicit grouping column. A table expression containing only the pivoting elements prevents extra columns from changing the grouping, and protects against future schema changes.</div>
+      </details>
+      <details>
+        <summary>What is the difference between CROSS APPLY and UNPIVOT for unpivoting?</summary>
+        <div class="answer">Both rotate columns into rows. <code>CROSS APPLY</code> lets you decide whether to keep rows with NULLs; <code>UNPIVOT</code> always eliminates NULL intersections as part of its logic and is more concise.</div>
+      </details>
+      <details>
+        <summary>What is the difference between CUBE and ROLLUP?</summary>
+        <div class="answer"><code>CUBE</code> produces all possible grouping sets (the power set). <code>ROLLUP</code> assumes a hierarchy and produces only the leading combinations, such as (a, b, c), (a, b), (a), and ().</div>
+      </details>
+      <details>
+        <summary>How does DATE_BUCKET work, and how do you gap-fill?</summary>
+        <div class="answer"><code>DATE_BUCKET(datepart, width, ts, origin)</code> returns the start of the bucket containing <code>ts</code>, counting from the origin. To gap-fill, generate every possible bucket start, then left join it to the aggregated data so empty buckets appear with NULL measures.</div>
+      </details>
+    </section>
+
   </main>
 </div>
 
@@ -4421,12 +5374,12 @@ ORDER BY sortcol, country, region, city;</code></pre>
   <div class="footer-inner">
     <div>
       <h3>About this summary</h3>
-      <p>A study companion for <strong>Chapters 1–6</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230.</p>
-      <p class="fine">All twelve figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, and 5 have no figures or tables; the join-types, subquery-types, and table-expression diagrams are original study aids, not from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
+      <p>A study companion for <strong>Chapters 1–7</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292.</p>
+      <p class="fine">All thirteen figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, and 5 have no figures or tables; the join-types, subquery-types, and table-expression diagrams are original study aids, not from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
     </div>
     <div>
       <h3>Navigate</h3>
-      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch6-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch6-quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch7-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch7-quiz" style="color:#9fe0d6">Quiz</a></p>
       <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
     </div>
   </div>
