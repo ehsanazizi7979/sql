@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>T-SQL Fundamentals — Chapters 1–10 | Plain-English Study Companion</title>
-<meta name="description" content="Plain-English summaries of Chapters 1–10 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, code samples, and original study diagrams.">
+<title>T-SQL Fundamentals — Chapters 1–11 | Plain-English Study Companion</title>
+<meta name="description" content="Plain-English summaries of Chapters 1–11 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, code samples, and original study diagrams.">
 <style>
   :root{
     --paper:#f7f4ed;
@@ -237,29 +237,29 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="#top"><span class="brand-mark">1–10</span> T-SQL Fundamentals · Chapters 1–10</a>
+    <a class="brand" href="#top"><span class="brand-mark">1–11</span> T-SQL Fundamentals · Chapters 1–11</a>
     <div class="topbar-meta">
-      <span>Plain-English summaries</span><span class="dot"></span><span>16 figures + 8 tables + 9 diagrams</span><span class="dot"></span><span>360+ code samples</span>
+      <span>Plain-English summaries</span><span class="dot"></span><span>16 figures + 9 tables + 15 diagrams</span><span class="dot"></span><span>404+ code samples</span>
     </div>
-    <a class="pill" href="#ch10-trans">Jump to Chapter 10 ↓</a>
+    <a class="pill" href="#ch11-intro">Jump to Chapter 11 ↓</a>
   </div>
 </header>
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <span class="eyebrow">📘 Chapters 1–10 · T-SQL Fundamentals, 4th Edition</span>
+    <span class="eyebrow">📘 Chapters 1–11 · T-SQL Fundamentals, 4th Edition</span>
     <h1>The ideas behind the queries</h1>
-    <p class="lede">A plain-English study companion for Chapters 1–10 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
+    <p class="lede">A plain-English study companion for Chapters 1–11 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
     <div class="chips">
-      <span class="chip">10 chapters · 408 book pages</span>
-      <span class="chip">16 figures + 8 tables from the book</span>
-      <span class="chip">9 original study diagrams</span>
-      <span class="chip">360+ code samples</span>
-      <span class="chip">~170 min read</span>
+      <span class="chip">11 chapters · 490 book pages</span>
+      <span class="chip">16 figures + 9 tables from the book</span>
+      <span class="chip">15 original study diagrams</span>
+      <span class="chip">404+ code samples</span>
+      <span class="chip">~190 min read</span>
     </div>
     <div class="hero-quote">
-      <span>The ten-chapter version</span>
-      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets. Chapter 8 switches from reading to writing: inserts, deletes, updates, <code>MERGE</code>, key generation, and the <code>OUTPUT</code> clause. Chapter 9 puts a running history behind every row. Chapter 10 asks what happens when those statements run at the same time: transactions, locks, blocking, isolation levels, and deadlocks.</p>
+      <span>The eleven-chapter version</span>
+      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets. Chapter 8 switches from reading to writing: inserts, deletes, updates, <code>MERGE</code>, key generation, and the <code>OUTPUT</code> clause. Chapter 9 puts a running history behind every row. Chapter 10 asks what happens when those statements run at the same time: transactions, locks, blocking, isolation levels, and deadlocks. Chapter 11 rebuilds the same data as a graph, where relationships themselves become tables you can query with arrows.</p>
     </div>
   </div>
 </section>
@@ -366,9 +366,20 @@
       <a href="#ch10-practice"><span class="n">10.7</span> Practice: 3 labs</a>
       <a href="#ch10-recap"><span class="n">10.8</span> Recap &amp; key terms</a>
       <a href="#ch10-quiz"><span class="n">10.9</span> Check yourself</a>
+      <div class="toc-group">Chapter 11 · SQL Graph</div>
+      <a href="#ch11-intro"><span class="n">11.1</span> Nodes, edges &amp; the scenario</a>
+      <a href="#ch11-model"><span class="n">11.2</span> Graph modeling</a>
+      <a href="#ch11-tables"><span class="n">11.3</span> Creating node &amp; edge tables</a>
+      <a href="#ch11-match"><span class="n">11.4</span> The MATCH clause</a>
+      <a href="#ch11-recursive"><span class="n">11.5</span> Recursive queries</a>
+      <a href="#ch11-shortest"><span class="n">11.6</span> SHORTEST_PATH</a>
+      <a href="#ch11-modify"><span class="n">11.7</span> Modifying graph data</a>
+      <a href="#ch11-practice"><span class="n">11.8</span> Practice: 4 exercises</a>
+      <a href="#ch11-recap"><span class="n">11.9</span> Recap &amp; key terms</a>
+      <a href="#ch11-quiz"><span class="n">11.10</span> Check yourself</a>
     </nav>
     <div class="toc-foot">
-      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit; Chapter 8 turns that toolkit toward changing data; Chapter 9 records every change; Chapter 10 keeps it all correct when many sessions run at once. If you only have five minutes, read the ten recaps.
+      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit; Chapter 8 turns that toolkit toward changing data; Chapter 9 records every change; Chapter 10 keeps it all correct when many sessions run at once; Chapter 11 models the data as a graph. If you only have five minutes, read the eleven recaps.
     </div>
   </aside>
 
@@ -8987,6 +8998,1238 @@ COMMIT TRAN;</code></pre>
       </details>
     </section>
 
+    <!-- ================= CHAPTER 11 ================= -->
+    <div class="part-divider" id="chapter-11">
+      <span class="part-eyebrow">Chapter 11 · SQL Graph</span>
+      <h2>When your data is a network, not a set of tables</h2>
+      <p>SQL Graph adds a second way to model and query your data: node tables for the things, edge tables for the relationships, and a <code>MATCH</code> clause that lets you draw the relationships as ASCII art. This chapter builds the same fictitious social network twice — once traditionally, once as a graph — then compares how each model reads when you query it.</p>
+      <div class="part-chips">
+        <span>Book pages 409–490</span>
+        <span>4 figures + 1 table</span>
+        <span>4 exercises with solutions</span>
+      </div>
+    </div>
+
+    <!-- 11.1 -->
+    <section class="section" id="ch11-intro">
+      <div class="section-head">
+        <div class="sec-num">11.1</div>
+        <div>
+          <div class="kicker">The idea</div>
+          <h2>Nodes, edges, and a social network</h2>
+        </div>
+      </div>
+      <p class="lead">The SQL Graph feature provides an alternative to traditional modeling and querying. It arrived in SQL Server 2017 and was enhanced later. The modeling part uses specialized <strong>node</strong> and <strong>edge</strong> tables: nodes are the vertices of the graph, edges connect pairs of nodes. The querying part uses a <code>MATCH</code> clause to say how the objects connect.</p>
+
+      <div class="note">
+        <strong>Version check</strong>
+        To run every sample and exercise in this chapter you need <strong>SQL Server 2019 or later</strong>, or Azure SQL Database.
+      </div>
+
+      <h3 class="subhead">Is it worth it? <span class="tag">p. 409</span></h3>
+      <p>For simple needs — just connecting nodes with edges — graph queries are often more concise and intuitive than joins, but on their own that rarely justifies the departure from traditional modeling. Where the feature really shines is in the hard problems: <strong>shortest path</strong> between nodes, <strong>transitive closure</strong>, and traversing <strong>arbitrary-length paths</strong>. Some of those capabilities already exist in T-SQL, some don’t; the more Microsoft adds, the more appealing the option becomes.</p>
+      <div class="tip">
+        <strong>Read this chapter carefully before migrating</strong>
+        A graph-based design is a genuine departure: different model, different syntax, data to migrate, and refactoring overhead. Weigh the pros against that cost before you convert an existing implementation.
+      </div>
+
+      <h3 class="subhead">The scenario: a fictitious social network <span class="tag">p. 410</span></h3>
+      <p>Three entities and six interactions:</p>
+      <div class="grid grid-3">
+        <div class="card"><div class="mini">Accounts</div><p>Personal or company. An ID, a name, a join date, and reputation points.</p></div>
+        <div class="card"><div class="mini">Posts</div><p>Status messages or news items by a single poster. An ID, a posting date and time, and the post text.</p></div>
+        <div class="card"><div class="mini">Publications</div><p>Books, articles, and blogs authored by one or more accounts. An ID, a publication date, and a title.</p></div>
+      </div>
+      <ul class="checklist">
+        <li><strong>Two accounts befriend each other</strong> — a two-way (commutative) relationship: one requests, one confirms. Record the start date.</li>
+        <li><strong>One account follows another</strong> — a one-way relationship. A can follow B without B following A. Record who follows whom and the start date.</li>
+        <li><strong>A post is posted by some account</strong> — exactly one.</li>
+        <li><strong>A post may have a parent post</strong> — in which case it’s a reply. Either one parent or none.</li>
+        <li><strong>An account likes a post</strong> — record the date and time of the like.</li>
+        <li><strong>A publication is authored by one or more accounts.</strong></li>
+      </ul>
+      <p>To keep the two models clearly apart, each set of tables lives in its own schema:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · two schemas, two models</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+GO
+CREATE SCHEMA Norm;  -- schema for traditional modeling
+GO
+CREATE SCHEMA Graph; -- schema for graph modeling</code></pre>
+      </div>
+
+      <h3 class="subhead">Figure 11-1 · the traditional model <span class="tag">p. 411</span></h3>
+      <p>The traditional design takes <strong>seven tables</strong>. Note the plural naming convention — a table is SQL’s counterpart to a relation, whose body is a set of tuples, so <code>Accounts</code>, <code>Posts</code>, <code>Publications</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Table</th><th>Columns</th><th>Primary key</th><th>Foreign keys &amp; other rules</th></tr></thead>
+          <tbody>
+            <tr><td><code>Norm.Accounts</code></td><td>accountid, accountname, joindate, reputationpoints</td><td>accountid</td><td>—</td></tr>
+            <tr><td><code>Norm.Posts</code></td><td>postid, parentpostid, accountid, dt, posttext</td><td>postid</td><td>accountid → Accounts; parentpostid → Posts (self)</td></tr>
+            <tr><td><code>Norm.Publications</code></td><td>pubid, pubdate, title</td><td>pubid</td><td>—</td></tr>
+            <tr><td><code>Norm.Friendships</code></td><td>accountid1, accountid2, startdate</td><td>(accountid1, accountid2)</td><td>both → Accounts; <code>CHECK(accountid1 &lt; accountid2)</code></td></tr>
+            <tr><td><code>Norm.Followings</code></td><td>accountid1, accountid2, startdate</td><td>(accountid1, accountid2)</td><td>both → Accounts (no check constraint)</td></tr>
+            <tr><td><code>Norm.Likes</code></td><td>accountid, postid, dt</td><td>(accountid, postid)</td><td>accountid → Accounts; postid → Posts</td></tr>
+            <tr><td><code>Norm.AuthorsPublications</code></td><td>accountid, pubid</td><td>(pubid, accountid)</td><td>accountid → Accounts; pubid → Publications</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Figure 11-1 from the book, recreated as an HTML table — the book’s artwork is vector art that cannot be extracted as an image.</p>
+      <div class="grid grid-2">
+        <div class="card"><div class="mini">Friendships are commutative</div><p>“A is friends with B” is the same fact as “B is friends with A”, so you store one row, not two. The trick that prevents the mirrored duplicate is a check constraint <code>accountid1 &lt; accountid2</code> — you then have to supply the IDs in the right order.</p></div>
+        <div class="card"><div class="mini">Followings are not</div><p>A can follow B without B following A, and each direction has its own start date. So each relationship is its own row, with accountid1 as the follower and accountid2 as the followee — and deliberately <em>no</em> check constraint.</p></div>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the traditional tables (abridged)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE TABLE Norm.Accounts
+(
+  accountid        INT          NOT NULL,
+  accountname      NVARCHAR(50) NOT NULL,
+  joindate         DATE         NOT NULL
+    CONSTRAINT DFT_Accounts_joindate DEFAULT(SYSDATETIME()),
+  reputationpoints INT          NOT NULL
+    CONSTRAINT DFT_Accounts_reputationpoints DEFAULT(0),
+  CONSTRAINT PK_Accounts PRIMARY KEY(accountid)
+);
+
+CREATE TABLE Norm.Posts
+(
+  postid       INT            NOT NULL,
+  parentpostid INT            NULL,
+  accountid    INT            NOT NULL,
+  dt           DATETIME2(0)   NOT NULL
+    CONSTRAINT DFT_Posts_dt DEFAULT(SYSDATETIME()),
+  posttext     NVARCHAR(1000) NOT NULL,
+  CONSTRAINT PK_Posts PRIMARY KEY(postid),
+  CONSTRAINT FK_Posts_Accounts FOREIGN KEY(accountid)
+    REFERENCES Norm.Accounts(accountid),
+  CONSTRAINT FK_Posts_Posts FOREIGN KEY(parentpostid)
+    REFERENCES Norm.Posts(postid)
+);
+
+CREATE TABLE Norm.Friendships
+(
+  accountid1 INT  NOT NULL,
+  accountid2 INT  NOT NULL,
+  startdate  DATE NOT NULL
+    CONSTRAINT DFT_Friendships_startdate DEFAULT(SYSDATETIME()),
+  CONSTRAINT PK_Friendships PRIMARY KEY(accountid1, accountid2),
+  -- undirected graph; don't allow mirrored pair
+  CONSTRAINT CHK_Friendships_act1_lt_act2
+    CHECK(accountid1 &lt; accountid2),
+  CONSTRAINT FK_Friendships_Accounts_act1 FOREIGN KEY(accountid1)
+    REFERENCES Norm.Accounts(accountid),
+  CONSTRAINT FK_Friendships_Accounts_act2 FOREIGN KEY(accountid2)
+    REFERENCES Norm.Accounts(accountid)
+);</code></pre>
+      </div>
+      <p>Two design choices follow from cardinality rather than from modeling style: a post has exactly one poster, so <code>accountid</code> lives in <code>Posts</code>; a post has at most one parent, so <code>parentpostid</code> (nullable, self-referencing FK) lives there too. A publication, by contrast, can have several authors — so it needs its own junction table.</p>
+    </section>
+
+    <!-- 11.2 -->
+    <section class="section" id="ch11-model">
+      <div class="section-head">
+        <div class="sec-num">11.2</div>
+        <div>
+          <div class="kicker">Graph modeling</div>
+          <h2>Three nodes, six edges</h2>
+        </div>
+      </div>
+      <p class="lead">In graph modeling you have two kinds of entity: <strong>nodes</strong> (the endpoints of a relationship) and <strong>edges</strong> (the way the <em>from node</em> relates to the <em>to node</em>). You mark tables with <code>AS NODE</code> and <code>AS EDGE</code>, and connect them in queries with ASCII art:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">The arrow syntax</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>from_node-(edge)-&gt;to_node
+
+-- an account likes a post:
+Account-(Likes)-&gt;Post</code></pre>
+      </div>
+      <p>Naming conventions: nodes are nouns in the <strong>singular</strong> (<code>Account</code>, <code>Post</code>, <code>Publication</code>); edges are verbs in the third person (<code>Follows</code>), with the time aspect baked in — present tense for relationships that are currently relevant (<code>Likes</code>, <code>Follows</code>), past tense for things that happened (<code>Posted</code>, <code>Authored</code>), and sometimes an auxiliary verb or preposition for readability (<code>IsReplyTo</code>, <code>IsFriendOf</code>). Think English.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 11-2 · GRAPH NODES AND EDGES</span><span class="fig-src">Redrawn from the book, p. 418</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 340" role="img" aria-label="Graph diagram with three node rectangles Account, Post and Publication and six labelled edges: Posted and Likes from Account to Post, Authored from Account to Publication, IsReplyTo looping on Post, and Follows and IsFriendOf looping on Account">
+                <defs>
+                  <marker id="arrow11" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                </defs>
+                <text x="20" y="22" class="jtitle">NODES AS BOXES, EDGES AS ARROWS</text>
+
+                <rect x="40" y="120" width="190" height="76" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.6"/>
+                <text x="135" y="152" text-anchor="middle" class="jlabel">Account</text>
+                <text x="135" y="170" text-anchor="middle" class="jcap">NODE</text>
+
+                <rect x="470" y="120" width="190" height="76" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.6"/>
+                <text x="565" y="152" text-anchor="middle" class="jlabel">Post</text>
+                <text x="565" y="170" text-anchor="middle" class="jcap">NODE</text>
+
+                <rect x="470" y="250" width="190" height="66" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.6"/>
+                <text x="565" y="278" text-anchor="middle" class="jlabel">Publication</text>
+                <text x="565" y="296" text-anchor="middle" class="jcap">NODE</text>
+
+                <line x1="235" y1="140" x2="465" y2="140" stroke="#0f6b63" stroke-width="1.8" marker-end="url(#arrow11)"/>
+                <text x="350" y="132" text-anchor="middle" class="jcap">Posted</text>
+                <line x1="235" y1="176" x2="465" y2="176" stroke="#0f6b63" stroke-width="1.8" marker-end="url(#arrow11)"/>
+                <text x="350" y="196" text-anchor="middle" class="jcap">Likes</text>
+
+                <path d="M 235 182 C 330 182, 380 240, 468 262" fill="none" stroke="#0f6b63" stroke-width="1.8" marker-end="url(#arrow11)"/>
+                <text x="355" y="248" text-anchor="middle" class="jcap">Authored</text>
+
+                <path d="M 100 120 C 70 55, 200 55, 170 120" fill="none" stroke="#0f6b63" stroke-width="1.8" marker-end="url(#arrow11)"/>
+                <text x="135" y="50" text-anchor="middle" class="jcap">Follows</text>
+
+                <path d="M 100 196 C 70 262, 200 262, 170 196" fill="none" stroke="#0f6b63" stroke-width="1.8" marker-end="url(#arrow11)"/>
+                <text x="135" y="284" text-anchor="middle" class="jcap">IsFriendOf</text>
+
+                <path d="M 660 140 C 715 132, 715 188, 660 184" fill="none" stroke="#0f6b63" stroke-width="1.8" marker-end="url(#arrow11)"/>
+                <text x="762" y="164" text-anchor="middle" class="jcap">IsReplyTo</text>
+              </svg>
+            </div>
+            <p class="fig-cap">The whole model on one canvas</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> every relationship is an arrow from a from node to a to node. Two edges connect an account to itself (<code>Follows</code>, <code>IsFriendOf</code>) and one connects a post to itself (<code>IsReplyTo</code>), because in each case both endpoints are the same kind of node. Where the traditional model buried those relationships in columns (<code>parentpostid</code>, <code>accountid</code>) or in junction tables, the graph model promotes each one to a first-class edge table.</p>
+          </div>
+        </div>
+      </figure>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 11-3 · GRAPH DATA MODEL</span><span class="fig-src">Redrawn from the book, p. 418</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 360" role="img" aria-label="Detailed graph data model: three node tables with their columns and six edge tables with the pair of node tables each one connects">
+                <text x="20" y="22" class="jtitle">NODE TABLES</text>
+                <text x="440" y="22" class="jtitle">EDGE TABLES</text>
+
+                <rect x="45" y="68" width="350" height="76" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="220" y="92" text-anchor="middle" class="jlabel">Account</text>
+                <text x="220" y="112" text-anchor="middle" class="jcap">accountid, accountname</text>
+                <text x="220" y="130" text-anchor="middle" class="jcap">joindate, reputationpoints</text>
+
+                <rect x="45" y="158" width="350" height="66" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="220" y="182" text-anchor="middle" class="jlabel">Post</text>
+                <text x="220" y="202" text-anchor="middle" class="jcap">postid, dt, posttext</text>
+
+                <rect x="45" y="238" width="350" height="66" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="220" y="262" text-anchor="middle" class="jlabel">Publication</text>
+                <text x="220" y="282" text-anchor="middle" class="jcap">pubid, pubdate, title</text>
+
+                <rect x="465" y="68" width="390" height="34" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.4"/>
+                <text x="482" y="90" class="jlabel">Posted</text>
+                <text x="838" y="90" text-anchor="end" class="jcap">Account to Post</text>
+
+                <rect x="465" y="110" width="390" height="34" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.4"/>
+                <text x="482" y="132" class="jlabel">Likes</text>
+                <text x="838" y="132" text-anchor="end" class="jcap">Account to Post</text>
+
+                <rect x="465" y="152" width="390" height="34" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.4"/>
+                <text x="482" y="174" class="jlabel">Authored</text>
+                <text x="838" y="174" text-anchor="end" class="jcap">Account to Publication</text>
+
+                <rect x="465" y="194" width="390" height="34" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.4"/>
+                <text x="482" y="216" class="jlabel">IsReplyTo</text>
+                <text x="838" y="216" text-anchor="end" class="jcap">Post to Post</text>
+
+                <rect x="465" y="236" width="390" height="34" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.4"/>
+                <text x="482" y="258" class="jlabel">Follows</text>
+                <text x="838" y="258" text-anchor="end" class="jcap">Account to Account</text>
+
+                <rect x="465" y="278" width="390" height="34" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.4"/>
+                <text x="482" y="300" class="jlabel">IsFriendOf</text>
+                <text x="838" y="300" text-anchor="end" class="jcap">Account to Account</text>
+
+                <text x="450" y="344" text-anchor="middle" class="jcap">Every node table also gets a system $node_id; every edge table also gets $edge_id, $from_id and $to_id.</text>
+              </svg>
+            </div>
+            <p class="fig-cap">Nine tables instead of seven</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the graph model needs <strong>nine</strong> tables where the traditional model needed seven — but the relationships that used to be columns are now tables you can query directly. As a rule of thumb from the book: <em>foreign key relationships in traditional modeling usually translate to edge tables in graph modeling.</em> Only three edge tables carry extra user columns here (<code>Likes.dt</code>, <code>Follows.startdate</code>, <code>IsFriendOf.startdate</code>); the rest are pure connections.</p>
+          </div>
+        </div>
+      </figure>
+    </section>
+
+    <!-- 11.3 -->
+    <section class="section" id="ch11-tables">
+      <div class="section-head">
+        <div class="sec-num">11.3</div>
+        <div>
+          <div class="kicker">Creating tables</div>
+          <h2>AS NODE, AS EDGE, and the hidden columns</h2>
+        </div>
+      </div>
+      <p class="lead">Node and edge tables are ordinary tables with a clause at the end. SQL Server adds several columns you never declare, and several you must supply yourself when you insert edges.</p>
+
+      <h3 class="subhead">Creating node tables <span class="tag">p. 420</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a node table</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE TABLE Graph.Account
+(
+  accountid        INT          NOT NULL,
+  accountname      NVARCHAR(50) NOT NULL,
+  joindate         DATE         NOT NULL
+    CONSTRAINT DFT_Account_joindate DEFAULT(SYSDATETIME()),
+  reputationpoints INT          NOT NULL
+    CONSTRAINT DFT_Account_reputationpoints DEFAULT(0),
+  CONSTRAINT PK_Account PRIMARY KEY(accountid)
+) AS NODE;</code></pre>
+      </div>
+      <p>You never declare <code>$node_id</code> — SQL Server creates it. Querying the table returns a JSON string rather than the internal value:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Result (abridged)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>$node_id_778BA26000F9442194D5F7A4EFC932A0     accountid  accountname
+--------------------------------------------- ---------- ------------
+{"type":"node","schema":"Graph","table":"Account","id":0}  641        Inka
+{"type":"node","schema":"Graph","table":"Account","id":1}   71         Miko
+{"type":"node","schema":"Graph","table":"Account","id":3}  421        Buzi</code></pre>
+      </div>
+      <div class="warn">
+        <strong>The graph ID is not an identity</strong>
+        Values start at 0 and are assigned in insertion order, but truncating and repopulating does <em>not</em> reset them — they carry on. And you cannot supply your own values. That is why the book recommends adding your own key column (<code>accountid</code>, <code>postid</code>, <code>pubid</code>) to every node table: it is far easier to filter on a key you control, and a node that you delete and reinsert gets a brand-new graph ID.
+      </div>
+
+      <h3 class="subhead">Creating edge tables <span class="tag">p. 423</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · edge table syntax</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE TABLE &lt;table_name&gt; AS EDGE;                              -- no user columns
+CREATE TABLE &lt;table_name&gt; (&lt;columns_and_constraints&gt;) AS EDGE;  -- with user columns</code></pre>
+      </div>
+      <p>You can restrict which node tables an edge may connect with an <strong>edge constraint</strong> (SQL Server 2019+, Azure SQL):</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · edge constraint syntax</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>[CONSTRAINT &lt;constraint_name&gt;]
+  CONNECTION (&lt;from_node_table_1&gt; TO &lt;to_node_table_1&gt;
+              [ ... , &lt;from_node_table_n&gt; TO &lt;to_node_table_n&gt;])
+  [ON DELETE &lt;referential_action&gt;]     -- NO ACTION or CASCADE</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the IsReplyTo edge</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE TABLE Graph.IsReplyTo
+(
+  CONSTRAINT EC_IsReplyTo CONNECTION (Graph.Post TO Graph.Post)
+    ON DELETE NO ACTION
+) AS EDGE;
+
+-- prevent duplicate edges between the same pair of nodes
+ALTER TABLE Graph.IsReplyTo
+  ADD CONSTRAINT UNQ_IsReplyTo_fromid_toid UNIQUE($from_id, $to_id);</code></pre>
+      </div>
+      <div class="note">
+        <strong>Why not a foreign key?</strong>
+        You cannot define foreign keys on <code>$from_id</code> and <code>$to_id</code> referencing <code>$node_id</code>. If one edge table serves several pairs of node tables, two foreign keys would contradict each other. An edge constraint is more sophisticated: list every pair in <strong>one</strong> constraint (<code>CONNECTION (A TO B, C TO D)</code>) and any pair satisfies it. Separate constraints for each pair would all have to hold at once — which is typically impossible.
+      </div>
+      <p><code>ON DELETE CASCADE</code> deletes a node’s connecting edges automatically; <code>NO ACTION</code> rejects the delete. There is no update action, because you cannot update <code>$node_id</code> anyway.</p>
+
+      <h3 class="subhead">Inserting edges <span class="tag">p. 424</span></h3>
+      <p>An edge row stores the <code>$node_id</code> values of the two nodes it connects, and <em>you</em> are responsible for looking them up. The verbose way is a scalar subquery per node:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · one subquery per node</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>INSERT INTO Graph.IsReplyTo($from_id, $to_id) VALUES
+  ( (SELECT $node_id FROM Graph.Post WHERE postid =  449),
+      (SELECT $node_id FROM Graph.Post WHERE postid =   13) ),
+  ( (SELECT $node_id FROM Graph.Post WHERE postid =  677),
+      (SELECT $node_id FROM Graph.Post WHERE postid =   13) );
+-- ... and so on for all 13 edges</code></pre>
+      </div>
+      <p>The concise way — and the right way at any real volume — is a table value constructor joined to the node tables:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the set-based way</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>TRUNCATE TABLE Graph.IsReplyTo;
+
+INSERT INTO Graph.IsReplyTo($from_id, $to_id)
+  SELECT FP.$node_id AS fromid, TP.$node_id AS toid
+  FROM (VALUES( 449,   13),
+              ( 677,   13),
+              ( 857,  109),
+              (1021,  449),
+              (1061, 1031),
+              (1259, 1151)) AS D(frompostid, topostid)
+    INNER JOIN Graph.Post AS FP
+      ON D.frompostid = FP.postid
+    INNER JOIN Graph.Post AS TP
+      ON D.topostid = TP.postid;</code></pre>
+      </div>
+      <p>And that is exactly how you migrate an existing traditional implementation: create the node tables, populate them with <code>INSERT SELECT</code> from the source, create the edge tables, then populate each edge table from the source joined to the new node tables.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · migrating Norm.Posts into the IsReplyTo edge</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>TRUNCATE TABLE Graph.IsReplyTo;
+
+INSERT INTO Graph.IsReplyTo($from_id, $to_id)
+  SELECT FP.$node_id AS fromid, TP.$node_id AS toid
+  FROM Norm.Posts AS P
+    INNER JOIN Graph.Post AS FP
+      ON P.postid = FP.postid
+    INNER JOIN Graph.Post AS TP
+      ON P.parentpostid = TP.postid;</code></pre>
+      </div>
+      <div class="warn">
+        <strong>You cannot repoint an edge</strong>
+        At the time of writing you cannot update the <code>$from_id</code> and <code>$to_id</code> values of an existing edge row. To change which nodes an edge connects, delete it and insert a new one — which gets a new <code>$edge_id</code>.
+      </div>
+
+      <h3 class="subhead">Querying metadata <span class="tag">p. 434</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · which tables are graph tables?</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT SCHEMA_NAME(schema_id) + N'.' + name AS tablename,
+  CASE
+    WHEN is_node = 1 THEN 'NODE'
+    WHEN is_edge = 1 THEN 'EDGE'
+    ELSE 'Not SQLGraph table'
+  END AS tabletype
+FROM sys.tables
+WHERE is_node = 1 OR is_edge = 1;
+-- tablename          tabletype
+-- ------------------ ----------
+-- Graph.Account      NODE
+-- Graph.Post         NODE
+-- Graph.Publication  NODE
+-- Graph.IsReplyTo    EDGE
+-- ...</code></pre>
+      </div>
+      <p>Every node table has two graph-specific columns: an internal <code>graph_id</code> (<code>BIGINT</code>, <code>graph_type_desc</code> = <code>GRAPH_ID</code>) you cannot query directly, and the exposed computed <code>$node_id</code> (<code>GRAPH_ID_COMPUTED</code>) holding the JSON string. Every edge table has <strong>eight</strong>: internally <code>graph_id</code>, <code>from_obj_id</code>, <code>from_id</code>, <code>to_obj_id</code>, <code>to_id</code>, and exposed <code>$edge_id</code>, <code>$from_id</code>, <code>$to_id</code>.</p>
+
+      <h3 class="subhead">Table 11-1 · the system functions <span class="tag">p. 437</span></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>OBJECT_ID_FROM_NODE_ID</code></td><td>Extract the <code>object_id</code> from a <code>node_id</code>.</td></tr>
+            <tr><td><code>GRAPH_ID_FROM_NODE_ID</code></td><td>Extract the <code>graph_id</code> from a <code>node_id</code>.</td></tr>
+            <tr><td><code>NODE_ID_FROM_PARTS</code></td><td>Construct a <code>node_id</code> from an <code>object_id</code> and a <code>graph_id</code>.</td></tr>
+            <tr><td><code>OBJECT_ID_FROM_EDGE_ID</code></td><td>Extract <code>object_id</code> from <code>edge_id</code>.</td></tr>
+            <tr><td><code>GRAPH_ID_FROM_EDGE_ID</code></td><td>Extract identity from <code>edge_id</code>.</td></tr>
+            <tr><td><code>EDGE_ID_FROM_PARTS</code></td><td>Construct <code>edge_id</code> from <code>object_id</code> and identity.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Table 11-1 from the book, recreated in HTML.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · splitting and building node IDs</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT $node_id,
+  OBJECT_ID_FROM_NODE_ID($node_id) AS obj_id,
+  GRAPH_ID_FROM_NODE_ID($node_id) AS graph_id
+FROM Graph.Account;
+
+-- find a node by its internal graph ID
+SELECT $node_id, accountid, accountname
+FROM Graph.Account
+WHERE GRAPH_ID_FROM_NODE_ID($node_id) = 3;
+-- 421  Buzi
+
+-- build a node ID from its parts
+SELECT NODE_ID_FROM_PARTS(OBJECT_ID(N'Graph.Account'), 3);
+-- {"type":"node","schema":"Graph","table":"Account","id":3}</code></pre>
+      </div>
+    </section>
+
+    <!-- 11.4 -->
+    <section class="section" id="ch11-match">
+      <div class="section-head">
+        <div class="sec-num">11.4</div>
+        <div>
+          <div class="kicker">Querying</div>
+          <h2>The MATCH clause</h2>
+        </div>
+      </div>
+      <p class="lead"><code>MATCH</code> is the main language extension you get for querying graph data. The general shape of a SELECT against graph objects:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the shape of a graph query</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT &lt;select_list&gt;
+FROM &lt;commalist of graph objects&gt;
+WHERE MATCH(&lt;match_specification_1&gt;) [ ... AND MATCH(&lt;match_specification_n&gt;)];</code></pre>
+      </div>
+
+      <h3 class="subhead">Your first pattern <span class="tag">p. 439</span></h3>
+      <p>Accounts with their posts. Traditionally:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Traditional</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT A.accountid, A.accountname, P.postid, P.posttext
+FROM Norm.Accounts AS A
+  INNER JOIN Norm.Posts AS P
+    ON A.accountid = P.accountid;</code></pre>
+      </div>
+      <p>With graph modeling you always go through the edge table, so you list <strong>three</strong> objects and draw the arrow:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Graph</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT accountid, accountname, postid, posttext
+FROM Graph.Account, Graph.Posted, Graph.Post
+WHERE MATCH(Account-(Posted)-&gt;Post);</code></pre>
+      </div>
+      <p>The arrow direction is yours to choose — <code>to_node&lt;-(edge)-from_node</code> means exactly the same thing, and the freedom to point either way is what makes elaborate patterns possible. If you alias a table in <code>FROM</code>, you must use the alias in the pattern too.</p>
+      <div class="note">
+        <strong>Graph paths behave like outer joins</strong>
+        Semantically <code>Account-(Posted)-&gt;Post</code> is closer to an <em>outer</em> join with the <strong>edge table as the preserved side</strong> than to an inner join. With edge constraints in place you cannot have orphaned edges, so inner and outer give the same answer anyway — but if integrity is not enforced, orphaned edges show up as outer rows, and those rows are a red flag that your data is inconsistent.
+      </div>
+      <p>Traditional T-SQL against graph objects is fully supported: join the edge table to the two node tables explicitly on <code>$from_id</code>/<code>$to_id</code> vs. <code>$node_id</code>. That is useful for troubleshooting a pattern, and for the places where graph syntax is not supported (recursive queries, for instance). The reverse is not true — you cannot use graph syntax against traditional tables.</p>
+
+      <h3 class="subhead">Merging patterns <span class="tag">p. 445</span></h3>
+      <p>Posts and their direct replies, with the posting account name for each side. Three relationships: Account1 posted Post; Account2 posted Reply; Reply is a reply to Post. Because the same tables play two roles, each appears twice with its own alias:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the two-role query</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT Account1.accountname AS account1, Post.posttext,
+  Account2.accountname AS account2, Reply.posttext AS replytext
+FROM Graph.Account AS Account1, Graph.Posted, Graph.Post,
+  Graph.Account AS Account2, Graph.Posted AS RepliedWith,
+  Graph.Post AS Reply, Graph.IsReplyTo
+WHERE MATCH(Account1-(Posted)-&gt;Post&lt;-(IsReplyTo)-Reply
+  &lt;-(RepliedWith)-Account2) -- white spaces are ignored
+ORDER BY Post.dt, Post.postid, Reply.dt;</code></pre>
+      </div>
+      <p>How do you merge two patterns that share a node? Put the shared node in the middle and keep the arrow directions that match its role in each relationship:</p>
+      <ul>
+        <li><strong>Same node is the from node in both:</strong> <code>N2&lt;-(E1)-N1-(E2)-&gt;N3</code></li>
+        <li><strong>Same node is the to node in both:</strong> <code>N3-(E2)-&gt;N1&lt;-(E1)-N2</code></li>
+        <li><strong>From node in one, to node in the other:</strong> <code>N2-(E1)-&gt;N1-(E2)-&gt;N3</code></li>
+      </ul>
+      <p>If a single long pattern is not your style, the same logic can be written as a conjunction inside one <code>MATCH</code>, or as separate <code>MATCH</code> predicates ANDed together. All three forms are logically equivalent and treated identically by SQL Server — pick whichever your team reads best.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · three equivalent shapes</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WHERE MATCH(Account1-(Posted)-&gt;Post&lt;-(IsReplyTo)-Reply
+  &lt;-(RepliedWith)-Account2)
+
+WHERE MATCH(Account1-(Posted)-&gt;Post
+        AND Account2-(RepliedWith)-&gt;Reply
+        AND Reply-(IsReplyTo)-&gt;Post)
+
+WHERE MATCH(Account1-(Posted)-&gt;Post)
+  AND MATCH(Account2-(RepliedWith)-&gt;Reply)
+  AND MATCH(Reply-(IsReplyTo)-&gt;Post)</code></pre>
+      </div>
+      <p>Add one more relationship — the replying account must follow the account that posted the parent — and the pattern just grows by one arrow, with <code>Account1</code> legitimately appearing twice:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · four relationships, one line</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WHERE MATCH(Account1-(Posted)-&gt;Post&lt;-(IsReplyTo)-Reply
+  &lt;-(RepliedWith)-Account2-(Follows)-&gt;Account1)</code></pre>
+      </div>
+      <p>The traditional equivalent needs seven joins and reads nothing like English. Read the pattern in the direction of the arrows and you get: <em>“Account 1 posted a post. The reply is a reply to that post. Account 2 replied with that reply. Account 2 follows account 1.”</em></p>
+
+      <h3 class="subhead">OR and NOT logic <span class="tag">p. 448</span></h3>
+      <div class="warn">
+        <strong>No OR or NOT inside match patterns</strong>
+        You can only combine base patterns with <strong>AND</strong> — whether in one merged pattern, one <code>MATCH</code> with ANDed base patterns, or multiple <code>MATCH</code> predicates. There is no direct OR and no direct negation.
+      </div>
+      <p>Two workarounds exist. <strong>Set operators</strong> (<code>UNION</code> for OR, <code>EXCEPT</code> for NOT) repeat the whole ANDed pattern and differ only in the ORed edge — clear, but verbose. <strong>Correlated <code>EXISTS</code></strong> subqueries keep the ANDed logic in the outer query and put each ORed branch in its own <code>EXISTS</code> — more concise, and the book’s preferred option.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · OR logic via EXISTS (follows OR is friend of)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT Account1.accountname AS account1, Post.posttext,
+  Account2.accountname AS account2, Reply.posttext AS replytext
+FROM Graph.Account AS Account1, Graph.Posted, Graph.Post,
+  Graph.Account AS Account2, Graph.Posted AS RepliedWith,
+  Graph.Post AS Reply, Graph.IsReplyTo
+WHERE MATCH(Account1-(Posted)-&gt;Post&lt;-(IsReplyTo)-Reply
+  &lt;-(RepliedWith)-Account2)
+  AND (EXISTS (SELECT * FROM Graph.Follows
+               WHERE MATCH(Account2-(Follows)-&gt;Account1))
+       OR
+       EXISTS (SELECT * FROM Graph.IsFriendOf
+               WHERE MATCH(Account2-(IsFriendOf)-&gt;Account1)));</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · NOT logic via NOT EXISTS (didn't also like the post)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WHERE MATCH(Account1-(Posted)-&gt;Post&lt;-(IsReplyTo)-Reply
+  &lt;-(RepliedWith)-Account2)
+  AND NOT EXISTS
+    (SELECT *
+     FROM Graph.Likes
+     WHERE MATCH(Account2-(Likes)-&gt;Post));</code></pre>
+      </div>
+      <p>Notice the references to <code>Account1</code> and <code>Account2</code> inside the subqueries — those are the correlations, and they are what make this technique work.</p>
+    </section>
+
+    <!-- 11.5 -->
+    <section class="section" id="ch11-recursive">
+      <div class="section-head">
+        <div class="sec-num">11.5</div>
+        <div>
+          <div class="kicker">Arbitrary length</div>
+          <h2>Recursive queries against graph tables</h2>
+        </div>
+      </div>
+      <p class="lead">Before SQL Graph existed, recursive CTEs were the standard way to traverse arbitrary-length paths. They still are, because at the time of writing normal match patterns do not handle arbitrary lengths — only the specialized <code>SHORTEST_PATH</code> option does.</p>
+
+      <h3 class="subhead">The subgraph task <span class="tag">p. 451</span></h3>
+      <p>Given an input post ID, return that post plus every reply below it, direct and indirect. The natural first attempt looks like this — and it fails:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the attempt that doesn’t work</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @postid AS INT = 13;
+WITH C AS
+(
+  SELECT NULL AS parentpostid, postid, posttext
+  FROM Graph.Post
+  WHERE postid = @postid
+  UNION ALL
+  SELECT ParentPost.postid AS parentpostid,
+    ChildPost.postid, ChildPost.posttext
+  FROM C AS ParentPost, Graph.IsReplyTo, Graph.Post AS ChildPost
+  WHERE MATCH(ChildPost-(IsReplyTo)-&gt;ParentPost)
+)
+SELECT parentpostid, postid, posttext
+FROM C;
+-- Msg 13940, Level 16, State 1, Line 1373
+-- Cannot use a derived table 'ParentPost' in a MATCH clause.</code></pre>
+      </div>
+      <p>The <code>MATCH</code> clause will not accept the recursive reference to the CTE name in place of a graph object. Most people give up here — but there is a workaround: add the real node table, and use the recursive reference as a <strong>proxy</strong>, matching the two by key in the <code>WHERE</code> clause.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the proxy workaround</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @postid AS INT = 13;
+WITH C AS
+(
+  SELECT NULL AS parentpostid, postid, posttext
+  FROM Graph.Post
+  WHERE postid = @postid
+  UNION ALL
+  SELECT ParentPost.postid AS parentpostid,
+    ChildPost.postid, ChildPost.posttext
+  FROM C, Graph.Post AS ParentPost, Graph.IsReplyTo,
+    Graph.Post AS ChildPost
+  WHERE ParentPost.postid = C.postid -- recursive ref used as proxy
+    AND MATCH(ChildPost-(IsReplyTo)-&gt;ParentPost)
+)
+SELECT parentpostid, postid, posttext
+FROM C;
+-- parentpostid postid  posttext
+-- NULL         13      Got a new kitten. Any suggestions for a name?
+-- 13           449     Maybe Pickle?
+-- 13           677     Ambrosius?
+-- 449          1021    It does look a bit sour faced :)
+-- 449          1031    How about Gherkin?
+-- 1031         1061    I love Gherkin!
+-- 1061         1187    So you don't like Pickle!? I'M UNFRIENDING YOU!!!</code></pre>
+      </div>
+      <p>The alternative is a plain join-based recursive member, matching <code>$from_id</code>/<code>$to_id</code> to <code>$node_id</code> yourself. One less table, so slightly more efficient — but less natural to read. Test both and decide whether the extra table costs you anything you care about.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the join-based alternative</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @postid AS INT = 13;
+WITH C AS
+(
+  SELECT $node_id AS nodeid, NULL AS parentpostid, postid, posttext
+  FROM Graph.Post
+  WHERE postid = @postid
+  UNION ALL
+  SELECT CP.$node_id AS nodeid, PP.postid AS parentpostid,
+    CP.postid, CP.posttext
+  FROM C AS PP -- parent post
+    INNER JOIN Graph.IsReplyTo AS R
+      ON R.$to_id = PP.nodeid
+    INNER JOIN Graph.Post AS CP -- child post
+      ON R.$from_id = CP.$node_id
+)
+SELECT parentpostid, postid, posttext
+FROM C;</code></pre>
+      </div>
+
+      <h3 class="subhead">Sorting and indentation <span class="tag">p. 453</span></h3>
+      <p>A subgraph usually wants <strong>topological order</strong> (a parent before its descendants, and all of one sibling’s descendants before the next sibling) plus indentation proportional to depth. Add two columns to the CTE: <code>lvl</code> (0 in the anchor, parent + 1 in the recursive member) and a string <code>sortkey</code> (the constant <code>'.'</code> in the anchor, parent’s sortkey + current post ID + <code>'.'</code> in the recursive member). Then order by <code>sortkey</code> and indent with <code>REPLICATE</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a readable thread</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @postid AS INT = 13;
+WITH C AS
+(
+  SELECT NULL AS parentpostid, postid, posttext,
+    0 AS lvl,
+    CAST('.' AS VARCHAR(MAX)) AS sortkey
+  FROM Graph.Post
+  WHERE postid = @postid
+  UNION ALL
+  SELECT ParentPost.postid AS parentpostid,
+    ChildPost.postid, ChildPost.posttext,
+    C.lvl + 1 AS lvl,
+    CONCAT(C.sortkey, ChildPost.postid, '.') AS sortkey
+  FROM C, Graph.Post AS ParentPost, Graph.IsReplyTo,
+    Graph.Post AS ChildPost
+  WHERE ParentPost.postid = C.postid -- recursive ref used as proxy
+    AND MATCH(ChildPost-(IsReplyTo)-&gt;ParentPost)
+)
+SELECT
+  REPLICATE(' | ', lvl) + posttext AS post
+FROM C
+ORDER BY sortkey;
+-- post
+-- -------------------------------------------------------------
+-- Got a new kitten. Any suggestions for a name?
+--  | Maybe Pickle?
+--  |  | It does look a bit sour faced :)
+--  |  | How about Gherkin?
+--  |  |  | I love Gherkin!
+--  |  |  |  | So you don't like Pickle!? I'M UNFRIENDING YOU!!!
+--  | Ambrosius?</code></pre>
+      </div>
+    </section>
+
+    <!-- 11.6 -->
+    <section class="section" id="ch11-shortest">
+      <div class="section-head">
+        <div class="sec-num">11.6</div>
+        <div>
+          <div class="kicker">SHORTEST_PATH</div>
+          <h2>Shortest paths, transitive closure, and chains</h2>
+        </div>
+      </div>
+      <p class="lead">Finding the shortest path between two nodes is the classic graph problem, and it is where SQL Graph earns its keep. <code>SHORTEST_PATH</code> is available from SQL Server 2019 and in Azure SQL Database.</p>
+
+      <div class="note">
+        <strong>Shortest means fewest hops</strong>
+        Today T-SQL uses only the number of hops to decide which path is shortest. A <em>weighted</em> shortest path — the shortest route by total mileage rather than by number of road segments — is not supported yet.
+      </div>
+
+      <h3 class="subhead">Arbitrary-length patterns <span class="tag">p. 455</span></h3>
+      <p>Direct friends are a simple pattern. Covering indirect friendships means extending it to an <em>arbitrary-length pattern</em>:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · direct friends only</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT Account1.accountname AS account1,
+  Account2.accountname AS account2
+FROM Graph.Account AS Account1, Graph.IsFriendOf,
+  Graph.Account AS Account2
+WHERE MATCH(Account1-(IsFriendOf)-&gt;Account2)
+  AND Account1.accountname = N'Orli';
+-- account1    account2
+-- ----------- -----------
+-- Orli        Inka
+-- Orli        Tami
+-- Orli        Mitzi</code></pre>
+      </div>
+      <p>To extend it: keep the starting node in <code>FROM</code> as usual, then declare every table in the <em>repeating</em> part with <code>FOR PATH</code> plus an alias, and wrap that part of the pattern in parentheses with a regex-style quantifier — <code>+</code> for unlimited hops, <code>{1, N}</code> to cap it at N.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the shortest friendship paths from Orli</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT
+  Account1.accountname + N'-&gt;'
+    + STRING_AGG(Account2.accountname, N'-&gt;')
+        WITHIN GROUP(GRAPH PATH) AS friendships
+FROM
+  Graph.Account AS Account1,
+  Graph.IsFriendOf FOR PATH AS IFO,
+  Graph.Account FOR PATH AS Account2
+WHERE MATCH(SHORTEST_PATH(Account1(-(IFO)-&gt;Account2)+))
+  AND Account1.accountname = N'Orli';
+-- friendships
+-- ------------------------------
+-- Orli-&gt;Inka
+-- Orli-&gt;Tami
+-- Orli-&gt;Mitzi
+-- Orli-&gt;Tami-&gt;Miko
+-- Orli-&gt;Tami-&gt;Buzi
+-- Orli-&gt;Mitzi-&gt;Orli
+-- Orli-&gt;Mitzi-&gt;Yatzek
+-- Orli-&gt;Tami-&gt;Buzi-&gt;Alma
+-- Orli-&gt;Tami-&gt;Miko-&gt;Omer
+-- Orli-&gt;Mitzi-&gt;Yatzek-&gt;Lilach
+-- Orli-&gt;Tami-&gt;Buzi-&gt;Alma-&gt;Stav</code></pre>
+      </div>
+      <p>Limit the hops by swapping the quantifier: <code>SHORTEST_PATH(Account1(-(IFO)-&gt;Account2){1, 2})</code> returns only paths of up to two hops.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 11-4 · SINGULAR VS. ORDERED COLLECTION</span><span class="fig-src">Redrawn from the book, p. 456</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 240" role="img" aria-label="Diagram showing that in a shortest-path result row Account1.accountname holds a single value Orli while Account2.accountname holds the ordered collection Tami, Miko, Omer">
+                <defs>
+                  <marker id="arrow11b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                </defs>
+                <text x="20" y="22" class="jtitle">ONE RESULT ROW OF A SHORTEST-PATH QUERY</text>
+
+                <text x="125" y="62" text-anchor="middle" class="jlabel">Account1.accountname</text>
+                <rect x="60" y="72" width="130" height="44" rx="7" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.6"/>
+                <text x="125" y="100" text-anchor="middle" class="jlabel">Orli</text>
+                <text x="125" y="136" text-anchor="middle" class="jcap">one singular value</text>
+
+                <text x="600" y="62" text-anchor="middle" class="jlabel">Account2.accountname</text>
+                <rect x="400" y="72" width="400" height="44" rx="7" fill="#fdf3e3" stroke="#b45309" stroke-width="1.6"/>
+                <rect x="415" y="80" width="110" height="28" rx="5" fill="#ffffff" stroke="#b45309" stroke-width="1.2"/>
+                <text x="470" y="99" text-anchor="middle" class="jlabel">Tami</text>
+                <line x1="532" y1="94" x2="541" y2="94" stroke="#0f6b63" stroke-width="1.6" marker-end="url(#arrow11b)"/>
+                <rect x="545" y="80" width="110" height="28" rx="5" fill="#ffffff" stroke="#b45309" stroke-width="1.2"/>
+                <text x="600" y="99" text-anchor="middle" class="jlabel">Miko</text>
+                <line x1="662" y1="94" x2="671" y2="94" stroke="#0f6b63" stroke-width="1.6" marker-end="url(#arrow11b)"/>
+                <rect x="675" y="80" width="110" height="28" rx="5" fill="#ffffff" stroke="#b45309" stroke-width="1.2"/>
+                <text x="730" y="99" text-anchor="middle" class="jlabel">Omer</text>
+                <text x="600" y="136" text-anchor="middle" class="jcap">an ordered collection, one value per hop</text>
+
+                <text x="450" y="200" text-anchor="middle" class="jcap">T-SQL needs a singular value per row: wrap the collection in STRING_AGG(...) WITHIN GROUP (GRAPH PATH)</text>
+              </svg>
+            </div>
+            <p class="fig-cap">Why you need the graph path aggregates</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> a shortest-path row for the path <code>Orli-&gt;Tami-&gt;Miko-&gt;Omer</code>. <code>Account1</code> belongs to the part of the pattern considered once, so <code>Account1.accountname</code> is a plain value. <code>Account2</code> belongs to the repeating part, so <code>Account2.accountname</code> is an <em>ordered collection</em> in graph path order — and T-SQL refuses to put a collection in a SELECT list.</p>
+          </div>
+        </div>
+      </figure>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Msg 13961</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT Account1.accountname, Account2.accountname   -- invalid
+...
+-- Msg 13961, Level 16, State 1, Line 1572
+-- The alias or identifier 'Account2.accountname' cannot be used in the
+-- select list, order by, group by, or having context.</code></pre>
+      </div>
+      <p>The fix is a <strong>graph path aggregate function</strong> — <code>STRING_AGG</code>, <code>LAST_VALUE</code>, <code>SUM</code>, <code>COUNT</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code> — applied to the collection with <code>WITHIN GROUP (GRAPH PATH)</code>. And the same restriction applies to <code>WHERE</code>: you cannot filter on a collection, so extract the value you need into the SELECT list and filter in an outer query.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · shortest path between two specific accounts</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH C AS
+(
+  SELECT
+    Account1.accountname + N'-&gt;'
+      + STRING_AGG(Account2.accountname, N'-&gt;')
+          WITHIN GROUP(GRAPH PATH) AS friendships,
+    LAST_VALUE(Account2.accountname)
+      WITHIN GROUP (GRAPH PATH) AS lastnode -- to access last node
+  FROM
+    Graph.Account AS Account1,
+    Graph.IsFriendOf FOR PATH AS IFO,
+    Graph.Account FOR PATH AS Account2
+  WHERE MATCH(SHORTEST_PATH(Account1(-(IFO)-&gt;Account2)+))
+    AND Account1.accountname = N'Orli'
+)
+SELECT friendships
+FROM C
+WHERE lastnode = N'Stav';
+-- friendships
+-- ------------------------------
+-- Orli-&gt;Tami-&gt;Buzi-&gt;Alma-&gt;Stav</code></pre>
+      </div>
+
+      <h3 class="subhead">Transitive closure <span class="tag">p. 462</span></h3>
+      <p>Remove both account filters and you get the shortest paths between every source and every target (121 rows here). Keep only the first and last node of each path and you have the <strong>transitive closure</strong>: every pair of nodes with a direct or indirect path between them. Add <code>COUNT(...) WITHIN GROUP (GRAPH PATH)</code> and you also get the number of hops.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · transitive closure with hop counts</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH C AS
+(
+  SELECT
+    Account1.accountname AS firstnode,
+    COUNT(Account2.accountid)
+      WITHIN GROUP(GRAPH PATH) AS hops,
+    LAST_VALUE(Account2.accountname)
+      WITHIN GROUP (GRAPH PATH) AS lastnode
+  FROM
+    Graph.Account AS Account1,
+    Graph.IsFriendOf FOR PATH AS IFO,
+    Graph.Account FOR PATH AS Account2
+  WHERE MATCH(SHORTEST_PATH(Account1(-(IFO)-&gt;Account2)+))
+)
+SELECT firstnode AS account1, lastnode AS account2, hops
+FROM C
+WHERE firstnode &lt; lastnode;   -- drop self-pairs and mirrored pairs
+-- account1    account2    hops
+-- ----------- ----------- -----
+-- Inka        Tami        1
+-- Inka        Orli        1
+-- Miko        Tami        1
+-- ...
+-- Inka        Miko        2
+-- Buzi        Lilach      2
+-- ...
+-- Inka        Omer        3
+-- Inka        Stav        4
+-- Orli        Stav        4</code></pre>
+      </div>
+
+      <h3 class="subhead">Chaining paths with LAST_NODE <span class="tag">p. 464</span></h3>
+      <p><code>LAST_NODE</code> lets you chain two arbitrary-length patterns: the end of one becomes the start of the next. To find the shortest friendship chain from Orli to Yatzek <em>through a given middle account</em>, with neither Orli nor Yatzek allowed to appear as an intermediary, filter the Account2 and Account3 collections with derived tables and chain the two <code>SHORTEST_PATH</code> calls:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · chaining two shortest paths</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH C AS
+(
+  SELECT
+    Account1.accountname + N'-&gt;'
+      + STRING_AGG(Account2.accountname, N'-&gt;')
+          WITHIN GROUP(GRAPH PATH) + N'-&gt;'
+      + STRING_AGG(Account3.accountname, N'-&gt;')
+          WITHIN GROUP(GRAPH PATH) AS friendships,
+    LAST_VALUE(Account2.accountname)
+      WITHIN GROUP (GRAPH PATH) AS midnode,
+    LAST_VALUE(Account3.accountname)
+      WITHIN GROUP (GRAPH PATH) AS lastnode
+  FROM
+    Graph.Account AS Account1,
+    ( SELECT * FROM Graph.Account
+      WHERE accountname &lt;&gt; N'Yatzek' ) FOR PATH AS Account2,
+    ( SELECT * FROM Graph.Account
+      WHERE accountname &lt;&gt; N'Orli') FOR PATH AS Account3,
+    Graph.IsFriendOf FOR PATH AS IFO1,
+    Graph.IsFriendOf FOR PATH AS IFO2
+  WHERE MATCH(SHORTEST_PATH(Account1(-(IFO1)-&gt;Account2)+)
+              AND SHORTEST_PATH(LAST_NODE(Account2)(-(IFO2)-&gt;Account3)+))
+    AND Account1.accountname = N'Orli'
+)
+SELECT friendships
+FROM C
+WHERE midnode = N'Stav'
+  AND lastnode = N'Yatzek';
+-- friendships
+-- ---------------------------------------------
+-- Orli-&gt;Tami-&gt;Buzi-&gt;Alma-&gt;Stav-&gt;Lilach-&gt;Yatzek</code></pre>
+      </div>
+      <p>You can also compare two chains directly with <code>LAST_NODE(Account2) = LAST_NODE(Account3)</code> — for instance, to pair the shortest friendship and the shortest follow chain that start and end with the same accounts.</p>
+      <div class="tip">
+        <strong>Directed vs. undirected graphs</strong>
+        Friendship is undirected, so “chain where one ends where the other begins” and “chain where both end at the same node” give the same answer. Follow relationships are directed, so the same two queries mean different things and return different rows. Always ask whether your edge is a two-way street.
+      </div>
+
+      <h3 class="subhead">What’s still missing <span class="tag">p. 471</span></h3>
+      <div class="grid grid-2">
+        <div class="card"><div class="mini">Weighted shortest paths</div><p>Today “shortest” means “fewest hops”. The book imagines a <code>WEIGHT BY SUM(distance)</code> clause alongside the edge in the pattern — invented syntax, but it shows the need: the shortest route by total distance or total travel time, not by number of road segments.</p></div>
+        <div class="card"><div class="mini">Arbitrary-length patterns without SHORTEST_PATH</div><p>Would return a separate row per match instead of an ordered collection, with attributes from all three tables. That would make classic subgraph and path tasks — today the domain of recursive queries — expressible in a single line.</p></div>
+      </div>
+    </section>
+
+    <!-- 11.7 -->
+    <section class="section" id="ch11-modify">
+      <div class="section-head">
+        <div class="sec-num">11.7</div>
+        <div>
+          <div class="kicker">Data modification</div>
+          <h2>Deleting, updating, and merging edges</h2>
+        </div>
+      </div>
+      <p class="lead">Deleting and updating <em>node</em> rows by your own key is unremarkable. Edge rows are the interesting part, because they do not store your keys — they store system-generated node IDs, so you have to translate.</p>
+
+      <h3 class="subhead">Deleting an edge <span class="tag">p. 474</span></h3>
+      <p>Alma (661) stops following Buzi (421). Either use scalar subqueries to convert the keys:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · DELETE with subqueries</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>BEGIN TRAN;
+DECLARE @actid1 AS INT = 661, @actid2 AS INT = 421;
+
+DELETE FROM Graph.Follows
+WHERE $from_id = (SELECT $node_id FROM Graph.Account
+                  WHERE accountid = @actid1)
+  AND $to_id = (SELECT $node_id FROM Graph.Account
+                WHERE accountid = @actid2);
+ROLLBACK TRAN;</code></pre>
+      </div>
+      <p>…or use a match pattern, with a second <code>FROM</code> clause listing the objects and a second <code>DELETE</code> clause naming the deletion target:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · DELETE with a match pattern</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>BEGIN TRAN;
+DECLARE @actid1 AS INT = 661, @actid2 AS INT = 421;
+
+DELETE FROM Follows
+FROM Graph.Account AS Account1, Graph.Account AS Account2,
+  Graph.Follows
+WHERE MATCH(Account1-(Follows)-&gt;Account2)
+  AND Account1.accountid = @actid1
+  AND Account2.accountid = @actid2;
+
+SELECT
+  Account1.accountid AS actid1, Account1.accountname AS actname1,
+  Account2.accountid AS actid2, Account2.accountname AS actname2,
+  Follows.startdate
+FROM Graph.Account AS Account1, Graph.Follows,
+  Graph.Account AS Account2
+WHERE MATCH(Account1-(Follows)-&gt;Account2)
+  AND Account1.accountid = 661;
+ROLLBACK TRAN;
+-- actid1  actname1  actid2  actname2  startdate
+-- 661     Alma      71      Miko      2021-05-16
+-- 661     Alma      941     Stav      2022-01-06</code></pre>
+      </div>
+      <div class="note">
+        <strong>Why the transaction?</strong>
+        These samples wrap every change in a transaction, verify it, then roll back — purely so you can inspect the effect and leave the sample data intact. In real code you commit.
+      </div>
+
+      <h3 class="subhead">Updating an edge <span class="tag">p. 476</span></h3>
+      <p>You cannot update <code>$from_id</code> or <code>$to_id</code>; to repoint an edge, delete it and insert a new one. Other attributes update normally — here with <code>OUTPUT</code> to show what changed:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · UPDATE via subqueries, then via MATCH</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>BEGIN TRAN;
+DECLARE @actid1 AS INT = 661, @actid2 AS INT = 421,
+  @startdate AS DATE = '20210802';
+
+UPDATE Graph.Follows
+  SET startdate = @startdate
+OUTPUT deleted.startdate AS olddate, inserted.startdate AS newdate
+WHERE $from_id = (SELECT $node_id FROM Graph.Account
+                  WHERE accountid = @actid1)
+  AND $to_id = (SELECT $node_id FROM Graph.Account
+                WHERE accountid = @actid2);
+ROLLBACK TRAN;
+-- olddate    newdate
+-- 2021-05-18 2021-08-02
+
+BEGIN TRAN;
+UPDATE Follows
+  SET startdate = @startdate
+OUTPUT deleted.startdate AS olddate, inserted.startdate AS newdate
+FROM Graph.Account AS Account1, Graph.Account AS Account2,
+  Graph.Follows
+WHERE MATCH(Account1-(Follows)-&gt;Account2)
+  AND Account1.accountid = @actid1
+  AND Account2.accountid = @actid2;
+ROLLBACK TRAN;</code></pre>
+      </div>
+
+      <h3 class="subhead">Merging an edge <span class="tag">p. 477</span></h3>
+      <p>From SQL Server 2019 you can use <code>MATCH</code> as the <code>MERGE</code> predicate. The source is built from the input variables joined to two instances of the node table; the target is the edge table; the nodes are the source and the edge is the target of the pattern.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · MERGE with MATCH</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>BEGIN TRAN;
+DECLARE @actid1 AS INT = 661, @actid2 AS INT = 421,
+  @startdate AS DATE = '20210802';
+
+MERGE INTO Graph.Follows
+USING (SELECT @actid1, @actid2, @startdate)
+      AS SRC(actid1, actid2, startdate)
+  INNER JOIN Graph.Account AS Account1
+    ON SRC.actid1 = Account1.accountid
+  INNER JOIN Graph.Account AS Account2
+    ON SRC.actid2 = Account2.accountid
+  ON MATCH(Account1-(Follows)-&gt;Account2)
+WHEN MATCHED THEN UPDATE
+  SET startdate = SRC.startdate
+WHEN NOT MATCHED THEN INSERT($from_id, $to_id, startdate)
+  VALUES(Account1.$node_id, Account2.$node_id, SRC.startdate);
+ROLLBACK TRAN;</code></pre>
+      </div>
+      <p>Run it with an existing relationship (Alma → Buzi) and the start date changes; run it with a new one (Alma → Yatzek) and a new edge row appears.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup for the whole chapter</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS
+  Norm.Friendships, Norm.Followings, Norm.Likes,
+  Norm.AuthorsPublications, Norm.Posts, Norm.Accounts,
+  Norm.Publications;
+
+DROP TABLE IF EXISTS
+  Graph.IsReplyTo, Graph.IsFriendOf, Graph.Follows, Graph.Posted,
+  Graph.Likes, Graph.Authored, Graph.Post, Graph.Account,
+  Graph.Publication;
+GO
+DROP SCHEMA IF EXISTS Norm;
+DROP SCHEMA IF EXISTS Graph;</code></pre>
+      </div>
+    </section>
+
+    <!-- 11.8 -->
+    <section class="section" id="ch11-practice">
+      <div class="section-head">
+        <div class="sec-num">11.8</div>
+        <div>
+          <div class="kicker">Practice</div>
+          <h2>Four exercises, with solutions</h2>
+        </div>
+      </div>
+      <p class="lead">All exercises assume you are connected to <code>TSQLV6</code> and have created the <code>Graph</code> schema objects from this chapter. Try each one before opening the answer.</p>
+
+      <details>
+        <summary>Exercise 1 · Who follows Stav? (parts 1-1 to 1-4)</summary>
+        <div class="answer">
+          <p><strong>1-1</strong> · Who follows Stav? Expected: <code>Alma</code>, <code>Lilach</code>.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Solution 1-1</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT Account2.accountname
+FROM Graph.Account AS Account1, Graph.Account AS Account2,
+  Graph.Follows
+WHERE MATCH(Account2-(Follows)-&gt;Account1)
+  AND Account1.accountname = N'Stav';</code></pre>
+          </div>
+          <p><strong>1-2</strong> · Who follows Stav, Yatzek, or both? Expected: 6 rows.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Solution 1-2</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT Account2.accountname, Account1.accountname AS follows
+FROM Graph.Account AS Account1, Graph.Account AS Account2,
+  Graph.Follows
+WHERE MATCH(Account2-(Follows)-&gt;Account1)
+  AND Account1.accountname IN (N'Stav', N'Yatzek');</code></pre>
+          </div>
+          <p><strong>1-3</strong> · Who follows <em>both</em>? Expected: <code>Lilach</code>. You need three Account instances and two Follows instances, with the shared from node in the middle of the pattern.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Solution 1-3</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT Account3.accountname
+FROM Graph.Account AS Account1, Graph.Account AS Account2,
+  Graph.Account AS Account3, Graph.Follows AS Follows1,
+  Graph.Follows AS Follows2
+WHERE MATCH(Account2&lt;-(Follows2)-Account3-(Follows1)-&gt;Account1)
+  AND Account1.accountname = N'Stav'
+  AND Account2.accountname = N'Yatzek';</code></pre>
+          </div>
+          <p><strong>1-4</strong> · Who follows Stav but not Yatzek? Expected: <code>Alma</code>. Since patterns cannot be negated, negate <code>EXISTS</code> instead.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Solution 1-4</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT Account3.accountname
+FROM Graph.Account AS Account1,
+  Graph.Account AS Account3, Graph.Follows AS Follows1
+WHERE MATCH(Account3-(Follows1)-&gt;Account1)
+  AND Account1.accountname = N'Stav'
+  AND NOT EXISTS(SELECT *
+                 FROM Graph.Account AS Account2,
+                   Graph.Follows AS Follows2
+                 WHERE MATCH(Account3-(Follows2)-&gt;Account2)
+                   AND Account2.accountname = N'Yatzek');</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 2 · Friends, followers, or both (parts 2-1 and 2-2)</summary>
+        <div class="answer">
+          <p><strong>2-1</strong> · Relationships where the first account is a friend of, follows, or both. Expected: 42 rows. The long way is a <code>UNION</code> of two queries; the short way is a disjunction of <code>EXISTS</code> predicates.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Solution 2-1 · the short way</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT
+  Account1.accountid AS actid1, Account1.accountname AS act1,
+  Account2.accountid AS actid2, Account2.accountname AS act2
+FROM Graph.Account AS Account1, Graph.Account AS Account2
+WHERE EXISTS (SELECT * FROM Graph.IsFriendOf
+              WHERE MATCH(Account1-(IsFriendOf)-&gt;Account2))
+   OR EXISTS (SELECT * FROM Graph.Follows
+              WHERE MATCH(Account1-(Follows)-&gt;Account2));</code></pre>
+          </div>
+          <p><strong>2-2</strong> · Friend of, but does not follow. Expected: 12 rows. Swap <code>UNION</code> for <code>EXCEPT</code>, or <code>OR</code> for <code>AND NOT</code>.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Solution 2-2 · the short way</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT
+  Account1.accountid AS actid1, Account1.accountname AS act1,
+  Account2.accountid AS actid2, Account2.accountname AS act2
+FROM Graph.Account AS Account1, Graph.Account AS Account2
+WHERE EXISTS (SELECT * FROM Graph.IsFriendOf
+              WHERE MATCH(Account1-(IsFriendOf)-&gt;Account2))
+  AND NOT EXISTS (SELECT * FROM Graph.Follows
+                  WHERE MATCH(Account1-(Follows)-&gt;Account2));</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 3 · The chain leading to a post, with a recursive query</summary>
+        <div class="answer">
+          <p>Given an input post ID, return the chain of posts leading to it. For input 1187 the expected output runs from the root post down to the input post (5 rows). Remember the proxy trick: the recursive reference to the CTE cannot be a node in the pattern, so it matches the child node by key instead.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Solution 3</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>DECLARE @postid AS INT = 1187;
+WITH C AS
+(
+  SELECT postid, posttext, 0 AS sortkey
+  FROM Graph.Post
+  WHERE postid = @postid
+  UNION ALL
+  SELECT ParentPost.postid, ParentPost.posttext,
+    C.sortkey + 1 AS sortkey
+  FROM C, Graph.Post AS ParentPost, Graph.IsReplyTo,
+    Graph.Post AS ChildPost
+  WHERE ChildPost.postid = C.postid -- recursive ref used as proxy
+    AND MATCH(ChildPost-(IsReplyTo)-&gt;ParentPost)
+)
+SELECT postid, posttext
+FROM C
+ORDER BY sortkey DESC;</code></pre>
+          </div>
+          <p>The join-based alternative avoids the extra table by carrying <code>$node_id</code> through the CTE and matching it against the edge’s <code>$from_id</code> and the parent’s <code>$node_id</code>. Same trade-off as before: native graph syntax at the cost of one more table.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 4 · The same chain, with SHORTEST_PATH</summary>
+        <div class="answer">
+          <p>Neither query in this solution is recursive. Unify the input post (sort key 0) with the ancestor posts found by an arbitrary-length pattern, then order by the hop count descending.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Solution 4</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>DECLARE @postid AS INT = 1187;
+WITH C AS
+(
+   SELECT postid, posttext, 0 AS sortkey
+   FROM Graph.Post
+   WHERE postid = @postid
+   UNION ALL
+   SELECT
+     LAST_VALUE(Post.postid)   WITHIN GROUP (GRAPH PATH) AS postid,
+     LAST_VALUE(Post.posttext) WITHIN GROUP (GRAPH PATH) AS posttext,
+     COUNT(Post.postid)        WITHIN GROUP (GRAPH PATH) AS sortkey
+   FROM
+     Graph.Post AS Reply,
+     Graph.IsReplyTo FOR PATH AS IRT,
+     Graph.Post FOR PATH AS Post
+   WHERE MATCH(SHORTEST_PATH(Reply(-(IRT)-&gt;Post)+))
+     AND Reply.postid = @postid
+)
+SELECT postid, posttext
+FROM C
+ORDER BY sortkey DESC;</code></pre>
+          </div>
+          <p>The <code>+</code> quantifier means one or more matches, so the pattern keeps walking up until it runs out of ancestor posts.</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- 11.9 -->
+    <section class="section" id="ch11-recap">
+      <div class="section-head">
+        <div class="sec-num">11.9</div>
+        <div>
+          <div class="kicker">Takeaways</div>
+          <h2>Chapter 11 in ten bullets</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li><strong>SQL Graph is an alternative model</strong> — node tables for vertices, edge tables for relationships — not a replacement for relational design. Weigh the migration and refactoring cost before you commit.</li>
+        <li><strong>Nodes are <code>AS NODE</code>, edges are <code>AS EDGE</code></strong>, and both carry hidden columns: <code>$node_id</code> on nodes, <code>$edge_id</code>, <code>$from_id</code>, <code>$to_id</code> on edges. Always add your own key column too.</li>
+        <li><strong>Graph IDs are not identities</strong> — they start at 0, are never reset by <code>TRUNCATE</code>, and cannot be supplied by you.</li>
+        <li><strong>Edge constraints</strong> (<code>CONNECTION (A TO B, C TO D) ON DELETE ...</code>) do what foreign keys cannot: they allow several node-table pairs in one constraint, and they stop orphaned edges.</li>
+        <li><strong>Populating edges is your job</strong> — look up <code>$node_id</code> values with subqueries or, far better, join a values constructor to the node tables.</li>
+        <li><strong><code>MATCH(from_node-(edge)-&gt;to_node)</code></strong> is the heart of graph querying; the arrow can point either way, and patterns sharing a node can be merged.</li>
+        <li><strong>Graph paths behave like outer joins</strong> with the edge table preserved, so orphaned edges show up as outer rows — a symptom of missing integrity.</li>
+        <li><strong>No OR or NOT in patterns</strong> — use <code>UNION</code>/<code>EXCEPT</code>, or correlated <code>EXISTS</code>/<code>NOT EXISTS</code> subqueries.</li>
+        <li><strong>Recursive queries still do arbitrary-length traversal</strong>, and the <code>MATCH</code> clause rejects the recursive CTE reference — use the proxy workaround, or write the recursive member with explicit joins on <code>$from_id</code>/<code>$to_id</code>.</li>
+        <li><strong><code>SHORTEST_PATH</code> counts hops, not weight</strong>: declare repeating tables with <code>FOR PATH</code>, quantify with <code>+</code> or <code>{1, N}</code>, and collapse the resulting ordered collections with <code>STRING_AGG</code>/<code>LAST_VALUE</code>/<code>COUNT</code> ... <code>WITHIN GROUP (GRAPH PATH)</code>.</li>
+      </ul>
+
+      <h3 class="subhead">Chapter 11 key terms</h3>
+      <dl class="terms">
+        <div class="term"><dt>Node table</dt><dd>A table marked <code>AS NODE</code> representing the vertices of the graph; it gets an implicit <code>$node_id</code>.</dd></div>
+        <div class="term"><dt>Edge table</dt><dd>A table marked <code>AS EDGE</code> connecting a from node to a to node; it gets <code>$edge_id</code>, <code>$from_id</code>, and <code>$to_id</code>.</dd></div>
+        <div class="term"><dt>Graph ID</dt><dd>The system-generated BIGINT that, combined with the object ID, forms a node or edge ID. Unique per object in the table.</dd></div>
+        <div class="term"><dt>Edge constraint</dt><dd>A <code>CONNECTION (from TO to)</code> rule restricting which node tables an edge may connect, with <code>NO ACTION</code> or <code>CASCADE</code> on delete.</dd></div>
+        <div class="term"><dt>MATCH clause</dt><dd>The T-SQL extension that expresses relationships between graph objects with ASCII-art arrow patterns.</dd></div>
+        <div class="term"><dt>Match pattern</dt><dd>A specification such as <code>Account-(Posted)-&gt;Post</code> naming the from node, the edge, and the to node.</dd></div>
+        <div class="term"><dt>Proxy technique</dt><dd>Adding the real node table to a recursive query so the recursive CTE reference can stand in for it, since <code>MATCH</code> rejects the CTE reference itself.</dd></div>
+        <div class="term"><dt>Arbitrary-length pattern</dt><dd>A pattern whose repeating part is quantified with <code>+</code> or <code>{1, N}</code>, used inside <code>SHORTEST_PATH</code>.</dd></div>
+        <div class="term"><dt>FOR PATH</dt><dd>The clause marking a table in the FROM clause as part of the repeating portion of an arbitrary-length pattern.</dd></div>
+        <div class="term"><dt>Ordered collection</dt><dd>What a column of a FOR PATH table holds per result row: one value per hop, in graph path order.</dd></div>
+        <div class="term"><dt>Graph path aggregate</dt><dd><code>STRING_AGG</code>, <code>LAST_VALUE</code>, <code>COUNT</code> and friends applied to a collection with <code>WITHIN GROUP (GRAPH PATH)</code> to produce a singular value.</dd></div>
+        <div class="term"><dt>LAST_NODE</dt><dd>A function that represents the last node of a shortest path, used to chain two arbitrary-length patterns together.</dd></div>
+        <div class="term"><dt>Transitive closure</dt><dd>The set of all node pairs with a direct or indirect path between them — the first and last node of every shortest path.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 11.10 -->
+    <section class="section" id="ch11-quiz">
+      <div class="section-head">
+        <div class="sec-num">11.10</div>
+        <div>
+          <div class="kicker">Check yourself</div>
+          <h2>Six quick questions</h2>
+        </div>
+      </div>
+      <p class="lead">Try to answer before opening each one. If you can explain it in your own words, you’ve got the chapter.</p>
+
+      <details>
+        <summary>Why does the book add a user-defined key to every node table?</summary>
+        <div class="answer">Because the system-generated graph ID is awkward to work with, is not reset when you truncate and repopulate, cannot be supplied explicitly, and changes if you delete a node and reinsert it. Filtering on your own <code>accountid</code> or <code>postid</code> keeps your code readable and stable.</div>
+      </details>
+      <details>
+        <summary>Why can't you use foreign keys on $from_id and $to_id?</summary>
+        <div class="answer">Because one edge table may legitimately connect several different pairs of node tables, and two foreign key constraints would then contradict each other (every one would have to be satisfied at once). An edge constraint solves this by listing all allowed pairs inside a single <code>CONNECTION</code> clause, where satisfying any one pair is enough.</div>
+      </details>
+      <details>
+        <summary>Is Account-(Posted)-&gt;Post an inner join or an outer join?</summary>
+        <div class="answer">Closer to an outer join, with the <strong>edge table as the preserved side</strong>. In practice, with an edge constraint guaranteeing that every edge connects existing nodes, inner and outer return the same rows — but if integrity is not enforced, orphaned edges appear as outer rows with NULLs, which is a sign of inconsistent data.</div>
+      </details>
+      <details>
+        <summary>How do you merge two patterns that share a node, in each of the three cases?</summary>
+        <div class="answer">Shared node is the from node in both: put it in the middle with arrows going out both ways (<code>N2&lt;-(E1)-N1-(E2)-&gt;N3</code>). Shared node is the to node in both: both arrows point into it (<code>N3-(E2)-&gt;N1&lt;-(E1)-N2</code>). From node in one and to node in the other: one arrow in, one out (<code>N2-(E1)-&gt;N1-(E2)-&gt;N3</code>).</div>
+      </details>
+      <details>
+        <summary>Why does a recursive CTE fail inside MATCH, and what's the fix?</summary>
+        <div class="answer">Because <code>MATCH</code> does not accept the recursive reference to the CTE name in place of a graph object — you get Msg 13940, “Cannot use a derived table in a MATCH clause.” The fix is the proxy technique: add the real node table to the recursive member, match the CTE’s key to it in the <code>WHERE</code> clause, and use the table’s alias in the pattern. Alternatively, drop graph syntax in the recursive member and join on <code>$from_id</code>/<code>$to_id</code> explicitly — one less table.</div>
+      </details>
+      <details>
+        <summary>Why can't you select Account2.accountname in a SHORTEST_PATH query?</summary>
+        <div class="answer">Because <code>Account2</code> belongs to the repeating part of the pattern, so its column value per result row is an <em>ordered collection</em> rather than a single value — and T-SQL requires singular values in the SELECT list (Msg 13961). You must collapse it with a graph path aggregate such as <code>STRING_AGG(Account2.accountname, N'-&gt;') WITHIN GROUP (GRAPH PATH)</code>, or extract one item with <code>LAST_VALUE(...) WITHIN GROUP (GRAPH PATH)</code>. The same restriction applies to filtering: extract the value in the SELECT list and filter in an outer query.</div>
+      </details>
+    </section>
+
   </main>
 </div>
 
@@ -8994,12 +10237,12 @@ COMMIT TRAN;</code></pre>
   <div class="footer-inner">
     <div>
       <h3>About this summary</h3>
-      <p>A study companion for <strong>Chapters 1–10</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292; Chapter 8, pages 293–342; Chapter 9, pages 343–366; Chapter 10, pages 367–408.</p>
-      <p class="fine">All sixteen figures and eight tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, 5, and 8 have no figures or tables; nine diagrams are original study aids rather than book artwork — the join-types, subquery-types, and table-expression diagrams, the four Chapter 8 diagrams (insert routes, identity vs. sequence, MERGE outcomes, OUTPUT flow), the Chapter 9 anatomy diagram, the redrawing of Figure 9-2, and the three Chapter 10 diagrams (lock duration by isolation level, locking vs. row versioning, and the deadlock embrace). The book’s Figure 9-2 is vector art that cannot be extracted as an image, so it was redrawn from its predicates. This page is an unofficial study aid; the book remains the authoritative source.</p>
+      <p>A study companion for <strong>Chapters 1–11</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292; Chapter 8, pages 293–342; Chapter 9, pages 343–366; Chapter 10, pages 367–408; Chapter 11, pages 409–490.</p>
+      <p class="fine">All sixteen figures and nine tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, 5, and 8 have no figures or tables; fifteen diagrams are original study aids rather than book artwork — the join-types, subquery-types, and table-expression diagrams, the four Chapter 8 diagrams (insert routes, identity vs. sequence, MERGE outcomes, OUTPUT flow), the Chapter 9 anatomy diagram, the redrawing of Figure 9-2, the three Chapter 10 diagrams (lock duration by isolation level, locking vs. row versioning, and the deadlock embrace), and the three Chapter 11 diagrams redrawn from Figures 11-2, 11-3, and 11-4. The book’s Figure 9-2 and all four Chapter 11 figures are vector art that cannot be extracted as images, so they were redrawn: Figure 9-2 from its predicates, Figure 11-1 as an HTML table listing the seven traditional tables, and Figures 11-2 through 11-4 as SVG. This page is an unofficial study aid; the book remains the authoritative source.</p>
     </div>
     <div>
       <h3>Navigate</h3>
-      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#ch8-insert" style="color:#9fe0d6">Chapter 8</a> · <a href="#ch9-intro" style="color:#9fe0d6">Chapter 9</a> · <a href="#ch10-trans" style="color:#9fe0d6">Chapter 10</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch10-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch10-quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#ch8-insert" style="color:#9fe0d6">Chapter 8</a> · <a href="#ch9-intro" style="color:#9fe0d6">Chapter 9</a> · <a href="#ch10-trans" style="color:#9fe0d6">Chapter 10</a> · <a href="#ch11-intro" style="color:#9fe0d6">Chapter 11</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch11-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch11-quiz" style="color:#9fe0d6">Quiz</a></p>
       <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
     </div>
   </div>
@@ -9012,9 +10255,10 @@ COMMIT TRAN;</code></pre>
   "use strict";
 
   /* ---------- tiny T-SQL highlighter ---------- */
-  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP OUTPUT IDENTITY SEQUENCE EXEC PROC MATCHED BULK DECLARE GO USING PIVOT UNPIVOT APPLY CROSS OUTER INNER JOIN LEFT RIGHT FULL UNION EXCEPT INTERSECT WITH CUBE ROLLUP WHILE BREAK CONTINUE RETURN BEGIN CATCH NOCOUNT MINVALUE MAXVALUE CYCLE CACHE START INCREMENT NO GENERATED ALWAYS PERIOD SYSTEM_TIME SYSTEM_VERSIONING HISTORY_TABLE HISTORY_RETENTION_PERIOD HIDDEN TRAN COMMIT ROLLBACK CONTAINED ZONE CLUSTERED INDEX DAYS WEEKS MONTHS YEARS INFINITE KILL SERIALIZABLE SNAPSHOT UNCOMMITTED REPEATABLE XACT_ABORT IMPLICIT_TRANSACTIONS LOCK_ESCALATION NOLOCK HOLDLOCK READCOMMITTEDLOCK ALLOW_SNAPSHOT_ISOLATION").split(" "));
+  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP OUTPUT IDENTITY SEQUENCE EXEC PROC MATCHED BULK DECLARE GO USING PIVOT UNPIVOT APPLY CROSS OUTER INNER JOIN LEFT RIGHT FULL UNION EXCEPT INTERSECT WITH CUBE ROLLUP WHILE BREAK CONTINUE RETURN BEGIN CATCH NOCOUNT MINVALUE MAXVALUE CYCLE CACHE START INCREMENT NO GENERATED ALWAYS PERIOD SYSTEM_TIME SYSTEM_VERSIONING HISTORY_TABLE HISTORY_RETENTION_PERIOD HIDDEN TRAN COMMIT ROLLBACK CONTAINED ZONE CLUSTERED INDEX DAYS WEEKS MONTHS YEARS INFINITE KILL SERIALIZABLE SNAPSHOT UNCOMMITTED REPEATABLE XACT_ABORT IMPLICIT_TRANSACTIONS LOCK_ESCALATION NOLOCK HOLDLOCK READCOMMITTEDLOCK ALLOW_SNAPSHOT_ISOLATION MATCH SHORTEST_PATH LAST_NODE STRING_AGG LAST_VALUE NODE EDGE CONNECTION WITHIN GROUP GRAPH TRUNCATE").split(" "));
   var TYPES = new Set(["INT","VARCHAR","NVARCHAR","NCHAR","DATE","DATETIME","SMALLDATETIME","DATETIME2","DATETIMEOFFSET","TIME","MONEY","BIT","DECIMAL","NUMERIC","BIGINT","SMALLINT","TINYINT","FLOAT","TEXT","CHAR","VARBINARY","SQL_VARIANT","SYSNAME","ROWVERSION"]);
-  var FUNCS = new Set(["SYSDATETIME","GETDATE","GETUTCDATE","SYSUTCDATETIME","SYSDATETIMEOFFSET","COUNT","YEAR","MONTH","DAY","CAST","CONVERT","PARSE","TRY_CAST","TRY_CONVERT","TRY_PARSE","COALESCE","ISNULL","DATEADD","DATEDIFF","DATEDIFF_BIG","DATEPART","DATENAME","DATETRUNC","EOMONTH","GENERATE_SERIES","STRING_SPLIT","STRING_AGG","CONCAT","CONCAT_WS","SUBSTRING","LEFT","RIGHT","LEN","DATALENGTH","CHARINDEX","PATINDEX","REPLACE","TRANSLATE","STUFF","UPPER","LOWER","RTRIM","LTRIM","TRIM","FORMAT","COMPRESS","DECOMPRESS","ROW_NUMBER","DB_NAME","OBJECT_NAME","SPID","TRANCOUNT","SCOPE_IDENTITY","IDENT_CURRENT","NEWID","NEWSEQUENTIALID","OBJECT_ID","OBJECTPROPERTY","COLUMNPROPERTY","SERVERPROPERTY","DATABASEPROPERTYEX","SCHEMA_NAME","TYPE_NAME"]);
+  var FUNCS = new Set(["SYSDATETIME","GETDATE","GETUTCDATE","SYSUTCDATETIME","SYSDATETIMEOFFSET","COUNT","YEAR","MONTH","DAY","CAST","CONVERT","PARSE","TRY_CAST","TRY_CONVERT","TRY_PARSE","COALESCE","ISNULL","DATEADD","DATEDIFF","DATEDIFF_BIG","DATEPART","DATENAME","DATETRUNC","EOMONTH","GENERATE_SERIES","STRING_SPLIT","STRING_AGG","CONCAT","CONCAT_WS","SUBSTRING","LEFT","RIGHT","LEN","DATALENGTH","CHARINDEX","PATINDEX","REPLACE","TRANSLATE","STUFF","UPPER","LOWER","RTRIM","LTRIM","TRIM","FORMAT","COMPRESS","DECOMPRESS","LAST_VALUE","ROW_NUMBER","DB_NAME","OBJECT_NAME","SPID","TRANCOUNT","NODE_ID","EDGE_ID","FROM_ID","TO_ID",
+    "OBJECT_ID_FROM_NODE_ID","GRAPH_ID_FROM_NODE_ID","NODE_ID_FROM_PARTS","OBJECT_ID_FROM_EDGE_ID","GRAPH_ID_FROM_EDGE_ID","EDGE_ID_FROM_PARTS","SCOPE_IDENTITY","IDENT_CURRENT","NEWID","NEWSEQUENTIALID","OBJECT_ID","OBJECTPROPERTY","COLUMNPROPERTY","SERVERPROPERTY","DATABASEPROPERTYEX","SCHEMA_NAME","TYPE_NAME"]);
 
   function esc(s){
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
