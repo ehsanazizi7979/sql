@@ -7,8 +7,8 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1, 2 and 3** — 19 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 12 syntax-highlighted,
+One self-contained HTML file covering **Chapters 1 through 4** — 28 figures embedded as inline
+base64 images (works offline, no server, no external assets) and 22 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -16,6 +16,7 @@ copyable T-SQL listings.
 | 1 | SQL Server Setup and Configuration | 1–26 | 1-1 … 1-5 | 1-1 … 1-5 |
 | 2 | SQL Server Execution Model and Wait Statistics | 27–44 | 2-1 … 2-6 | 2-1 … 2-4 |
 | 3 | Disk Subsystem Performance | 45–67 | 3-1 … 3-8 | 3-1 … 3-3 |
+| 4 | Inefficient Queries | 69–103 | 4-1 … 4-9 | 4-1 … 4-10 |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -63,6 +64,31 @@ fixes the most common source of I/O bursts.
 - Listing 3-1 — Using the `sys.dm_io_virtual_file_stats` view
 - Listing 3-2 — Using the `sys.dm_os_performance_counters` view
 - Listing 3-3 — Getting Page Life Expectancy in the system
+
+### Chapter 4 — Inefficient Queries
+
+How bad queries hurt, and the four detection techniques: plan cache statistics,
+Extended Events, the Query Store, and third-party tools.
+
+- Figure 4-1 — Partial output from the `sys.dm_exec_query_stats` view
+- Figure 4-2 — Multiple plans with the same `query_hash` and `query_plan_hash`
+- Figure 4-3 — Partial output of the `sys.dm_exec_procedure_stats` view
+- Figure 4-4 — Query processing pipeline
+- Figure 4-5 — Query Store reports in SSMS
+- Figure 4-6 — Regressed Queries report
+- Figure 4-7 — Top Resource Consuming Queries report
+- Figure 4-8 — Overall Resource Consumption report
+- Figure 4-9 — Query Store DMVs
+- Listing 4-1 — Using the `sys.dm_exec_query_stats` view
+- Listing 4-2 — The `query_hash` and `query_plan_hash` queries in action
+- Listing 4-3 — `sys.dm_exec_query_stats` with `query_hash` aggregation
+- Listing 4-4 — Using the `sys.dm_exec_procedure_stats` view
+- Listing 4-5 — Execution plan and statistics for stored procedure statements
+- Listing 4-6 — Capturing CPU- and I/O-intensive queries (xEvents)
+- Listing 4-7 — Parsing collected xEvent data
+- Listing 4-8 — Getting expensive queries from the Query Store
+- Listing 4-9 — Queries with different context settings
+- Listing 4-10 — Detecting queries with duplicated `query_hash` values
 
 ## Viewing it
 
