@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapters 1–3 · Background, Creating a Database, Query Primer — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Chapters 1–4 · Background, Creating a Database, Query Primer, Filtering — Simple Summary (Learning SQL, 3rd Ed.)</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -166,6 +166,16 @@
   details[open] summary::before{transform:rotate(90deg)}
   summary::-webkit-details-marker{display:none}
   summary:hover{text-decoration:underline}
+  /* truth tables */
+  table.truth{font-family:var(--mono);font-size:13px}
+  table.truth td{white-space:nowrap}
+  table.truth .t{background:#eaf3e6;color:#2f6f4f;font-weight:700;text-align:center}
+  table.truth .f{background:#fbeceb;color:#a3372a;font-weight:700;text-align:center}
+  table.truth tr.sep td{border-top:2px solid var(--accent)}
+  .nullbox{background:#fff8e6;border:1px solid #f0dcae;border-left:4px solid #d99a00;border-radius:0 12px 12px 0;
+    padding:14px 20px;margin:20px 0}
+  .nullbox .tag{font-family:var(--sans);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:#8a6200;display:block;margin-bottom:4px}
   /* before/after row counts */
   .counts{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--sans);font-size:12.4px;margin-top:6px}
   .counts div{flex:1;min-width:150px;background:#f7f4ee;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
@@ -201,22 +211,25 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapters 1–3, in plain English</h1>
+  <h1>Chapters 1–4, in plain English</h1>
   <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
   and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
   data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
   rows. <b>Ch. 3 — Query Primer:</b> the six clauses of <span class="inline">SELECT</span>, what each one
-  is for, and the order the server actually runs them in.</p>
+  is for, and the order the server actually runs them in. <b>Ch. 4 — Filtering:</b> how conditions are
+  evaluated, the five ways to write one, and the <span class="inline">NULL</span> trap that silently drops
+  rows.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–66 (PDF pp. 19–84)</span>
-    <span><b>Sections:</b> 12 + 10 + 12</span>
+    <span><b>Book pages:</b> 1–86 (PDF pp. 19–104)</span>
+    <span><b>Sections:</b> 12 + 10 + 12 + 11</span>
     <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8</span>
-    <span><b>Reading time:</b> ~40 min</span>
+    <span><b>Reading time:</b> ~52 min</span>
   </div>
   <div class="jump">
     <a href="#tldr">↓ Chapter 1 · A Little Background</a>
     <a href="#ch2">↓ Chapter 2 · Creating &amp; Populating</a>
     <a href="#ch3">↓ Chapter 3 · Query Primer</a>
+    <a href="#ch4">↓ Chapter 4 · Filtering</a>
   </div>
 </header>
 
@@ -263,6 +276,19 @@
     <li><a href="#group">group by &amp; having</a></li>
     <li><a href="#orderby">The order by clause</a></li>
     <li><a href="#exercises">Exercises &amp; cheat sheet</a></li>
+  </ol>
+  <div class="brand" style="margin-top:18px">Chapter 4 · Filtering</div>
+  <ol>
+    <li><a href="#ch4-intro">The chapter in one paragraph</a></li>
+    <li><a href="#evaluate">How conditions evaluate</a></li>
+    <li><a href="#anatomy">Anatomy of a condition</a></li>
+    <li><a href="#equality">Equality &amp; inequality</a></li>
+    <li><a href="#range">Range conditions</a></li>
+    <li><a href="#membership">Membership: IN</a></li>
+    <li><a href="#matching">Matching: LIKE &amp; REGEXP</a></li>
+    <li><a href="#null">NULL: that four-letter word</a></li>
+    <li><a href="#ch4-exercises">Exercises &amp; answers</a></li>
+    <li><a href="#ch4-recap">Cheat sheet &amp; self-test</a></li>
   </ol>
 </nav>
 
@@ -2522,20 +2548,886 @@ ORDER BY r.return_date DESC;</code></pre>
     <p>Chapter 4, <em>Filtering</em>, takes the <span class="inline">WHERE</span> clause alone and opens it
       up: operator precedence, comparison and range conditions, <span class="inline">LIKE</span> pattern
       matching, and the strange three-valued logic of <span class="inline">NULL</span> — the chapter where
-      "the query ran without error and still gave me the wrong rows" gets explained properly. Say the word
-      and I'll append it the same way.</p>
+      "the query ran without error and still gave me the wrong rows" gets explained properly — which is what
+      <a href="#ch4">Chapter 4 below</a> does.</p>
+  </div>
+</section>
+<div class="chap" id="ch4">
+  <div class="kicker">Chapter 4 · book pages 97–118 (PDF pp. 85–104)</div>
+  <h2><span class="num">4.0</span>Filtering</h2>
+  <p>Chapter 3 named the six clauses; this one takes a single clause — <span class="inline">WHERE</span> —
+  and opens it all the way up. What the server does with a stack of conditions, what one condition is built
+  from, the five flavours of condition you'll actually write, and finally the strangest rule in SQL: that
+  <span class="inline">NULL</span> is never equal to anything, not even to another
+  <span class="inline">NULL</span>.</p>
+</div>
+
+<section id="ch4-intro">
+  <h2><span class="num">4.1</span>The chapter in one paragraph</h2>
+  <p class="lede">Almost every wrong answer in SQL is a wrong filter, not a wrong join.</p>
+  <p>A <span class="inline">WHERE</span> clause holds one or more conditions joined by
+  <span class="inline">AND</span> and <span class="inline">OR</span>: with <span class="inline">AND</span>
+  every condition must be true for a row to survive, with <span class="inline">OR</span> any one will do,
+  and <span class="inline">NOT</span> flips a result but is best avoided because people can't evaluate it
+  in their heads. Each condition is expressions plus operators, and there are exactly five shapes worth
+  knowing: <strong>equality</strong> (<span class="inline">=</span>,
+  <span class="inline">&lt;&gt;</span>), <strong>range</strong> (<span class="inline">&lt;</span>,
+  <span class="inline">BETWEEN</span>), <strong>membership</strong> (<span class="inline">IN</span>),
+  <strong>matching</strong> (<span class="inline">LIKE</span> with <span class="inline">_</span> and
+  <span class="inline">%</span>, or <span class="inline">REGEXP</span>), and
+  <strong>null testing</strong> (<span class="inline">IS NULL</span>). The last one is the trap: because a
+  <span class="inline">NULL</span> never equals anything, <span class="inline">= NULL</span> returns nothing
+  at all, and every "not in this range" question silently loses the rows with no value. Same warning for
+  <span class="inline">HAVING</span>, which uses the identical machinery on grouped data — deferred to
+  Chapter 8.</p>
+  <div class="simple">
+    <span class="tag">The one idea worth keeping</span>
+    A filter has three possible outcomes per row, not two: true, false, and <em>unknown</em>. Rows that come
+    back <span class="inline">unknown</span> are discarded — and <span class="inline">NULL</span> is what
+    produces it.
+  </div>
+</section>
+
+<section id="evaluate">
+  <h2><span class="num">4.2</span>How conditions evaluate</h2>
+  <p class="lede">Two operators, three states, and why parentheses are free insurance.</p>
+
+  <p>Sometimes you genuinely want every row — purging a staging table, backfilling a column you just added,
+    draining a message-queue table. Those statements need no <span class="inline">WHERE</span> at all. But
+    every SQL data statement <em>except</em> <span class="inline">INSERT</span> carries an optional
+    <span class="inline">WHERE</span> to restrict which rows it acts on, and
+    <span class="inline">SELECT</span> additionally has <span class="inline">HAVING</span> for the same job
+    on grouped rows.</p>
+  <p>Start with the running pair of conditions:</p>
+  <div class="code">
+    <div class="bar"><span class="k">AND — all must be true</span></div>
+    <pre><code class="sql">WHERE first_name = 'STEVEN' AND create_date &gt; '2006-01-01'</code></pre>
+  </div>
+  <p>A row survives only if its first name is Steven <em>and</em> its creation date falls after January 1,
+    2006. That doesn't change with length — twenty conditions chained with
+    <span class="inline">AND</span> still needs all twenty true. Switch to
+    <span class="inline">OR</span> and the logic inverts:</p>
+  <div class="code">
+    <div class="bar"><span class="k">OR — one is enough</span></div>
+    <pre><code class="sql">WHERE first_name = 'STEVEN' OR create_date &gt; '2006-01-01'</code></pre>
+  </div>
+  <p>Now three of four combinations admit a row; only "neither is true" excludes it. That's the whole of
+    Table 4-1:</p>
+  <table class="truth">
+    <thead><tr><th>Intermediate result</th><th>Final result</th></tr></thead>
+    <tbody>
+      <tr><td>WHERE true OR true</td><td class="t">true</td></tr>
+      <tr><td>WHERE true OR false</td><td class="t">true</td></tr>
+      <tr><td>WHERE false OR true</td><td class="t">true</td></tr>
+      <tr><td>WHERE false OR false</td><td class="f">false</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Parentheses: from 4 rows to 8 combinations</h3>
+  <p>Add a third condition and mix both operators, and the combinations multiply. The book's example asks
+    for Steven <em>or</em> Young, but only records created after the 2006 cutoff:</p>
+  <div class="code">
+    <div class="bar"><span class="k">three conditions, grouped</span></div>
+    <pre><code class="sql">WHERE (first_name = 'STEVEN' OR last_name = 'YOUNG')
+  AND create_date &gt; '2006-01-01'</code></pre>
+  </div>
+  <p>The parenthesized pair is evaluated first, then combined with the third condition — three of the eight
+    rows survive (Table 4-2):</p>
+  <table class="truth">
+    <thead><tr><th>Intermediate result</th><th>Final result</th></tr></thead>
+    <tbody>
+      <tr><td>WHERE (true OR true) AND true</td><td class="t">true</td></tr>
+      <tr><td>WHERE (true OR false) AND true</td><td class="t">true</td></tr>
+      <tr><td>WHERE (false OR true) AND true</td><td class="t">true</td></tr>
+      <tr><td>WHERE (false OR false) AND true</td><td class="f">false</td></tr>
+      <tr class="sep"><td>WHERE (true OR true) AND false</td><td class="f">false</td></tr>
+      <tr><td>WHERE (true OR false) AND false</td><td class="f">false</td></tr>
+      <tr><td>WHERE (false OR true) AND false</td><td class="f">false</td></tr>
+      <tr><td>WHERE (false OR false) AND false</td><td class="f">false</td></tr>
+    </tbody>
+  </table>
+  <p>The lesson is arithmetic, not style: every condition you add doubles what the server must evaluate —
+    2 conditions, 4 rows; 3 conditions, 8. Loose conditions don't just read badly, they widen the work.</p>
+
+  <h3>NOT — legal, and best avoided</h3>
+  <div class="code">
+    <div class="bar"><span class="k">prefixing the group with NOT</span></div>
+    <pre><code class="sql">WHERE NOT (first_name = 'STEVEN' OR last_name = 'YOUNG')
+  AND create_date &gt; '2006-01-01'</code></pre>
+  </div>
+  <p>One word flips the meaning, and the truth table inverts: only the row where <em>both</em> inner
+    conditions were false now passes the <span class="inline">NOT</span>, so just <strong>one of
+    eight</strong> combinations yields true. The server is indifferent to this. People are not — the book's
+    verdict is that <span class="inline">NOT</span> is easy for the machine and hard for a human, which is
+    why you won't see it often, and it shows the rewrite instead:</p>
+  <div class="code">
+    <div class="bar"><span class="k">same rows, no NOT</span></div>
+    <pre><code class="sql">WHERE first_name &lt;&gt; 'STEVEN' AND last_name &lt;&gt; 'YOUNG'
+  AND create_date &gt; '2006-01-01'</code></pre>
+  </div>
+  <div class="note">
+    <span class="tag">Read that rewrite twice — it's De Morgan's law, and it's a classic bug</span>
+    <span class="inline">NOT (A OR B)</span> becomes <span class="inline">(NOT A) AND (NOT B)</span>: the
+    <span class="inline">OR</span> inside becomes <span class="inline">AND</span> outside. Writing
+    <span class="inline">first_name &lt;&gt; 'STEVEN' OR last_name &lt;&gt; 'YOUNG'</span> instead would
+    match <em>every</em> row where either half holds — including Steven Young, which is exactly what you
+    were trying to exclude. When in doubt, keep the parentheses and wrap the whole group in
+    <span class="inline">NOT</span>; it's the version you can actually read.
+  </div>
+</section>
+
+<section id="anatomy">
+  <h2><span class="num">4.3</span>Anatomy of a condition</h2>
+  <p class="lede">Expressions + operators. That's all a condition is.</p>
+  <p>Stepping back from combinations to a single condition: it's one or more <em>expressions</em> combined
+    with <em>operators</em>. An expression may be any of:</p>
+  <div class="grid">
+    <div class="tile"><h4>A number</h4><p><span class="inline">375.25</span></p></div>
+    <div class="tile"><h4>A column</h4><p>from a table or a view — <span class="inline">amount</span></p></div>
+    <div class="tile"><h4>A string literal</h4><p><span class="inline">'Maple Street'</span></p></div>
+    <div class="tile"><h4>A built-in function</h4><p><span class="inline">concat('Learning', ' ', 'SQL')</span></p></div>
+    <div class="tile"><h4>A subquery</h4><p>a whole nested query in parentheses, yielding a value</p></div>
+    <div class="tile"><h4>A list of expressions</h4><p><span class="inline">('Boston', 'New York', 'Chicago')</span></p></div>
+  </div>
+  <p>and the operators available to combine them are:</p>
+  <ul>
+    <li><strong>Comparison</strong> — <span class="inline">=</span>, <span class="inline">!=</span>,
+      <span class="inline">&lt;</span>, <span class="inline">&gt;</span>, <span class="inline">&lt;&gt;</span>,
+      <span class="inline">LIKE</span>, <span class="inline">IN</span>, <span class="inline">BETWEEN</span></li>
+    <li><strong>Arithmetic</strong> — <span class="inline">+</span>, <span class="inline">-</span>,
+      <span class="inline">*</span>, <span class="inline">/</span></li>
+  </ul>
+  <div class="simple">
+    <span class="tag">Why the list matters</span>
+    Four of the six expression types aren't columns. A condition can compare a function's result, a literal,
+    or a value pulled out by a nested query — which is why
+    <span class="inline">WHERE date(r.rental_date) = '2005-06-14'</span> is unremarkable rather than clever.
+    Most of the rest of the book is combinations of these six with these operators.
+  </div>
+</section>
+
+<section id="equality">
+  <h2><span class="num">4.4</span>Equality &amp; inequality conditions</h2>
+  <p class="lede">The most common shape in SQL — and the one that doubles as a delete switch.</p>
+
+  <p>A large share of every filter you'll ever write looks like <span class="inline">column =
+    expression</span>:</p>
+  <div class="code">
+    <div class="bar"><span class="k">four equality conditions, three kinds of right-hand side</span></div>
+    <pre><code class="sql">title = 'RIVER OUTLAW'
+fed_id = '111-11-1111'
+amount = 375.25
+film_id = (SELECT film_id FROM film WHERE title = 'RIVER OUTLAW')</code></pre>
+  </div>
+  <p>They're called <em>equality</em> conditions because each equates one expression to another — and note
+    the fourth: the right-hand side can be a subquery, so the value needn't be known when you write the SQL.
+    Here's the same shape inside a real query, with an equality condition in the
+    <span class="inline">ON</span> clause (linking tables) and another in
+    <span class="inline">WHERE</span> (filtering rows) — one statement, both jobs:</p>
+  <div class="code">
+    <div class="bar"><span class="k">who rented on June 14, 2005</span></div>
+    <pre><code class="sql">mysql&gt; SELECT c.email
+    -&gt; FROM customer c
+    -&gt;   INNER JOIN rental r
+    -&gt;   ON c.customer_id = r.customer_id
+    -&gt; WHERE date(r.rental_date) = '2005-06-14';
++---------------------------------------+
+| email                                 |
++---------------------------------------+
+| CATHERINE.CAMPBELL@sakilacustomer.org |
+| JOYCE.EDWARDS@sakilacustomer.org      |
+| AMBER.DIXON@sakilacustomer.org        |
+| JEANETTE.GREENE@sakilacustomer.org    |
+| MINNIE.ROMERO@sakilacustomer.org      |
+| GWENDOLYN.MAY@sakilacustomer.org      |
+| SONIA.GREGORY@sakilacustomer.org      |
+| MIRIAM.MCKINNEY@sakilacustomer.org    |
+| CHARLES.KOWALSKI@sakilacustomer.org   |
+| DANIEL.CABRAL@sakilacustomer.org      |
+| MATTHEW.MAHAN@sakilacustomer.org      |
+| JEFFERY.PINSON@sakilacustomer.org     |
+| HERMAN.DEVORE@sakilacustomer.org      |
+| ELMER.NOE@sakilacustomer.org          |
+| TERRANCE.ROUSH@sakilacustomer.org     |
+| TERRENCE.GUNDERSON@sakilacustomer.org |
++---------------------------------------+
+16 rows in set (0.03 sec)</code></pre>
+  </div>
+
+  <h3>Inequality: flip the operator, flip the magnitude</h3>
+  <p>Change one character and the same query returns everything <em>except</em> that day:</p>
+  <div class="code">
+    <div class="bar"><span class="k">the one-character change</span></div>
+    <pre><code class="sql">mysql&gt; SELECT c.email
+    -&gt; FROM customer c
+    -&gt;   INNER JOIN rental r
+    -&gt;   ON c.customer_id = r.customer_id
+    -&gt; WHERE date(r.rental_date) &lt;&gt; '2005-06-14';
++-----------------------------------+
+| email                             |
++-----------------------------------+
+| MARY.SMITH@sakilacustomer.org     |
+| MARY.SMITH@sakilacustomer.org     |
+| MARY.SMITH@sakilacustomer.org     |
+|      ... (each row repeated ...)  |
+| AUSTIN.CINTRON@sakilacustomer.org |
+| AUSTIN.CINTRON@sakilacustomer.org |
++-----------------------------------+
+16028 rows in set (0.03 sec)</code></pre>
+  </div>
+  <div class="counts">
+    <div><b>16</b>rows matching the day</div>
+    <div class="cut"><b>16,028</b>rows not matching it</div>
+  </div>
+  <p>Two things to take from that output. <span class="inline">&lt;&gt;</span> and
+    <span class="inline">!=</span> both mean "not equal" and are interchangeable, so pick one per team.
+    And the same email repeating is <em>correct</em>, not a bug: the query is against
+    <span class="inline">rental</span>, so a customer with 45 rentals appears 45 times —
+    the Chapter 3 lesson about grain and <span class="inline">DISTINCT</span>, arriving again.
+    16,028 + 16 = 16,044, which is every row in the table: equality and inequality partition a table
+    exactly, <em>except</em> where <span class="inline">NULL</span> gets involved
+    (<a href="#null">§4.8</a>).</p>
+
+  <h3>The same conditions, on the destructive side</h3>
+  <p>Equality and inequality are how you decide which rows a
+  <span class="inline">DELETE</span> or <span class="inline">UPDATE</span> touches:</p>
+  <div class="code">
+    <div class="bar"><span class="k">one equality condition</span></div>
+    <pre><code class="sql">DELETE FROM rental
+WHERE year(rental_date) = 2004;</code></pre>
+  </div>
+  <div class="code">
+    <div class="bar"><span class="k">two inequality conditions to express "not in 2005 and not in 2006"</span></div>
+    <pre><code class="sql">DELETE FROM rental
+WHERE year(rental_date) &lt;&gt; 2005 AND year(rental_date) &lt;&gt; 2006;</code></pre>
+  </div>
+  <p>The first deletes rows from one year; the second keeps only two years and removes the rest. Note the
+    shape of that second one — it's the De Morgan rewrite from
+    <a href="#evaluate">§4.2</a> doing real work: "not 2005 <em>and</em> not 2006," not "or."</p>
+  <div class="note">
+    <span class="tag">Why the book's DELETE statements look suspiciously harmless</span>
+    The author deliberately writes every <span class="inline">DELETE</span>/<span class="inline">UPDATE</span>
+    example so it modifies no rows, so that your data stays intact and your
+    <span class="inline">SELECT</span> output keeps matching the printed book. That's possible because
+    MySQL sessions run in <em>auto-commit</em> mode by default — each statement is permanent the instant it
+    finishes, and there is nothing to roll back. Transactions (Chapter 12) are what gives you an undo
+    button; until then, run destructive statements as a <span class="inline">SELECT</span> first and count
+    the rows.
+  </div>
+</section>
+
+<section id="range">
+  <h2><span class="num">4.5</span>Range conditions</h2>
+  <p class="lede">One value, a span of values, or a set of them — three different tools.</p>
+
+  <p>Rather than matching one value exactly, you often want everything above, below or between. This is the
+    natural shape for numbers and dates:</p>
+  <div class="code">
+    <div class="bar"><span class="k">upper bound only</span></div>
+    <pre><code class="sql">mysql&gt; SELECT customer_id, rental_date
+    -&gt; FROM rental
+    -&gt; WHERE rental_date &lt; '2005-05-25';
++-------------+---------------------+
+| customer_id | rental_date         |
++-------------+---------------------+
+|         130 | 2005-05-24 22:53:30 |
+|         459 | 2005-05-24 22:54:33 |
+|         408 | 2005-05-24 23:03:39 |
+|         333 | 2005-05-24 23:04:41 |
+|         222 | 2005-05-24 23:05:21 |
+|         549 | 2005-05-24 23:08:07 |
+|         269 | 2005-05-24 23:11:53 |
+|         239 | 2005-05-24 23:31:46 |
++-------------+---------------------+
+8 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>Add a floor and you have a window:</p>
+  <div class="code">
+    <div class="bar"><span class="k">two conditions — upper and lower</span></div>
+    <pre><code class="sql">mysql&gt; SELECT customer_id, rental_date
+    -&gt; FROM rental
+    -&gt; WHERE rental_date &lt;= '2005-06-16'
+    -&gt;   AND rental_date &gt;= '2005-06-14';
++-------------+---------------------+
+| customer_id | rental_date         |
++-------------+---------------------+
+|         416 | 2005-06-14 22:53:33 |
+|         516 | 2005-06-14 22:55:13 |
+|         239 | 2005-06-14 23:00:34 |
+|      ...    |        ...          |
+|         149 | 2005-06-15 23:58:53 |
++-------------+---------------------+
+364 rows in set (0.00 sec)</code></pre>
+  </div>
+
+  <h3>BETWEEN: one condition instead of two</h3>
+  <div class="code">
+    <div class="bar"><span class="k">the identical 364 rows</span></div>
+    <pre><code class="sql">mysql&gt; SELECT customer_id, rental_date
+    -&gt; FROM rental
+    -&gt; WHERE rental_date BETWEEN '2005-06-14' AND '2005-06-16';
+364 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>Two rules decide whether <span class="inline">BETWEEN</span> bites you:</p>
+  <ul>
+    <li><strong>Low end first.</strong> The value after <span class="inline">BETWEEN</span> is the floor and
+      the value after <span class="inline">AND</span> is the ceiling. Swap them and you get an empty set with
+      no error, because the server expands your condition into two comparisons that no date can satisfy at
+      once:</li>
+  </ul>
+  <div class="code">
+    <div class="bar"><span class="k">mistake → silently empty</span></div>
+    <pre><code class="sql">mysql&gt; SELECT customer_id, rental_date
+    -&gt; FROM rental
+    -&gt; WHERE rental_date BETWEEN '2005-06-16' AND '2005-06-14';
+Empty set (0.00 sec)
+
+/* because it means: */
+WHERE rental_date &gt;= '2005-06-16'
+  AND rental_date &lt;= '2005-06-14'   /* impossible */</code></pre>
+  </div>
+  <ul>
+    <li><strong>Both ends are inclusive.</strong> The values you type <em>are</em> inside the range. That's
+      why finding "rentals on June 14 or 15" uses <span class="inline">'2005-06-14'</span> and
+      <span class="inline">'2005-06-16'</span> — the upper bound isn't a date you expect to see, it's a wall
+      just past the last day you want. Since no time was given, it defaults to midnight, so the effective
+      span runs <span class="inline">2005-06-14 00:00:00</span> to
+      <span class="inline">2005-06-16 00:00:00</span>: all of the 14th, all of the 15th, none of the 16th.
+      This is the same trap as <span class="inline">BETWEEN 1 AND 100</span> on a
+      <span class="inline">datetime</span>, which quietly finds almost nothing.</li>
+  </ul>
+  <p>Numbers behave the same way, minus the date weirdness:</p>
+  <div class="code">
+    <div class="bar"><span class="k">a money range</span></div>
+    <pre><code class="sql">mysql&gt; SELECT customer_id, payment_date, amount
+    -&gt; FROM payment
+    -&gt; WHERE amount BETWEEN 10.0 AND 11.99;
++-------------+---------------------+--------+
+| customer_id | payment_date        | amount |
++-------------+---------------------+--------+
+|           2 | 2005-07-30 13:47:43 |  10.99 |
+|           3 | 2005-07-27 20:23:12 |  10.99 |
+|          12 | 2005-08-01 06:50:26 |  10.99 |
+|          13 | 2005-07-29 22:37:41 |  11.99 |
+|      ...    |        ...          |   ...  |
+|         595 | 2005-07-31 11:51:46 |  10.99 |
++-------------+---------------------+--------+
+114 rows in set (0.01 sec)</code></pre>
+  </div>
+  <p>Every payment from $10.00 through $11.99 inclusive. Note the ceiling is the largest value that
+    qualifies rather than the first that doesn't — writing
+    <span class="inline">BETWEEN 10.0 AND 12.0</span> "to be safe" would drag in every $12.00 payment.</p>
+
+  <h3>String ranges: the one that needs a map</h3>
+  <p>Dates and numbers have an obvious order. Strings don't — until a <em>collation</em> gives them one:</p>
+  <div class="code">
+    <div class="bar"><span class="k">surnames from FA to FR</span></div>
+    <pre><code class="sql">mysql&gt; SELECT last_name, first_name
+    -&gt; FROM customer
+    -&gt; WHERE last_name BETWEEN 'FA' AND 'FR';
++------------+------------+
+| last_name  | first_name |
++------------+------------+
+| FARNSWORTH | JOHN       |
+| FENNELL    | ALEXANDER  |
+| FERGUSON   | BERTHA     |
+| FERNANDEZ  | MELINDA    |
+| FIELDS     | VICKI      |
+| FISHER     | CINDY      |
+| FLEMING    | MYRTLE     |
+| FLETCHER   | MAE        |
+| FLORES     | JULIA      |
+| FORD       | CRYSTAL    |
+| FORMAN     | MICHEAL    |
+| FORSYTHE   | ENRIQUE    |
+| FORTIER    | RAUL       |
+| FORTNER    | HOWARD     |
+| FOSTER     | PHYLLIS    |
+| FOUST      | JACK       |
+| FOWLER     | JO         |
+| FOX        | HOLLY      |
++------------+------------+
+18 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>Eighteen rows — and someone's missing. <strong>FRANKLIN</strong> is absent, because
+    <span class="inline">'FRANKLIN' &gt; 'FR'</span>: the ceiling is <em>exactly</em> "FR," and anything
+    continuing past it sorts above. The fix is to push the upper bound into the next cluster:</p>
+  <div class="code">
+    <div class="bar"><span class="k">extend the ceiling to FRB → 22 rows</span></div>
+    <pre><code class="sql">mysql&gt; SELECT last_name, first_name
+    -&gt; FROM customer
+    -&gt; WHERE last_name BETWEEN 'FA' AND 'FRB';</code></pre>
+  </div>
+  <p>Four of the five FR- names come in (FRALEY, FRANCISCO, FRANKLIN, FRAZIER), for 22 rows. Why
+    <em>four</em> of five? Because a surname sorting after "FRB" is still outside the range — which is the
+    real lesson: to work string ranges you must know the order your character set imposes, which is what a
+    <strong>collation</strong> defines. Case, accents and spacing all land in that definition, so a range
+    that behaves on one server can behave differently on another. For prefix matching,
+    <span class="inline">LIKE 'FR%'</span> is usually the tool people actually want
+    (<a href="#matching">§4.7</a>).</p>
+</section>
+
+<section id="membership">
+  <h2><span class="num">4.6</span>Membership conditions: IN</h2>
+  <p class="lede">A set of values, without an OR-chain a page long.</p>
+
+  <p>Find films rated G or PG:</p>
+  <div class="code">
+    <div class="bar"><span class="k">the obvious way</span></div>
+    <pre><code class="sql">mysql&gt; SELECT title, rating
+    -&gt; FROM film
+    -&gt; WHERE rating = 'G' OR rating = 'PG';
++---------------------------+--------+
+| title                     | rating |
++---------------------------+--------+
+| ACADEMY DINOSAUR          | PG     |
+| ACE GOLDFINGER            | G      |
+| AFFAIR PREJUDICE          | G      |
+|      ...                  |  ...   |
+| YOUNG LANGUAGE            | G      |
++---------------------------+--------+
+372 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>Two conditions is not tedious. Twenty is, and every one of them is a place to typo a column name.
+    <span class="inline">IN</span> turns the whole set into a single condition:</p>
+  <div class="code">
+    <div class="bar"><span class="k">same 372 rows, one condition</span></div>
+    <pre><code class="sql">SELECT title, rating
+FROM film
+WHERE rating IN ('G','PG');</code></pre>
+  </div>
+  <p>Set size stops mattering: one condition either way. The list is just an expression type from
+    <a href="#anatomy">§4.3</a>, so it works with numbers, strings, and anything comparable to the left-hand
+    side.</p>
+
+  <h3>Let a subquery build the set</h3>
+  <p>The more interesting version: you don't have to know the members in advance. Assume any film with
+    "PET" in its title is safe for family viewing — so whatever ratings <em>those</em> films carry are the
+    ratings you want:</p>
+  <div class="code">
+    <div class="bar"><span class="k">IN over a subquery — the set is computed at runtime</span></div>
+    <pre><code class="sql">mysql&gt; SELECT title, rating
+    -&gt; FROM film
+    -&gt; WHERE rating IN (SELECT rating FROM film WHERE title LIKE '%PET%');
++---------------------------+--------+
+| title                     | rating |
++---------------------------+--------+
+| ACADEMY DINOSAUR          | PG     |
+| ACE GOLDFINGER            | G      |
+| AFFAIR PREJUDICE          | G      |
+|      ...                  |  ...   |
+| YOUNG LANGUAGE            | G      |
++---------------------------+--------+
+372 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>The inner query runs first and yields the two-member set <span class="inline">'G'</span> and
+    <span class="inline">'PG'</span>; the outer query then tests membership against it. Same 372 rows as the
+    hand-written list — but the answer now stays correct as the data changes, which is the point. The list
+    version encodes today's ratings; the subquery version encodes today's <em>rule</em>.</p>
+
+  <h3>NOT IN</h3>
+  <div class="code">
+    <div class="bar"><span class="k">the complement, same result</span></div>
+    <pre><code class="sql">SELECT title, rating
+FROM film
+WHERE rating NOT IN ('PG-13','R', 'NC-17');</code></pre>
+  </div>
+  <p>Everything that isn't one of the three grown-up ratings, which in Sakila happens to be the same 372
+    rows — a nice demonstration that a membership test and its negation are only equivalent when the sets
+    are complements over the <em>whole</em> column. Two cautions while you're here:</p>
+  <ul>
+    <li><strong>Watch for NULL in the list.</strong> If a subquery's result set contains even one
+      <span class="inline">NULL</span>, <span class="inline">NOT IN</span> returns no rows at all: for the
+      test to pass, the value must differ from <em>every</em> member, and
+      <span class="inline">x &lt;&gt; NULL</span> is unknown, not true. It's
+      <a href="#null">§4.8</a> again, one level up.</li>
+    <li><strong>Ratings can be NULL.</strong> A film with no rating matches neither
+      <span class="inline">IN ('G','PG')</span> nor <span class="inline">NOT IN (...)</span> — so the two
+      queries don't partition the table unless you account for missing values.</li>
+  </ul>
+</section>
+
+<section id="matching">
+  <h2><span class="num">4.7</span>Matching conditions: LIKE &amp; REGEXP</h2>
+  <p class="lede">Partial matches — the last condition type, and the most flexible.</p>
+
+  <p>Everything so far tested an exact value, a range, or set membership. Now: <em>does this string look
+    like that pattern?</em> The book opens with the version you'd write if you didn't know better:</p>
+  <div class="code">
+    <div class="bar"><span class="k">works, but barely</span></div>
+    <pre><code class="sql">mysql&gt; SELECT last_name, first_name
+    -&gt; FROM customer
+    -&gt; WHERE left(last_name, 1) = 'Q';
++-------------+------------+
+| last_name   | first_name |
++-------------+------------+
+| QUALLS      | STEPHEN    |
+| QUINTANILLA | ROGER      |
+| QUIGLEY     | TROY       |
++-------------+------------+
+3 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>Slicing off the first character with <span class="inline">left()</span> answers "starts with Q" and
+    nothing else. The dedicated tool is <span class="inline">LIKE</span> plus two wildcards
+    (Table 4-4):</p>
+  <table>
+    <thead><tr><th>Wildcard</th><th>Matches</th></tr></thead>
+    <tbody>
+      <tr><td>_</td><td>Exactly one character</td></tr>
+      <tr><td>%</td><td>Any number of characters, including zero</td></tr>
+    </tbody>
+  </table>
+  <p>Two characters, and they cover the five kinds of partial search you'd want — starts with, ends with,
+    contains a character anywhere, contains a substring anywhere, or matches a shape regardless of content:</p>
+  <div class="code">
+    <div class="bar"><span class="k">a positional pattern</span></div>
+    <pre><code class="sql">mysql&gt; SELECT last_name, first_name
+    -&gt; FROM customer
+    -&gt; WHERE last_name LIKE '_A_T%S';
++-----------+------------+
+| last_name | first_name |
++-----------+------------+
+| MATTHEWS  | ERICA      |
+| WALTERS   | CASSANDRA  |
+| WATTS     | SHELLY     |
++-----------+------------+
+3 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>Read it position by position: any character, then <span class="inline">A</span> in slot 2, any
+    character, <span class="inline">T</span> in slot 4, then anything, then
+    <span class="inline">S</span> at the end. MATTHEWS and WATTS both fit; the pattern is doing what
+    <span class="inline">left()</span> could not. Table 4-5 is the vocabulary in five examples:</p>
+  <table>
+    <thead><tr><th>Search expression</th><th>Interpretation</th></tr></thead>
+    <tbody>
+      <tr><td>F%</td><td>Strings beginning with F</td></tr>
+      <tr><td>%t</td><td>Strings ending with t</td></tr>
+      <tr><td>%bas%</td><td>Strings containing the substring 'bas'</td></tr>
+      <tr><td>_ _t_</td><td>Four-character strings with a t in the third position</td></tr>
+      <tr><td>_ _ _-_ _-_ _ _ _</td><td>11-character strings with dashes in the 4th and 7th positions — a phone-number or SSN shape</td></tr>
+    </tbody>
+  </table>
+  <p>Note that a leading <span class="inline">%</span> means the server can't use an ordered index to narrow
+    where to look — it must test every value — while <span class="inline">F%</span> can be turned into a
+    range scan. Which is the same insight as <a href="#range">§4.5</a>'s string range, arriving from the
+    other direction: a prefix pattern <em>is</em> a range, and a mid-string pattern isn't.</p>
+
+  <h3>Combining patterns</h3>
+  <div class="code">
+    <div class="bar"><span class="k">two LIKEs, ORed</span></div>
+    <pre><code class="sql">mysql&gt; SELECT last_name, first_name
+    -&gt; FROM customer
+    -&gt; WHERE last_name LIKE 'Q%' OR last_name LIKE 'Y%';
++-------------+------------+
+| last_name   | first_name |
++-------------+------------+
+| QUALLS      | STEPHEN    |
+| QUIGLEY     | TROY       |
+| QUINTANILLA | ROGER      |
+| YANEZ       | LUIS       |
+| YEE         | MARVIN     |
+| YOUNG       | CYNTHIA    |
++-------------+------------+
+6 rows in set (0.00 sec)</code></pre>
+  </div>
+
+  <h3>Regular expressions: a search expression on steroids</h3>
+  <div class="code">
+    <div class="bar"><span class="k">the same 6 rows, one condition</span></div>
+    <pre><code class="sql">mysql&gt; SELECT last_name, first_name
+    -&gt; FROM customer
+    -&gt; WHERE last_name REGEXP '^[QY]';
++-------------+------------+
+| last_name   | first_name |
++-------------+------------+
+| YOUNG       | CYNTHIA    |
+| QUALLS      | STEPHEN    |
+| QUINTANILLA | ROGER      |
+| YANEZ       | LUIS       |
+| YEE         | MARVIN     |
+| QUIGLEY     | TROY       |
++-------------+------------+
+6 rows in set (0.16 sec)</code></pre>
+  </div>
+  <p><span class="inline">'^[QY]'</span> reads "starts with either Q or Y": <span class="inline">^</span>
+    anchors to the start, the brackets are a one-character alternatives set. The
+    <span class="inline">regexp</span> operator applies the pattern to whatever is on its left, collapsing
+    two <span class="inline">OR</span>'d conditions into one. Two observations the numbers make for us: the
+    result set is <strong>unordered</strong> (YOUNG first here, alphabetically ordered under
+    <span class="inline">LIKE</span> above — Chapter 3's "no <span class="inline">ORDER BY</span>, no
+    promise," demonstrated in one comparison) and it took <strong>0.16 s vs 0.00 s</strong>. Don't reach for
+    <span class="inline">REGEXP</span> where a wildcard will do.</p>
+  <p>If you need more than this book's one example, that's a subject of its own — it's far too large to
+    cover here, and the recommendation is Friedl's <i>Mastering Regular Expressions</i> (O'Reilly).
+    Portability note: Oracle and SQL Server support regular expressions too, but not with this operator —
+    Oracle uses a <span class="inline">regexp_like</span> function, and SQL Server allows regex-ish patterns
+    through its own <span class="inline">LIKE</span>. So the <em>idea</em> travels; the syntax doesn't.</p>
+</section>
+
+<section id="null">
+  <h2><span class="num">4.8</span>NULL: that four-letter word</h2>
+  <p class="lede">The rules that make SQL logic three-valued — and the trap that loses 183 rows.</p>
+
+  <p><span class="inline">NULL</span> is the <em>absence</em> of a value. An employee who hasn't been
+    terminated should have a <span class="inline">NULL</span> <span class="inline">end_date</span>, because
+    no date you could type would be true. Chapter 2 named this ("not applicable, unknown, empty set");
+    here it becomes operational, and the book lists the flavours you'll meet:</p>
+  <div class="grid">
+    <div class="tile"><h4>Not applicable</h4><p>The employee ID on a transaction made at an ATM — nobody handled it.</p></div>
+    <div class="tile"><h4>Not yet known</h4><p>The federal ID at the moment the customer row is created.</p></div>
+    <div class="tile"><h4>Undefined</h4><p>An account opened for a product that isn't in the database yet.</p></div>
+  </div>
+  <p>Some theorists want a distinct marker for each case. Practitioners mostly agree that would be far too
+    confusing — one <span class="inline">NULL</span>, and you read the meaning from context.</p>
+
+  <div class="nullbox">
+    <span class="tag">The two rules</span>
+    <ul style="margin:.3em 0 0">
+      <li>An expression <strong>can be</strong> <span class="inline">NULL</span>, but it can
+        <strong>never equal</strong> <span class="inline">NULL</span>.</li>
+      <li>Two <span class="inline">NULL</span>s are <strong>never equal to each other</strong>.</li>
+    </ul>
+  </div>
+  <p>These aren't quirks of MySQL; they follow from "absence of a value." If you don't know a customer's
+    federal ID, then "is it equal to 111-11-1111?" isn't false — it's <strong>unanswerable</strong>. Hence
+    the right test isn't a comparison at all:</p>
+  <div class="code">
+    <div class="bar"><span class="k">IS NULL — the correct test</span></div>
+    <pre><code class="sql">mysql&gt; SELECT rental_id, customer_id
+    -&gt; FROM rental
+    -&gt; WHERE return_date IS NULL;
++-----------+-------------+
+| rental_id | customer_id |
++-----------+-------------+
+|     11496 |         155 |
+|     11541 |         335 |
+|     11563 |          83 |
+|      ...  |      ...    |
+|     15966 |         374 |
++-----------+-------------+
+183 rows in set (0.01 sec)</code></pre>
+  </div>
+  <div class="code">
+    <div class="bar"><span class="k">= NULL — compiles, runs, lies to you</span></div>
+    <pre><code class="sql">mysql&gt; SELECT rental_id, customer_id
+    -&gt; FROM rental
+    -&gt; WHERE return_date = NULL;
+Empty set (0.01 sec)</code></pre>
+  </div>
+  <div class="note">
+    <span class="tag">The single most dangerous line in this chapter</span>
+    <span class="inline">= NULL</span> is not a syntax error. It parses, it optimizes, it executes, and it
+    returns <strong>nothing</strong> — because every comparison against
+    <span class="inline">NULL</span> evaluates to unknown, and a <span class="inline">WHERE</span> only keeps
+    rows that evaluate to <em>true</em>. The book calls it the classic beginner mistake and points out the
+    server will not warn you. The flip side is
+    <span class="inline">IS NOT NULL</span>, which finds everything that <em>does</em> have a value.
+  </div>
+  <div class="code">
+    <div class="bar"><span class="k">IS NOT NULL — the complement, 15,861 rows</span></div>
+    <pre><code class="sql">mysql&gt; SELECT rental_id, customer_id, return_date
+    -&gt; FROM rental
+    -&gt; WHERE return_date IS NOT NULL;
++-----------+-------------+---------------------+
+| rental_id | customer_id | return_date         |
++-----------+-------------+---------------------+
+|         1 |         130 | 2005-05-26 22:04:30 |
+|         2 |         459 | 2005-05-28 19:40:33 |
+|      ...  |      ...    |        ...          |
+|     16049 |         393 | 2005-08-30 01:01:12 |
++-----------+-------------+---------------------+
+15861 rows in set (0.02 sec)</code></pre>
+  </div>
+  <p>15,861 returned + 183 never returned = 16,044 = every row in
+  <span class="inline">rental</span>. <span class="inline">IS NULL</span> and
+  <span class="inline">IS NOT NULL</span> <em>do</em> partition a table — unlike
+  <span class="inline">=</span> and <span class="inline">&lt;&gt;</span>, which silently leave a remainder
+  (the 16 + 16,028 from <a href="#equality">§4.4</a> added up only because that column happens to be
+  non-nullable). The arithmetic is the alarm bell.</p>
+
+  <h3>The real trap: "not in a range" forgets the missing values</h3>
+  <p>Suppose you're asked for all rentals <em>not</em> returned between May and August 2005. The instinctive
+    query:</p>
+  <div class="code">
+    <div class="bar"><span class="k">62 rows — and quietly wrong</span></div>
+    <pre><code class="sql">mysql&gt; SELECT rental_id, customer_id, return_date
+    -&gt; FROM rental
+    -&gt; WHERE return_date NOT BETWEEN '2005-05-01' AND '2005-09-01';
++-----------+-------------+---------------------+
+|     15365 |         327 | 2005-09-01 03:14:17 |
+|     15388 |          50 | 2005-09-01 03:50:23 |
+|      ...  |      ...    |        ...          |
+|     16040 |         195 | 2005-09-02 02:19:33 |
++-----------+-------------+---------------------+
+62 rows in set (0.01 sec)</code></pre>
+  </div>
+  <p>True as far as it goes — those 62 were returned outside the window. But look at what every row has in
+    common: a <strong>non-null</strong> return date. The 183 rentals that were <em>never returned at
+    all</em> are missing, and they're the most interesting ones for a "not returned" report. One reading is
+    that a film still sitting unreturned was certainly not returned between May and August.</p>
+  <div class="code">
+    <div class="bar"><span class="k">the honest answer — 245 rows</span></div>
+    <pre><code class="sql">mysql&gt; SELECT rental_id, customer_id, return_date
+    -&gt; FROM rental
+    -&gt; WHERE return_date IS NULL
+    -&gt;   OR return_date NOT BETWEEN '2005-05-01' AND '2005-09-01';
++-----------+-------------+---------------------+
+|     11496 |         155 | NULL                |
+|     11541 |         335 | NULL                |
+|      ...  |      ...    |        ...          |
+|     16040 |         195 | 2005-09-02 02:19:33 |
++-----------+-------------+---------------------+
+245 rows in set (0.01 sec)</code></pre>
+  </div>
+  <div class="counts">
+    <div class="cut"><b>62</b>rows from the naive filter</div>
+    <div><b>245</b>rows once the 183 NULLs are included</div>
+  </div>
+  <p>62 + 183 = 245. The corrected query doesn't change the range logic — it just stops
+    <span class="inline">NULL</span> from being silently excluded. The book's closing advice is the durable
+    habit: when you arrive at an unfamiliar database, <strong>find out which columns allow
+    <span class="inline">NULL</span></strong> before you write filters, so data doesn't slip through the
+    cracks. Which is exactly what <span class="inline">DESC table_name</span>'s <em>Null</em> column was for
+    back in Chapter 2 — a schema-introspection command turning directly into query correctness.</p>
+</section>
+
+<section id="ch4-exercises">
+  <h2><span class="num">4.9</span>Exercises &amp; answers</h2>
+  <p class="lede">Two pencil-and-paper truth tables, two queries.</p>
+
+  <p>The first two questions work against a fixed 20-row slice of <span class="inline">payment</span> that
+    the book prints for the purpose — payments 101–107 for customer 4 (Aug 18–23, 2005, amounts
+    8.99/1.99/2.99/6.99/4.99/2.99/1.99) and 108–120 for customer 5 (late May through July 9, amounts
+    0.99–6.99).</p>
+
+  <div class="card">
+    <h3 style="margin-top:0">Questions (as posed in the chapter)</h3>
+    <ol>
+      <li><b>4-1</b> Which payment IDs does
+        <span class="inline">customer_id &lt;&gt; 5 AND (amount &gt; 8 OR date(payment_date) = '2005-08-23')</span>
+        return?</li>
+      <li><b>4-2</b> Which does
+        <span class="inline">customer_id = 5 AND NOT (amount &gt; 6 OR date(payment_date) = '2005-06-19')</span>
+        return?</li>
+      <li><b>4-3</b> Retrieve all rows from <span class="inline">payment</span> where the amount is
+        <em>either</em> 1.98, 7.98 or 9.98.</li>
+      <li><b>4-4</b> Find all customers whose last name has an <strong>A in the second position</strong>
+        and a <strong>W anywhere after that A</strong>.</li>
+    </ol>
+    <details>
+      <summary><b>Answers</b> — worked from this chapter's rules; the book's solutions are in Appendix B</summary>
+      <p style="font-size:.95rem"><b>4-1 → payments 101 and 107.</b> Work the outer
+      <span class="inline">AND</span> first: <span class="inline">customer_id &lt;&gt; 5</span> keeps only
+      customer 4's rows, 101–107. Inside the parenthesized group, <span class="inline">amount &gt; 8</span>
+      is true only for <b>101</b> (8.99 — and yes, 8.99 <em>is</em> greater than 8; the trap here is reading
+      <span class="inline">&gt; 8</span> as <span class="inline">&gt; 8.99</span>), and
+      <span class="inline">date(payment_date) = '2005-08-23'</span> is true only for <b>107</b>. Because the
+      two are <span class="inline">OR</span>'d, either one qualifies — so both rows survive, not just one.</p>
+
+      <p style="font-size:.95rem"><b>4-2 → 108, 110, 111, 112, 113, 115, 116, 117, 118, 119, 120 — 11 rows.</b>
+      <span class="inline">customer_id = 5</span> narrows to 108–120, then the group removes two:
+      <b>109</b> (6.99, so <span class="inline">amount &gt; 6</span> is true) and
+      <b>114</b> (dated 2005-06-19). Everything else survives, including 118–120, which match neither
+      condition. Note the shape: <span class="inline">NOT (A OR B)</span> is exactly
+      <span class="inline">(NOT A) AND (NOT B)</span>, the De Morgan rewrite from
+      <a href="#evaluate">§4.2</a> applied to a real question — and drop either half and the answer set
+      silently widens.</p>
+
+      <div class="code">
+        <div class="bar"><span class="k">4-3 · membership, one condition</span></div>
+        <pre><code class="sql">SELECT payment_id, customer_id, amount, payment_date
+FROM payment
+WHERE amount IN (1.98, 7.98, 9.98);</code></pre>
+      </div>
+      <p style="font-size:.94rem">Three <span class="inline">OR</span>'d equality conditions would give the
+      identical rows; the point of the exercise is that <span class="inline">IN</span> is one condition no
+      matter how many values, so it doesn't degrade as the set grows. (A range
+      <span class="inline">BETWEEN 1.98 AND 9.98</span> would be <em>wrong</em> — it sweeps up every amount
+      in between, which is exactly §4.5's "these are different tools" lesson.)</p>
+
+      <div class="code">
+        <div class="bar"><span class="k">4-4 · positional pattern + trailing wildcard</span></div>
+        <pre><code class="sql">SELECT last_name, first_name
+FROM customer
+WHERE last_name LIKE '_A%W%';</code></pre>
+      </div>
+      <p style="font-size:.94rem">Underscore for "any single character" so the <span class="inline">A</span>
+      lands in position 2, then <span class="inline">%W%</span> for "a W somewhere after it." The first
+      <span class="inline">%</span> is what makes "anywhere after" work — without it
+      (<span class="inline">_AW%</span>) you'd demand the W in the third position. This is Table 4-5's
+      grammar being useful rather than decorative.</p>
+    </details>
+  </div>
+</section>
+
+<section id="ch4-recap">
+  <h2><span class="num">4.10</span>Cheat sheet &amp; self-test</h2>
+  <p class="lede">Five condition types, and the traps that go with each.</p>
+
+  <table>
+    <thead><tr><th>Type</th><th>Operators</th><th>Watch out for</th></tr></thead>
+    <tbody>
+      <tr><td>Equality</td><td><span class="inline">=</span> · <span class="inline">&lt;&gt;</span>/<span class="inline">!=</span></td><td>Right side can be a subquery. <span class="inline">&lt;&gt;</span> never matches NULL rows.</td></tr>
+      <tr><td>Range</td><td><span class="inline">&lt; &gt; &lt;= &gt;=</span> · <span class="inline">BETWEEN … AND …</span></td><td>Low end first or you get an empty set. Both ends inclusive. Datetimes default to midnight.</td></tr>
+      <tr><td>String range</td><td><span class="inline">BETWEEN 'FA' AND 'FR'</span></td><td>Order comes from the <em>collation</em>; 'FRANKLIN' &gt; 'FR'. Prefer <span class="inline">LIKE 'FR%'</span>.</td></tr>
+      <tr><td>Membership</td><td><span class="inline">IN (list)</span> · <span class="inline">IN (subquery)</span> · <span class="inline">NOT IN</span></td><td>One NULL in the set makes <span class="inline">NOT IN</span> return nothing.</td></tr>
+      <tr><td>Matching</td><td><span class="inline">LIKE</span> with <span class="inline">_</span> and <span class="inline">%</span> · <span class="inline">REGEXP</span></td><td>Leading <span class="inline">%</span> can't use an index. Regex is portable in spirit, not in syntax.</td></tr>
+      <tr><td>Null test</td><td><span class="inline">IS NULL</span> · <span class="inline">IS NOT NULL</span></td><td>Never <span class="inline">= NULL</span> — it runs and returns nothing.</td></tr>
+    </tbody>
+  </table>
+
+  <table class="truth">
+    <thead><tr><th>Construct</th><th>Effect on the row set</th></tr></thead>
+    <tbody>
+      <tr><td>A AND B</td><td>both must be true — narrowing</td></tr>
+      <tr><td>A OR B</td><td>either suffices — widening (the 29 → 340 rows of §3.9)</td></tr>
+      <tr><td>NOT (A OR B)</td><td>equals <span class="inline">(NOT A) AND (NOT B)</span> — flip the operator too</td></tr>
+      <tr><td>(A OR B) AND C</td><td>group first, then combine — 3 true rows out of 8</td></tr>
+      <tr><td>… WHERE NULL comparison</td><td>unknown → row discarded. Silently.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Questions to test yourself</h3>
+  <ol>
+    <li>Which SQL data statement has no <span class="inline">WHERE</span> clause, and why not?</li>
+    <li>A <span class="inline">WHERE</span> with five conditions joined by
+      <span class="inline">AND</span> has how many combinations to evaluate? What if you add a sixth?</li>
+    <li>Rewrite <span class="inline">NOT (a = 1 OR b = 2)</span> without
+      <span class="inline">NOT</span>, and say what happens if you keep the
+      <span class="inline">OR</span>.</li>
+    <li>Why does <span class="inline">BETWEEN 'FA' AND 'FR'</span> exclude FRANKLIN, and what are two
+      different fixes?</li>
+    <li><span class="inline">BETWEEN</span> on dates is inclusive at both ends. Write the range for
+      "all of March 2005" and explain your choice of upper bound.</li>
+    <li>Give a case where <span class="inline">IN</span> and its <span class="inline">NOT IN</span>
+      complement do <em>not</em> together cover the table.</li>
+    <li>Why is <span class="inline">LIKE 'F%'</span> likely cheaper than
+      <span class="inline">LIKE '%F%'</span>? Connect it to a range condition.</li>
+    <li>Your <span class="inline">WHERE col = NULL</span> returns no rows and no error. Explain both
+      halves of that sentence.</li>
+    <li>Which command tells you, before you write the filter, whether a column can even contain
+      <span class="inline">NULL</span>?</li>
+  </ol>
+
+  <div class="card">
+    <h3 style="margin-top:0">What's next</h3>
+    <p>Chapter 5, <em>Querying Multiple Tables</em>, finally pays off the normalization you did in Chapter 2
+      and the <span class="inline">INNER JOIN</span> you previewed in Chapter 3: what a join is, where its
+      conditions go, cross joins, natural and inner joins, and using table aliases to disambiguate — all
+      aimed at one question: how do you get a person's name <em>and</em> their favorite foods back into a
+      single report? Say the word and I'll append it.</p>
   </div>
 </section>
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–3 of <i>Learning SQL: Generate,
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–4 of <i>Learning SQL: Generate,
   Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
   ISBN 9781492057611). Figure 1-1…1-3 and the Table 2-6…2-8 crops are reproduced from the copy of that PDF
   in this repository for personal study; please buy the book if you like it. SQL snippets are the book's
-  teaching examples, and Chapter 3's exercise answers are mine, not the book's (its solutions are in
-  Appendix B). Diagrams marked <i>original</i> are drawn for this page — Chapters 2 and 3 contain no
-  figures at all.</p>
+  teaching examples. Exercise answers for Chapters 3 and 4 are worked here by me, not copied from the book —
+  its own solutions live in Appendix B. Diagrams marked <i>original</i> are drawn for this page: apart from
+  the three Chapter 1 figures, these chapters contain no artwork at all, only prose, tables and code.</p>
 </footer>
 </div>
 
@@ -2557,7 +3449,7 @@ const io=new IntersectionObserver(es=>{
 },{rootMargin:'-15% 0px -75% 0px'});
 document.querySelectorAll('main section').forEach(s=>io.observe(s));
 
-const KW=/\b(create|table|insert|into|values|select|from|where|inner|join|on|and|or|not|null|update|set|delete|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|is|desc|asc|count|sum|avg|min|max)\b/gi;
+const KW=/\b(create|table|insert|into|values|select|from|where|inner|outer|left|right|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max)\b/gi;
 function hl(src){
   const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const toks=[];
