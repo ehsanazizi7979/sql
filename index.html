@@ -230,9 +230,9 @@
       figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">15 chapters covered</span>
-      <span class="badge">197 book listings</span>
-      <span class="badge">328 figures</span>
+      <span class="badge">16 chapters covered</span>
+      <span class="badge">220 book listings</span>
+      <span class="badge">344 figures</span>
       <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
@@ -383,6 +383,15 @@
     <a class="mini" href="#ch15-lightweight">A lightweight session</a>
     <a class="mini" href="#ch15-trace">SQL Trace, if you must</a>
     <a class="mini" href="#ch15-cheatsheet">Cheat sheet</a>
+    <div class="grp">Chapter 16 · The Query Store</div>
+    <a class="mini" href="#ch16-what">What it is</a>
+    <a class="mini" href="#ch16-options">Capture settings</a>
+    <a class="mini" href="#ch16-reports">The SSMS reports</a>
+    <a class="mini" href="#ch16-tsql">Plans with T-SQL</a>
+    <a class="mini" href="#ch16-forcing">Plan forcing</a>
+    <a class="mini" href="#ch16-autotuning">Automatic tuning</a>
+    <a class="mini" href="#ch16-removing">Removing plans</a>
+    <a class="mini" href="#ch16-cheatsheet">Cheat sheet</a>
   </nav>
 
   <main>
@@ -10285,6 +10294,676 @@ finish:
         lets you correlate the plan with the events around it (waits, recompiles, parameters). Use Extended
         Events rather than Trace. But "low overhead" is not "no overhead": filter precisely, capture briefly,
         and test before pointing it at production.
+      </div>
+    </section>
+
+    <div class="chapterbar" id="chapter16">
+      <span class="cnum">Chapter 16</span>
+      <div>
+        <h2>The Query Store</h2>
+        <p>The plan cache forgets. The Query Store is the first tool in this book that <i>remembers</i> —
+        per query, per plan, with runtime metrics, persisted inside the database. That last part is what
+        enables plan forcing, and plan forcing is what turns "the plan regressed" from a fire into a
+        setting.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch16-what">
+      <h2><span class="num">1</span> What it is, and how it stays out of the way</h2>
+      <p class="lede">Query Store arrived in Azure SQL Database in 2015 and in the boxed product with SQL Server 2016. It records query metrics <i>and</i> keeps every version of every plan, per database.</p>
+
+      <p>
+        The design goal is to record everything without disturbing normal operations, and that goal explains
+        almost every behaviour in this chapter:
+      </p>
+
+      <div class="plain">
+        <div><span>Capture is asynchronous</span>Info lands in memory first, and a background process flushes it to disk — asynchronously, again.</div>
+        <div><span>It doesn't touch optimisation</span>Once the optimizer has produced a plan, Query Store grabs it as it's written to cache. It never interferes with compilation.</div>
+        <div><span>It catches plans that never cache</span>An ad hoc query with <code class="inl">RECOMPILE</code> produces a plan that isn't cached — but by default Query Store captures it anyway, at the moment it <i>would</i> have been.</div>
+        <div><span>Metrics are aggregated</span>After execution, another async process records how long it ran, how much memory it used, and so on.</div>
+      </div>
+
+      <p>
+        Everything lives in <b>system tables in each database</b> where the feature is enabled. You can turn
+        it on and off, but you cannot choose where the data goes — always the <b>PRIMARY filegroup</b>. Off by
+        default in SQL Server 2016; on by default in Azure SQL Database.
+      </p>
+
+      <div class="note">
+        <b>The organizing principle is the query</b>
+        Not the stored procedure, not the batch — the individual query, with one or more plans beneath it.
+        That's the "query" in Query Store, and it's why the catalog views look the way they do.
+      </div>
+
+      <h3 class="step">Why plans are stored as text, not XML</h3>
+
+      <figure>
+        <img src="images/chapter16/fig-16-1-query-store-plan-table.png"
+             alt="Query Store plan table with columns including query_plan, query_plan_hash, compatibility level and is_trivial.">
+        <figcaption><b>Figure 16-1</b> — One row per plan: the plan itself plus metadata — <code class="inl">query_plan_hash</code>, compatibility level, whether it's trivial. The plan lives in <code class="inl">query_plan</code>.</figcaption>
+      </figure>
+
+      <p>
+        <code class="inl">query_plan</code> is <code class="inl">NVARCHAR(MAX)</code> even though the content is
+        XML. The reason is unglamorous: SQL Server has a limit on XML nesting depth, and deep plans would
+        break it. To view a plan graphically you must either
+        <code class="inl">CAST(qsp.query_plan AS XML)</code> — fine as long as you're under the nesting
+        limit — or export it to a <code class="inl">.showplan</code> file.
+      </p>
+    </section>
+
+    <section class="card" id="ch16-options">
+      <h2><span class="num">2</span> The three settings that change what you capture</h2>
+      <p class="lede">Change them with <code class="inl">ALTER DATABASE</code>, not the GUI — the GUI can't reach all of them.</p>
+
+      <p>
+        <b>Plans per query</b>: 200 by default. Almost certainly enough. This listing proves you <i>can</i>
+        change it, not that you should:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 16-1 · plans per query (example only)</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">ALTER DATABASE</span> AdventureWorks2014 <span class="kw">SET</span> QUERY_STORE (
+    <span class="kw">MAX_PLANS_PER_QUERY</span> = 20);</code></pre>
+      </div>
+
+      <p>
+        <b>Capture mode</b> matters far more for plans. Default <code class="inl">ALL</code> in SQL Server
+        2016–2017, <code class="inl">AUTO</code> in Azure SQL Database:
+      </p>
+
+      <table>
+        <thead><tr><th>Mode</th><th>Captures</th><th>Use when</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">ALL</code></td><td>Every plan for every query in the database.</td><td>Default. Complete picture, more space.</td></tr>
+          <tr><td><code class="inl">AUTO</code></td><td>Queries with significant compile time and execution duration (in tests over 1 second — <i>controlled by Microsoft, not by you</i>), <b>or</b> queries called at least <b>three times</b>.</td><td>You have <code class="inl">Optimize For Ad Hoc Workloads</code> on — it skips the one-shot queries you didn't want anyway.</td></tr>
+          <tr><td><code class="inl">NONE</code></td><td>No new queries. Still records runtime metrics for what it already has.</td><td>You only care about a fixed set of queries and want to stop growing.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code">
+        <header><span>Listing 16-2 · switch to AUTO capture</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">ALTER DATABASE</span> AdventureWorks2014 <span class="kw">SET</span> QUERY_STORE (
+    <span class="kw">QUERY_CAPTURE_MODE</span> = AUTO);</code></pre>
+      </div>
+
+      <p>
+        <b>Retention and clean-up</b>: 367 days by default — a leap year plus a day — with automatic
+        clean-up once data passes the limit. Adjust, or turn the clean-up off, depending on how much history
+        you actually need. And since the data is in system tables, you can't relocate it; only control its
+        volume.
+      </p>
+
+      <figure>
+        <img src="images/chapter16/fig-16-2-query-store-properties.png"
+             alt="SSMS database Properties page for Query Store showing operation mode, capture mode, retention and disk usage.">
+        <figcaption><b>Figure 16-2</b> — Database → Properties → <b>Query Store</b>. Convenient for the basics and for the disk-usage report — but <code class="inl">MAX_PLANS_PER_QUERY</code> isn't reachable here, so T-SQL stays necessary.</figcaption>
+      </figure>
+    </section>
+
+    <section class="card" id="ch16-reports">
+      <h2><span class="num">3</span> Reading the built-in reports</h2>
+      <p class="lede">Six reports under the database's Query Store folder. One has its own layout; the other five are variations on the same three-pane design.</p>
+
+      <figure>
+        <img src="images/chapter16/fig-16-3-query-store-reports.png"
+             alt="Object Explorer with the Query Store folder expanded, showing the six built-in reports.">
+        <figcaption><b>Figure 16-3</b> — The report folder: Regressed Queries, Overall Resource Consumption, Top Resource Consuming Queries, Queries With Forced Plans, Queries With High Variation, Tracked Queries.</figcaption>
+      </figure>
+
+      <table>
+        <thead><tr><th>Report</th><th>What it's for</th></tr></thead>
+        <tbody>
+          <tr><td><b>Regressed Queries</b></td><td>Runtime behaviour changed at the same time as the plan changed — bad parameter sniffing, a new CE, an upgrade. Your first stop for "it got slower".</td></tr>
+          <tr><td><b>Overall Resource Consumption</b></td><td>The odd one out. Breaks queries down by resources consumed <i>over time</i>; identifies which query is hurting memory, I/O or CPU. Click any query to open Top Resource Consuming Queries.</td></tr>
+          <tr><td><b>Top Resource Consuming Queries</b></td><td>Same data, one metric, focused. The report you'll use weekly.</td></tr>
+          <tr><td><b>Queries With Forced Plans</b></td><td>Everything currently forced — including anything forced by automatic tuning.</td></tr>
+          <tr><td><b>Queries With High Variation</b></td><td>Queries whose behaviour swings more than others on a given metric. Pair with Regressed Queries.</td></tr>
+          <tr><td><b>Tracked Queries</b></td><td>Queries you've explicitly marked for tracking.</td></tr>
+        </tbody>
+      </table>
+
+      <figure>
+        <img src="images/chapter16/fig-16-4-overall-resource-consumption.png"
+             alt="Overall Resource Consumption report showing queries broken down by resource use over time.">
+        <figcaption><b>Figure 16-4</b> — Overall Resource Consumption. Different layout, same purpose: find the expensive thing, then click it.</figcaption>
+      </figure>
+
+      <h3 class="step">The three-pane report</h3>
+
+      <figure>
+        <img src="images/chapter16/fig-16-5-top-resource-consuming-queries.png"
+             alt="Top Resource Consuming Queries report: query list sorted by duration, a plan summary scatter of aggregated executions, and the graphical plan below with Force Plan and Unforce Plan buttons.">
+        <figcaption><b>Figure 16-5</b> — Top Resource Consuming Queries: queries sorted by metric (default <b>Duration</b>, statistic <b>Total</b>), aggregated execution times on the right (one circle = an interval, not an execution), the graphical plan below, and <b>Force Plan</b> / <b>Unforce Plan</b> buttons.</figcaption>
+      </figure>
+
+      <p>
+        That report is the whole idea in one window: <b>query + aggregated metrics + the plan responsible for
+        them</b>. Note the two buttons on the right — plan forcing is two clicks from here, which is why this
+        is the report people learn first. And note the missing-index hint printed between panes, costed as a
+        percentage (Chapter 13 showed where that XML lives).
+      </p>
+
+      <figure>
+        <img src="images/chapter16/fig-16-6-compare-plans-button.png"
+             alt="Toolbar in the plan summary pane with the Compare Execution Plans button highlighted.">
+        <figcaption><b>Figure 16-6</b> — Select <b>two</b> plans with Ctrl/Shift and this button lights up: <b>Compare Execution Plans</b>.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter16/fig-16-7-plan-comparison.png"
+             alt="Compare Showplan window with two plans side by side, identical regions highlighted in pink and differing properties marked with a not-equals symbol.">
+        <figcaption><b>Figure 16-7</b> — Two plans compared: matching regions highlighted, differing properties flagged with a "not equals" marker. Covered properly in Chapter 17 — here it's just the natural next step from a Query Store regression.</figcaption>
+      </figure>
+    </section>
+
+    <section class="card" id="ch16-tsql">
+      <h2><span class="num">4</span> Getting plans with T-SQL</h2>
+      <p class="lede">Four catalog views do almost all the work. Everything else is wrapping them in the right order and getting past one annoying quirk.</p>
+
+      <table>
+        <thead><tr><th>Catalog view</th><th>Holds</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">sys.query_store_plan</code></td><td>The plan itself, plus <code class="inl">query_plan_hash</code>, compatibility level, whether it's trivial (Figure 16-1).</td></tr>
+          <tr><td><code class="inl">sys.query_store_query</code></td><td>Identifies a query — last compile time, parameterization type, query hash. <b>Not</b> the text (stored separately).</td></tr>
+          <tr><td><code class="inl">sys.query_context_settings</code></td><td>ANSI settings, replication flag, language — the context a query ran under.</td></tr>
+          <tr><td><code class="inl">sys.query_store_query_text</code></td><td>The query text.</td></tr>
+        </tbody>
+      </table>
+
+      <p>
+        Three other Query Store views exist; they're about performance metrics, not plans, so they're out of
+        scope here.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 16-3 · all four views, one query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> qsq.query_id,
+       qsqt.query_sql_text,
+       <span class="kw">CAST</span>(qsp.query_plan <span class="kw">AS XML</span>),
+       qcs.set_options
+<span class="kw">FROM</span> sys.query_store_query <span class="kw">AS</span> qsq
+    <span class="kw">JOIN</span> sys.query_store_query_text <span class="kw">AS</span> qsqt
+        <span class="kw">ON</span> qsqt.query_text_id = qsq.query_text_id
+    <span class="kw">JOIN</span> sys.query_store_plan <span class="kw">AS</span> qsp
+        <span class="kw">ON</span> qsp.query_id = qsq.query_id
+    <span class="kw">JOIN</span> sys.query_context_settings <span class="kw">AS</span> qcs
+          <span class="kw">ON</span> qcs.context_settings_id = qsq.context_settings_id
+<span class="kw">WHERE</span> qsq.object_id = <span class="fn">OBJECT_ID</span>('dbo.AddressByCity');</code></pre>
+      </div>
+
+      <p>
+        The <code class="inl">CAST(... AS XML)</code> is what makes the column clickable in SSMS. The
+        <code class="inl">query_context_settings</code> join is there because a query executed under different
+        SET options shows up more than once.
+      </p>
+
+      <figure>
+        <img src="images/chapter16/fig-16-8-catalog-view-results.png"
+             alt="Results grid with query_id, query text, a clickable XML plan column and set_options.">
+        <figcaption><b>Figure 16-8</b> — The output: a <code class="inl">query_id</code> and a <b>clickable plan</b>. Adding columns to this query is how you get any other plan metadata you want.</figcaption>
+      </figure>
+
+      <h3 class="step">The parameterization quirk</h3>
+
+      <div class="code">
+        <header><span>Listing 16-4 · the text Query Store actually stored</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>(@City nvarchar(30))SELECT a.AddressID  ,a.AddressLine1
+,a.AddressLine2  ,a.City  ,sp.[Name] AS StateProvinceName
+,a.PostalCode  FROM Person.Address AS a  JOIN Person.StateProvince
+AS sp  ON a.StateProvinceID = sp.StateProvinceID  WHERE a.City = @City</code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 16-5 · what you wrote</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE OR ALTER PROC</span> dbo.AddressByCity @City NVARCHAR(30)
+<span class="kw">AS</span>
+<span class="kw">SELECT</span> a.AddressID, a.AddressLine1, a.AddressLine2,
+       a.City, sp.Name <span class="kw">AS</span> StateProvinceName,
+       a.PostalCode
+<span class="kw">FROM</span> Person.Address <span class="kw">AS</span> a
+    <span class="kw">JOIN</span> Person.StateProvince <span class="kw">AS</span> sp
+        <span class="kw">ON</span> a.StateProvinceID = sp.StateProvinceID
+<span class="kw">WHERE</span> a.City = @City;</code></pre>
+      </div>
+
+      <div class="warn note">
+        <b>Query Store prepends the parameter definition</b>
+        That <code class="inl">(@City nvarchar(30))</code> prefix is not in your procedure. It's injected into
+        the stored text, which means you cannot find your query by searching for the text you wrote. This
+        "vagary" is the single biggest source of wasted time when querying the catalog views directly.
+      </div>
+
+      <p>It gets worse for ad hoc queries and better at the same time:</p>
+
+      <div class="code">
+        <header><span>Listing 16-6 · a simple ad hoc query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> bom.BillOfMaterialsID,
+       bom.StartDate,
+       bom.EndDate
+<span class="kw">FROM</span> Production.BillOfMaterials <span class="kw">AS</span> bom
+<span class="kw">WHERE</span> bom.BillOfMaterialsID = 2363;</code></pre>
+      </div>
+
+      <p>
+        Simple parameterization kicks in: <code class="inl">2363</code> becomes <code class="inl">@1</code>
+        inside the stored plan. So this returns nothing at all:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 16-7 · the empty result you'll hit once and remember</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> qsqt.query_text_id
+<span class="kw">FROM</span> sys.query_store_query_text <span class="kw">AS</span> qsqt
+<span class="kw">WHERE</span> qsqt.query_sql_text = <span class="str">'SELECT bom.BillOfMaterialsID,
+       bom.StartDate,
+       bom.EndDate
+FROM Production.BillOfMaterials AS bom
+WHERE bom.BillOfMaterialsID = 2363;'</span>;</code></pre>
+      </div>
+
+      <p>
+        The original T-SQL was never stored — only the parameterized version. The rescue is
+        <code class="inl">sys.fn_stmt_sql_handle_from_sql_stmt</code>, which maps the text you wrote to the
+        statement handle Query Store knows about. It needs two things: your SQL, and the parameterization
+        type (which you get from <code class="inl">sys.query_store_query</code>).
+      </p>
+
+      <div class="code">
+        <header><span>Listing 16-8 · finding it anyway</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> qsqt.query_text_id
+<span class="kw">FROM</span> sys.query_store_query_text <span class="kw">AS</span> qsqt
+    <span class="kw">JOIN</span> sys.query_store_query <span class="kw">AS</span> qsq
+        <span class="kw">ON</span> qsq.query_text_id = qsqt.query_text_id
+    <span class="kw">CROSS APPLY</span> sys.fn_stmt_sql_handle_from_sql_stmt(
+                    <span class="str">'SELECT bom.BillOfMaterialsID,
+       bom.StartDate,
+       bom.EndDate
+FROM Production.BillOfMaterials AS bom
+WHERE bom.BillOfMaterialsID = 2363;'</span>,
+                    qsq.query_parameterization_type) <span class="kw">AS</span> fsshfss
+<span class="kw">WHERE</span> fsshfss.statement_sql_handle = qsqt.statement_sql_handle;</code></pre>
+      </div>
+
+      <div class="note tip">
+        <b>Which tool for which query</b>
+        Ad hoc or simple/forced parameterized → <code class="inl">fn_stmt_sql_handle_from_sql_stmt</code>. Stored
+        procedure → that function doesn't work; use <code class="inl">object_id</code> (and deal with the
+        multiple statements inside the proc) or <code class="inl">LIKE</code>.
+      </div>
+    </section>
+
+    <section class="card" id="ch16-forcing">
+      <h2><span class="num">5</span> Plan forcing</h2>
+      <p class="lede">The most important thing Query Store does for plans — and the one deliberate exception to "everything here is asynchronous".</p>
+
+      <p>
+        Forcing is <b>synchronous by design</b>. Once a plan is forced, it survives cache flushes, recompiles,
+        server reboots, even a backup and restore of the database, because the fact that it's forced is
+        written into the Query Store system tables and travels with the database. The only conditions: the
+        plan must still be <b>valid</b> for the query as currently defined (an index change can invalidate
+        it), and there's a rare case where a <i>"morally equivalent"</i> plan — identical in all the core
+        essentials — gets used instead.
+      </p>
+
+      <div class="note tip">
+        <b>Forcing beats plan guides</b>
+        If you're on SQL Server 2016+ or Azure SQL Database and need to pin a plan, use Query Store forcing
+        rather than a plan guide (Chapter 9). If both exist, <b>Query Store forcing wins</b>.
+      </div>
+
+      <p>Two situations where it's the right answer:</p>
+      <ul class="biglist">
+        <li><b>Parameter sniffing gone wrong</b> — the classic from Chapter 10, where one plan is consistently better across the range of parameters than the plan the optimizer keeps choosing.</li>
+        <li><b>Plan regression</b> — something changed and the new plan is worse. Common causes: upgrading past SQL Server 2012 (new cardinality estimator), or a CU/hotfix that changes optimizer behaviour. <b>Run Query Store data <i>before</i> changing compatibility level or applying the CU</b>, and you can prove the regression and undo it.</li>
+      </ul>
+
+      <div class="warn note">
+        <b>Double-edged sword</b>
+        Forcing is not set-and-forget. The author's advice is extremely judicious use plus a <b>review
+        schedule</b> — because statistics and data change, and the perfect plan to force today may not be
+        the perfect plan tomorrow.
+      </div>
+
+      <h3 class="step">A demonstration: London, then Mentor</h3>
+
+      <div class="code">
+        <header><span>Listing 16-9 · the big-city execution</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> dbo.AddressByCity @City = N'London';</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter16/fig-16-9-london-plan.png"
+             alt="Execution plan produced for the London parameter, shaped for a large estimated row count.">
+        <figcaption><b>Figure 16-9</b> — Plan #1, compiled for <b>London</b> — a large estimated row count, so the optimizer picks a shape that suits many rows.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 16-10 · evict that plan</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> @PlanHandle <span class="kw">VARBINARY</span>(64);
+
+<span class="kw">SELECT</span> @PlanHandle = deqs.plan_handle
+<span class="kw">FROM</span> sys.dm_exec_query_stats <span class="kw">AS</span> deqs
+    <span class="kw">CROSS APPLY</span> sys.dm_exec_sql_text(deqs.sql_handle) <span class="kw">AS</span> dest
+<span class="kw">WHERE</span> dest.objectid = <span class="fn">OBJECT_ID</span>('dbo.AddressByCity');
+
+<span class="kw">IF</span> @PlanHandle <span class="kw">IS NOT NULL</span>
+<span class="kw">BEGIN</span>;
+    <span class="kw">DBCC FREEPROCCACHE</span>(@PlanHandle);
+<span class="kw">END</span>;
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 16-11 · the small-town execution</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> dbo.AddressByCity @City = N'Mentor';</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter16/fig-16-10-mentor-plan.png"
+             alt="A completely different execution plan produced for the Mentor parameter, shaped for a small estimated row count.">
+        <figcaption><b>Figure 16-10</b> — Plan #2, compiled for <b>Mentor</b>. Completely different shape. Each plan is <i>correct</i> for its own estimate; the trouble starts when the many-rows query runs on the few-rows plan.</figcaption>
+      </figure>
+
+      <p>
+        To force one, you need two numbers: <code class="inl">query_id</code> and
+        <code class="inl">plan_id</code>.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 16-12 · find the IDs</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> qsq.query_id,
+       qsp.plan_id,
+       <span class="kw">CAST</span>(qsp.query_plan <span class="kw">AS XML</span>)
+<span class="kw">FROM</span> sys.query_store_query <span class="kw">AS</span> qsq
+    <span class="kw">JOIN</span> sys.query_store_plan <span class="kw">AS</span> qsp
+        <span class="kw">ON</span> qsp.query_id = qsq.query_id
+<span class="kw">WHERE</span> qsq.object_id = <span class="fn">OBJECT_ID</span>('dbo.AddressByCity');</code></pre>
+      </div>
+
+      <p>Look at both plans, decide which is the more predictable one, then:</p>
+
+      <div class="code">
+        <header><span>Listing 16-13 · force it</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> sys.sp_query_store_force_plan 214, 248;</code></pre>
+      </div>
+
+      <p>
+        Now flush the cache again and pass any city you like — you get plan 248 every time. And the forced
+        plan carries a marker that says so:
+      </p>
+
+      <figure>
+        <img src="images/chapter16/fig-16-11-use-plan-property.png"
+             alt="Properties of the SELECT operator showing the Use plan property set to True.">
+        <figcaption><b>Figure 16-11</b> — On the first operator (usually SELECT), a forced plan gains <b>Use plan = True</b>. That's how you recognise a forced plan from inside the graphical plan.</figcaption>
+      </figure>
+
+      <p>Listing forced plans, and undoing it:</p>
+
+      <div class="code">
+        <header><span>Listing 16-14 · everything currently forced</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> qsq.query_id,
+       qsp.plan_id,
+       <span class="kw">CAST</span>(qsp.query_plan <span class="kw">AS XML</span>)
+<span class="kw">FROM</span> sys.query_store_query <span class="kw">AS</span> qsq
+    <span class="kw">JOIN</span> sys.query_store_plan <span class="kw">AS</span> qsp
+        <span class="kw">ON</span> qsp.query_id = qsq.query_id
+<span class="kw">WHERE</span> qsp.is_forced_plan = 1;</code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 16-15 · stop forcing</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> sys.sp_query_store_unforce_plan 214, 248;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter16/fig-16-12-forced-plan-report.png"
+             alt="Query Store report with a plan checked as forced and Force Plan and Unforce Plan buttons on the right.">
+        <figcaption><b>Figure 16-12</b> — The same thing through the GUI: a check mark on the forced plan, and <b>Force Plan</b> / <b>Unforce Plan</b> buttons. Either route prompts for confirmation.</figcaption>
+      </figure>
+    </section>
+
+    <section class="card" id="ch16-autotuning">
+      <h2><span class="num">6</span> Automatic tuning: forcing without a human</h2>
+      <p class="lede">SQL Server 2017 and the foundation of Azure SQL Database's automatic tuning. It is <i>only</i> plan forcing, chosen by the engine — no statistics updates, no indexes, no code changes.</p>
+
+      <div class="code">
+        <header><span>Listing 16-16 · enable FORCE_LAST_GOOD_PLAN</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">ALTER DATABASE CURRENT SET</span> AUTOMATIC_TUNING(
+    <span class="kw">FORCE_LAST_GOOD_PLAN</span> = <span class="kw">ON</span>);</code></pre>
+      </div>
+
+      <p>Off by default. Once Query Store is enabled and collecting, here's the loop:</p>
+
+      <div class="plain">
+        <div><span>1 · Detect</span>A plan change clearly causes a regression.</div>
+        <div><span>2 · Force</span>The engine enables the last good plan — not necessarily optimal, just better than what's running now.</div>
+        <div><span>3 · Verify</span>It keeps measuring. If performance got <i>worse</i>, forcing is revoked and the query recompiles on its next call.</div>
+      </div>
+
+      <p>
+        You don't have to enable anything to <i>see</i> the opportunities. A DMV lists them, and its
+        interesting columns — <code class="inl">type</code>, <code class="inl">reason</code>,
+        <code class="inl">state</code>, <code class="inl">details</code> — are partly <b>JSON</b>, so you have to
+        pull them apart (which is the Chapter 14 material coming back around).
+      </p>
+
+      <figure>
+        <img src="images/chapter16/fig-16-13-tuning-recommendations-dmv.png"
+             alt="All columns returned by sys.dm_db_tuning_recommendations, including reason, score, state and details as JSON.">
+        <figcaption><b>Figure 16-13</b> — <code class="inl">sys.dm_db_tuning_recommendations</code> in full. <code class="inl">state</code> and <code class="inl">details</code> hold JSON; the rest is largely informational.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 16-17 · pulling the JSON apart</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> ddtr.reason,
+       ddtr.score,
+       pfd.query_id,
+       <span class="fn">JSON_VALUE</span>(ddtr.state,
+                  <span class="str">'$.currentValue'</span>) <span class="kw">AS</span> CurrentState
+<span class="kw">FROM</span> sys.dm_db_tuning_recommendations <span class="kw">AS</span> ddtr
+    <span class="kw">CROSS APPLY</span>
+    OPENJSON(ddtr.details,
+             <span class="str">'$.planForceDetails'</span>)
+    <span class="kw">WITH</span> (query_id <span class="kw">INT</span> <span class="str">'$.queryId'</span>) <span class="kw">AS</span> pfd;</code></pre>
+      </div>
+
+      <p>
+        Useful on its own. To actually act on it, join the DMV to the Query Store catalog views — this is the
+        query that gives you the recommendation <i>and</i> both plans <i>and</i> the script that implements it:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 16-18 · recommendations joined to Query Store</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">WITH</span> DbTuneRec
+<span class="kw">AS</span> (<span class="kw">SELECT</span> ddtr.reason,
+           ddtr.score,
+           pfd.query_id,
+           pfd.regressedPlanId,
+           pfd.recommendedPlanId,
+           <span class="fn">JSON_VALUE</span>(ddtr.state,
+                      <span class="str">'$.currentValue'</span>) <span class="kw">AS</span> CurrentState,
+           <span class="fn">JSON_VALUE</span>(ddtr.state,
+                      <span class="str">'$.reason'</span>) <span class="kw">AS</span> CurrentStateReason,
+           <span class="fn">JSON_VALUE</span>(ddtr.details,
+                      <span class="str">'$.implementationDetails.script'</span>) <span class="kw">AS</span>
+                      ImplementationScript
+    <span class="kw">FROM</span> sys.dm_db_tuning_recommendations <span class="kw">AS</span> ddtr
+        <span class="kw">CROSS APPLY</span>
+        OPENJSON(ddtr.details,
+                 <span class="str">'$.planForceDetails'</span>)
+        <span class="kw">WITH</span> (query_id <span class="kw">INT</span> <span class="str">'$.queryId'</span>,
+              regressedPlanId <span class="kw">INT</span> <span class="str">'$.regressedPlanId'</span>,
+              recommendedPlanId <span class="kw">INT</span> <span class="str">'$.recommendedPlanId'</span>) <span class="kw">AS</span> pfd)
+
+<span class="kw">SELECT</span> qsq.query_id,
+       dtr.reason,
+       dtr.score,
+       dtr.CurrentState,
+       dtr.CurrentStateReason,
+       qsqt.query_sql_text,
+       <span class="kw">CAST</span>(rp.query_plan <span class="kw">AS XML</span>) <span class="kw">AS</span> RegressedPlan,
+       <span class="kw">CAST</span>(sp.query_plan <span class="kw">AS XML</span>) <span class="kw">AS</span> SuggestedPlan,
+       dtr.ImplementationScript
+<span class="kw">FROM</span> DbTuneRec <span class="kw">AS</span> dtr
+    <span class="kw">JOIN</span> sys.query_store_plan <span class="kw">AS</span> rp
+        <span class="kw">ON</span> rp.query_id = dtr.query_id
+           <span class="kw">AND</span> rp.plan_id = dtr.regressedPlanId
+    <span class="kw">JOIN</span> sys.query_store_plan <span class="kw">AS</span> sp
+        <span class="kw">ON</span> sp.query_id = dtr.query_id
+           <span class="kw">AND</span> sp.plan_id = dtr.recommendedPlanId
+    <span class="kw">JOIN</span> sys.query_store_query <span class="kw">AS</span> qsq
+        <span class="kw">ON</span> qsq.query_id = rp.query_id
+    <span class="kw">JOIN</span> sys.query_store_query_text <span class="kw">AS</span> qsqt
+        <span class="kw">ON</span> qsqt.query_text_id = qsq.query_text_id;</code></pre>
+      </div>
+
+      <p>
+        <code class="inl">score</code> is an estimated impact, 0–100. Run this whether or not automatic tuning
+        is on: without it you get candidates to force by hand, with it you mostly get plans the engine has
+        already forced.
+      </p>
+
+      <figure>
+        <img src="images/chapter16/fig-16-14-tuning-opportunity.png"
+             alt="Output row from the tuning recommendation query showing reason, score, state and a suggested plan.">
+        <figcaption><b>Figure 16-14</b> — A suggested automatic-tuning opportunity, with both plans and the implementation script.</figcaption>
+      </figure>
+
+      <h3 class="step">Watching it happen</h3>
+
+      <p>
+        The demo procedure generates <b>five different plans</b> when run across the full range of
+        <code class="inl">ReferenceID</code> values; one is far slower than the rest, so eventually the engine
+        forces the good one.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 16-19 · the victim</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE OR ALTER PROC</span> dbo.ProductTransactionHistoryByReference
+    (@ReferenceOrderID <span class="kw">INT</span>)
+<span class="kw">AS</span>
+<span class="kw">BEGIN</span>
+    <span class="kw">SELECT</span> p.Name,
+           p.ProductNumber,
+           th.ReferenceOrderID
+    <span class="kw">FROM</span> Production.Product <span class="kw">AS</span> p
+        <span class="kw">JOIN</span> Production.TransactionHistory <span class="kw">AS</span> th
+            <span class="kw">ON</span> th.ProductID = p.ProductID
+    <span class="kw">WHERE</span> th.ReferenceOrderID = @ReferenceOrderID;
+<span class="kw">END</span></code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter16/fig-16-15-forced-plans-report.png"
+             alt="Forced Plans report with a check mark on Plan Id 7, forced automatically by the system.">
+        <figcaption><b>Figure 16-15</b> — The <b>Forced Plans</b> report. Plan 7 has a check mark: the system forced it, not you.</figcaption>
+      </figure>
+
+      <p>Confirm who did it:</p>
+
+      <div class="code">
+        <header><span>Listing 16-20 · who forced it, and when</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> ddtr.reason,
+       ddtr.valid_since,
+       ddtr.last_refresh,
+       ddtr.execute_action_initiated_by
+<span class="kw">FROM</span> sys.dm_db_tuning_recommendations <span class="kw">AS</span> ddtr;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter16/fig-16-16-recommendation-output.png"
+             alt="Output of the recommendations DMV showing execute_action_initiated_by set to System.">
+        <figcaption><b>Figure 16-16</b> — <code class="inl">execute_action_initiated_by = System</code>: direct evidence the engine decided to force that plan.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>The revert path, and whose decision wins</b>
+        If the engine later measures that forcing hurt performance, forcing is removed and the
+        <code class="inl">Revert_*</code> columns in <code class="inl">sys.dm_db_tuning_recommendations</code>
+        fill in. The record of what was forced — and why — stays until you remove the data from Query Store.
+        If <b>you</b> unforce it manually, <code class="inl">execute_action_initiated_by</code> shows
+        <code class="inl">User</code>, and that query won't be automatically forced again regardless of
+        behaviour. Your override beats the automation — right up until you clear the Query Store data, at
+        which point your override is forgotten too.
+      </div>
+    </section>
+
+    <section class="card" id="ch16-removing">
+      <h2><span class="num">7</span> Removing plans — and the privacy problem</h2>
+      <p class="lede">Three levels of delete, then the part that matters if you ever hand a database to someone else.</p>
+
+      <div class="code">
+        <header><span>Listing 16-21 · everything</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">ALTER DATABASE</span> AdventureWorks2014 <span class="kw">SET</span> QUERY_STORE <span class="kw">CLEAR</span>;</code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 16-22 · one query, all its plans and stats</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> sys.sp_query_store_remove_query
+    @query_id = 214;</code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 16-23 · one plan only</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> sys.sp_query_store_remove_plan @plan_id = 248;</code></pre>
+      </div>
+
+      <table>
+        <thead><tr><th>Command</th><th>Removes</th><th>Side effect</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">SET QUERY_STORE CLEAR</code></td><td>Every bit of Query Store information.</td><td>Heavy handed. Appropriate before handing a restored production database to development.</td></tr>
+          <tr><td><code class="inl">sp_query_store_remove_query</code></td><td>The query, all captured plans, all runtime stats.</td><td>Forcing stops, because the information is no longer stored.</td></tr>
+          <tr><td><code class="inl">sp_query_store_remove_plan</code></td><td>That one plan.</td><td>Query and other plans survive; forcing on that plan stops.</td></tr>
+          <tr><td><i>Disabling</i> Query Store</td><td>Nothing.</td><td>All data stays in place.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="warn note">
+        <b>Query Store data travels with the database</b>
+        It's in system tables, so it's in the backup — and in any restore. That includes <b>query text with
+        filter criteria and compile-time parameter values</b> baked in. If you're sanitising healthcare or
+        similarly restricted data before handing a database to someone unauthorised, Query Store is a place
+        your sensitive values are hiding. Use the removal commands above deliberately.
+      </div>
+    </section>
+
+    <section class="card" id="ch16-cheatsheet">
+      <h2><span class="num">8</span> Cheat sheet</h2>
+      <p class="lede">What the Query Store gives you that nothing earlier in the book could.</p>
+
+      <table>
+        <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+        <tbody>
+          <tr><td>How does it affect query performance?</td><td>It doesn't, by design: capture is asynchronous and happens after optimisation, at cache-write time. The exception is plan forcing, which is synchronous.</td></tr>
+          <tr><td>Where is the plan stored?</td><td><code class="inl">sys.query_store_plan.query_plan</code> as <code class="inl">NVARCHAR(MAX)</code> — text, to dodge XML nesting limits. <code class="inl">CAST</code> it to XML to make it clickable.</td></tr>
+          <tr><td>Why can't I find my query text?</td><td>Parameterization. Query Store stores the <i>parameterized</i> text, prefixed with definitions like <code class="inl">(@City nvarchar(30))</code>. Use <code class="inl">fn_stmt_sql_handle_from_sql_stmt</code> for ad hoc queries; <code class="inl">object_id</code> for procs.</td></tr>
+          <tr><td>How do I force a plan?</td><td><code class="inl">sp_query_store_force_plan query_id, plan_id</code> — or the button in the report. Undo with <code class="inl">sp_query_store_unforce_plan</code>.</td></tr>
+          <tr><td>How do I know a plan is forced?</td><td><b>Use plan = True</b> on the first operator; <code class="inl">is_forced_plan = 1</code> in <code class="inl">sys.query_store_plan</code>; a check mark in the reports.</td></tr>
+          <tr><td>Does forcing survive a reboot/restore?</td><td>Yes — it's stored with the database. It does <b>not</b> survive the plan becoming invalid (e.g. an index change).</td></tr>
+          <tr><td>Automatic tuning?</td><td>2017+. <code class="inl">AUTOMATIC_TUNING(FORCE_LAST_GOOD_PLAN = ON)</code>. It's only ever plan forcing, and it reverts itself if the forced plan measures worse.</td></tr>
+          <tr><td>Where do recommendations live?</td><td><code class="inl">sys.dm_db_tuning_recommendations</code> — <code class="inl">state</code> and <code class="inl">details</code> are JSON; <code class="inl">score</code> is 0–100 impact.</td></tr>
+          <tr><td>Who forced the plan?</td><td><code class="inl">execute_action_initiated_by</code> = <code class="inl">System</code> or <code class="inl">User</code>. A user override suppresses further automation.</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>Organised by query, not by procedure or batch.</b> That's the mental model for every catalog view.</li>
+        <li><b>Default retention is 367 days</b> — a leap year plus one — with automatic clean-up.</li>
+        <li><b><code class="inl">QUERY_CAPTURE_MODE</code></b>: <code class="inl">ALL</code> / <code class="inl">AUTO</code> / <code class="inl">NONE</code>. Choose <code class="inl">AUTO</code> if <code class="inl">Optimize For Ad Hoc Workloads</code> is on.</li>
+        <li><b>Regressed Queries is the report to start with</b>, and Top Resource Consuming Queries the one you'll live in.</li>
+        <li><b>Two plans selected → Compare Execution Plans.</b> The most useful thing in the report toolbar.</li>
+        <li><b>Review every forced plan on a schedule.</b> Today's perfect plan is tomorrow's regression.</li>
+        <li><b>Sanitise before you hand over a database.</b> Query Store keeps query text and compile-time parameters.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        Query Store persists plans and runtime metrics inside the database, which lets you troubleshoot
+        offline from production and — crucially — force a plan and have that decision survive everything short
+        of the plan becoming invalid. That solves a whole class of plan regressions. But data and statistics
+        keep moving, so the plan worth forcing today needs revisiting tomorrow.
       </div>
     </section>
 
