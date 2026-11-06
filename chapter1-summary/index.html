@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapters 1–10 · SQL Fundamentals, Grouping, Subqueries and Joins — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Chapters 1–11 · SQL Fundamentals, Joins and Conditional Logic — Simple Summary (Learning SQL, 3rd Ed.)</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -211,7 +211,7 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapters 1–10, in plain English</h1>
+  <h1>Chapters 1–11, in plain English</h1>
   <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
   and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
   data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
@@ -223,12 +223,13 @@
   <b>Ch. 7 — Data Generation, Manipulation, and Conversion:</b> working with strings, numbers and dates.
   <b>Ch. 8 — Grouping and Aggregates:</b> turning individual rows into useful summaries.
   <b>Ch. 9 — Subqueries:</b> using one query inside another to filter, calculate and build data sets.
-  <b>Ch. 10 — Joins Revisited:</b> preserving unmatched rows and building combinations.</p>
+  <b>Ch. 10 — Joins Revisited:</b> preserving unmatched rows and building combinations.
+  <b>Ch. 11 — Conditional Logic:</b> making data-dependent decisions with CASE.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–200 (PDF pp. 19–218)</span>
-    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14 + 10</span>
+    <span><b>Book pages:</b> 1–212 (PDF pp. 19–230)</span>
+    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14 + 10 + 11</span>
     <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8, Figures 6-1…6-4</span>
-    <span><b>Reading time:</b> ~134 min</span>
+    <span><b>Reading time:</b> ~146 min</span>
   </div>
   <div class="jump">
     <a href="#tldr">↓ Chapter 1 · A Little Background</a>
@@ -241,6 +242,7 @@
     <a href="#ch8">↓ Chapter 8 · Grouping and Aggregates</a>
     <a href="#ch9">↓ Chapter 9 · Subqueries</a>
     <a href="#ch10">↓ Chapter 10 · Joins Revisited</a>
+    <a href="#ch11">↓ Chapter 11 · Conditional Logic</a>
   </div>
 </header>
 
@@ -380,6 +382,19 @@
     <li><a href="#ch10-calendar">Building a calendar</a></li>
     <li><a href="#ch10-natural">Natural joins</a></li>
     <li><a href="#ch10-exercises">Exercises &amp; recap</a></li>
+  </ol>
+  <div class="brand" style="margin-top:18px">Chapter 11 · Conditional logic</div>
+  <ol>
+    <li><a href="#ch11-intro">The chapter in one paragraph</a></li>
+    <li><a href="#ch11-searched">Searched CASE</a></li>
+    <li><a href="#ch11-simple">Simple CASE</a></li>
+    <li><a href="#ch11-pivot">Conditional aggregation</a></li>
+    <li><a href="#ch11-exists">Checking for existence</a></li>
+    <li><a href="#ch11-stock">Classifying stock</a></li>
+    <li><a href="#ch11-division">Avoiding division by zero</a></li>
+    <li><a href="#ch11-update">Conditional updates</a></li>
+    <li><a href="#ch11-null">Handling NULL</a></li>
+    <li><a href="#ch11-exercises">Exercises &amp; recap</a></li>
   </ol>
 </nav>
 
@@ -5042,17 +5057,297 @@ ORDER BY n;</code></pre></div>
   <tr><td>CROSS</td><td>Returns every combination of the inputs.</td></tr>
   <tr><td>NATURAL</td><td>Matches all shared names automatically; schema changes can alter the join.</td></tr>
   </tbody></table>
-  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 11, <em>Conditional Logic</em>,
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p><a href="#ch11">Chapter 11, <em>Conditional Logic</em></a>,
   uses CASE expressions to make decisions within SQL.</p></div>
+</section>
+<div class="chap" id="ch11">
+  <div class="kicker">Chapter 11 · book pages 201–212 (PDF pp. 219–230)</div>
+  <h2><span class="num">11.0</span>Conditional Logic</h2>
+  <p>Choose a value according to the data using SQL's CASE expression.</p>
+</div>
+<section id="ch11-intro">
+  <h2><span class="num">11.1</span>The chapter in one paragraph</h2>
+  <p class="lede">CASE is SQL's way to choose among values inside an expression.</p>
+  <p>A <strong>searched CASE</strong> tests conditions; a <strong>simple CASE</strong> compares one
+  expression against several values. Both choose the first matching branch, with ELSE supplying a
+  fallback. Use CASE to label data, count categories, check relationships, guard calculations, and
+  choose update values. Be deliberate about NULL and about what a fallback value means.</p>
+  <div class="simple"><span class="tag">Original diagram · decision path</span>
+  first true WHEN → its THEN value &nbsp; | &nbsp; no true WHEN → ELSE value (or NULL if omitted)
+  </div>
+  <p>CASE is an expression, not a general-purpose control-flow statement. Returned branch types must
+  be compatible under the database's type rules, which vary by engine.</p>
+</section>
+<section id="ch11-searched">
+  <h2><span class="num">11.2</span>Searched CASE: test conditions</h2>
+  <p>Here the book turns the customer active flag into a report label:</p>
+  <div class="code"><div class="bar"><span>Book example · searched CASE</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT first_name, last_name,
+  CASE
+    WHEN active = 1 THEN 'ACTIVE'
+    ELSE 'INACTIVE'
+  END activity_type
+FROM customer;</code></pre></div>
+  <p>The book displays 599 customers. Conditions are considered in order: the first true condition wins.
+  False and unknown conditions do not match; if none matches, ELSE is used, or the result is NULL if
+  ELSE is omitted. In this particular example, NULL or any value other than 1 also gets INACTIVE.</p>
+  <div class="code"><div class="bar"><span>Book example · category classification</span><button class="copy">Copy</button></div><pre><code class="sql">CASE
+  WHEN category.name IN ('Children','Family','Sports','Animation')
+    THEN 'All Ages'
+  WHEN category.name = 'Horror'
+    THEN 'Adult'
+  WHEN category.name IN ('Music','Games')
+    THEN 'Teens'
+  ELSE 'Other'
+END</code></pre></div>
+  <p>That's an expression fragment: use it in a SELECT with an appropriate FROM clause. Searched CASE
+  can use ranges, AND/OR, EXISTS, or even a subquery as a result:</p>
+  <div class="code"><div class="bar"><span>Book example · correlated result</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.first_name, c.last_name,
+  CASE
+    WHEN active = 0 THEN 0
+    ELSE
+     (SELECT count(*) FROM rental r
+      WHERE r.customer_id = c.customer_id)
+  END num_rentals
+FROM customer c;</code></pre></div>
+  <p>An inactive customer gets 0 as a reporting choice; it does not assert that they actually have no rentals.
+  For a NULL active value, the ELSE branch applies.</p>
+</section>
+<section id="ch11-simple">
+  <h2><span class="num">11.3</span>Simple CASE: compare one value</h2>
+  <p>A simple CASE compares the expression after CASE with each WHEN value. The book's equivalent
+  category labels are:</p>
+  <div class="code"><div class="bar"><span>Book example · simple CASE fragment</span><button class="copy">Copy</button></div><pre><code class="sql">CASE category.name
+  WHEN 'Children' THEN 'All Ages'
+  WHEN 'Family' THEN 'All Ages'
+  WHEN 'Sports' THEN 'All Ages'
+  WHEN 'Animation' THEN 'All Ages'
+  WHEN 'Horror' THEN 'Adult'
+  WHEN 'Music' THEN 'Teens'
+  WHEN 'Games' THEN 'Teens'
+  ELSE 'Other'
+END</code></pre></div>
+  <p>Use searched CASE when you need ranges or combined conditions. Simple CASE uses equality semantics:
+  <span class="inline">WHEN NULL</span> does not match a NULL expression. Use
+  <span class="inline">CASE WHEN value IS NULL THEN ...</span> instead.</p>
+</section>
+<section id="ch11-pivot">
+  <h2><span class="num">11.4</span>Turn categories into columns</h2>
+  <p>Instead of one row per month, use conditional aggregation: each CASE produces 1 for its month and
+  0 otherwise, and SUM adds those flags. This is the book's MySQL example:</p>
+  <div class="code"><div class="bar"><span>Book example · conditional sums</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT
+  SUM(CASE WHEN monthname(rental_date) = 'May' THEN 1
+        ELSE 0 END) May_rentals,
+  SUM(CASE WHEN monthname(rental_date) = 'June' THEN 1
+        ELSE 0 END) June_rentals,
+  SUM(CASE WHEN monthname(rental_date) = 'July' THEN 1
+        ELSE 0 END) July_rentals
+FROM rental
+WHERE rental_date BETWEEN '2005-05-01' AND '2005-08-01';</code></pre></div>
+  <table><thead><tr><th>May rentals</th><th>June rentals</th><th>July rentals</th></tr></thead>
+  <tbody><tr><td>1156</td><td>2311</td><td>6709</td></tr></tbody></table>
+  <p>These are rentals, not accounts, in the book's sample. Its preceding grouped query gets the same
+  three counts as separate rows:</p>
+  <div class="code"><div class="bar"><span>Book example · one row per month</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT monthname(rental_date) rental_month,
+  count(*) num_rentals
+FROM rental
+WHERE rental_date BETWEEN '2005-05-01' AND '2005-08-01'
+GROUP BY monthname(rental_date);</code></pre></div>
+  <div class="note"><span class="tag">Date boundaries and empty inputs</span>BETWEEN includes both
+  endpoints, so the book's filter also includes exactly 2005-08-01 00:00:00. A half-open range
+  <span class="inline">rental_date &gt;= '2005-05-01' AND rental_date &lt; '2005-08-01'</span>
+  expresses May through July without that extra instant. MONTHNAME and its output language are
+  MySQL-specific/session-dependent. SUM over no rows returns NULL; COUNT of a CASE expression can
+  return zero instead.</div>
+</section>
+<section id="ch11-exists">
+  <h2><span class="num">11.5</span>Check whether a relationship exists</h2>
+  <p>The book uses CASE with correlated EXISTS subqueries to label actors according to whether they
+  appeared in G, PG, or NC-17 films. EXISTS checks for at least one matching row, not how many.</p>
+  <div class="code"><div class="bar"><span>Book example · three existence flags</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT a.first_name, a.last_name,
+  CASE
+    WHEN EXISTS (SELECT 1 FROM film_actor fa
+                   INNER JOIN film f ON fa.film_id = f.film_id
+                 WHERE fa.actor_id = a.actor_id
+                   AND f.rating = 'G') THEN 'Y'
+    ELSE 'N'
+  END g_actor,
+  CASE
+    WHEN EXISTS (SELECT 1 FROM film_actor fa
+                   INNER JOIN film f ON fa.film_id = f.film_id
+                 WHERE fa.actor_id = a.actor_id
+                   AND f.rating = 'PG') THEN 'Y'
+    ELSE 'N'
+  END pg_actor,
+  CASE
+    WHEN EXISTS (SELECT 1 FROM film_actor fa
+                   INNER JOIN film f ON fa.film_id = f.film_id
+                 WHERE fa.actor_id = a.actor_id
+                   AND f.rating = 'NC-17') THEN 'Y'
+    ELSE 'N'
+  END nc17_actor
+FROM actor a
+WHERE a.last_name LIKE 'S%' OR a.first_name LIKE 'S%';</code></pre></div>
+  <p>The book displays 22 rows. Sissy Sobieski has Y, Y, N; Salma Nolte has Y, N, Y. Names are not
+  unique identifiers: use actor_id when the identity of a particular actor matters.</p>
+</section>
+<section id="ch11-stock">
+  <h2><span class="num">11.6</span>Classify an inventory count</h2>
+  <p>A simple CASE can compare the result of a scalar subquery. The book groups counts into four labels:</p>
+  <div class="code"><div class="bar"><span>Book example · stock availability</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT f.title,
+  CASE (SELECT count(*) FROM inventory i
+        WHERE i.film_id = f.film_id)
+    WHEN 0 THEN 'Out Of Stock'
+    WHEN 1 THEN 'Scarce'
+    WHEN 2 THEN 'Scarce'
+    WHEN 3 THEN 'Available'
+    WHEN 4 THEN 'Available'
+    ELSE 'Common'
+  END film_availability
+FROM film f
+;</code></pre></div>
+  <table><thead><tr><th>Copies</th><th>Label</th></tr></thead><tbody>
+  <tr><td>0</td><td>Out Of Stock</td></tr><tr><td>1–2</td><td>Scarce</td></tr>
+  <tr><td>3–4</td><td>Available</td></tr><tr><td>5 or more</td><td>Common</td></tr></tbody></table>
+  <p>In the sample ALICE FANTASIA has no copies and is “Out Of Stock.” The query counts inventory
+  records, not necessarily copies currently available for rent.</p>
+</section>
+<section id="ch11-division">
+  <h2><span class="num">11.7</span>Protect division—and decide what the answer means</h2>
+  <p>The book protects a denominator with CASE while calculating average payment per customer:</p>
+  <div class="code"><div class="bar"><span>Book example · guarded denominator</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.first_name, c.last_name,
+  sum(p.amount) tot_payment_amt,
+  count(p.amount) num_payments,
+  sum(p.amount) /
+    CASE WHEN count(p.amount) = 0 THEN 1
+      ELSE count(p.amount)
+    END avg_payment
+FROM customer c
+  LEFT OUTER JOIN payment p
+  ON c.customer_id = p.customer_id
+GROUP BY c.first_name, c.last_name;</code></pre></div>
+  <p>Mary Smith's sample total is 118.68 over 32 non-NULL amounts, giving 3.708750. When no non-NULL
+  amounts exist, SUM is NULL, so replacing the zero denominator with 1 still yields NULL—not a zero
+  average. Grouping only by names can merge different customers who share a name; group by customer ID
+  too when each customer must remain separate.</p>
+  <p>Often <span class="inline">AVG(p.amount)</span> directly expresses the desired average. Another
+  common pattern is <span class="inline">SUM(p.amount) / NULLIF(COUNT(p.amount), 0)</span>, which
+  leaves the average undefined as NULL for zero values. Choose a different fallback only when it matches
+  your reporting requirements. Division-by-zero behavior and expression evaluation details vary by
+  engine; check the documentation and do not rely on CASE to suppress every possible planning-time error.</p>
+</section>
+<section id="ch11-update">
+  <h2><span class="num">11.8</span>Conditional updates</h2>
+  <div class="note"><span class="tag">Changes data</span>The book's statement updates customer records.
+  Use a disposable practice database, inspect candidate rows first, and understand backups and transaction
+  behavior before running an update.</div>
+  <p>This MySQL example marks currently active customers inactive when their latest rental was at least
+  90 days ago:</p>
+  <div class="code"><div class="bar"><span>Book example · conditional UPDATE</span><button class="copy">Copy</button></div><pre><code class="sql">UPDATE customer
+SET active =
+  CASE
+    WHEN 90 &lt;= (SELECT datediff(now(), max(rental_date))
+                FROM rental r
+                WHERE r.customer_id = customer.customer_id)
+      THEN 0
+    ELSE 1
+  END
+WHERE active = 1;</code></pre></div>
+  <p>The WHERE clause means only customers already active are considered; this statement does not
+  reactivate inactive customers. If a customer has no rental date, MAX returns NULL, the WHEN condition
+  is unknown, and ELSE keeps active = 1. If the intended policy is to deactivate customers who have
+  never rented, handle that case explicitly. MySQL DATEDIFF compares date parts rather than elapsed hours.</p>
+</section>
+<section id="ch11-null">
+  <h2><span class="num">11.9</span>Choose how to display NULL</h2>
+  <p>The book substitutes “Unknown” for missing address, city, or country while retaining customers
+  through left joins:</p>
+  <div class="code"><div class="bar"><span>Book example · NULL display values</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.first_name, c.last_name,
+  CASE
+    WHEN a.address IS NULL THEN 'Unknown'
+    ELSE a.address
+  END address,
+  CASE
+    WHEN ct.city IS NULL THEN 'Unknown'
+    ELSE ct.city
+  END city,
+  CASE
+    WHEN cn.country IS NULL THEN 'Unknown'
+    ELSE cn.country
+  END country
+FROM customer c
+  LEFT OUTER JOIN address a
+  ON c.address_id = a.address_id
+  LEFT OUTER JOIN city ct
+  ON a.city_id = ct.city_id
+  LEFT OUTER JOIN country cn
+  ON ct.country_id = cn.country_id;</code></pre></div>
+  <p><span class="inline">COALESCE(a.address, 'Unknown')</span> is a concise alternative for this
+  display use. Replacing a NULL with zero or one in calculations is a business decision, not a neutral
+  transformation: unknown is not automatically zero.</p>
+</section>
+<section id="ch11-exercises">
+  <h2><span class="num">11.10</span>Exercises &amp; recap</h2>
+  <p class="lede">Try the book's two exercises first. The answers here are independently worked;
+  the book's solutions are in Appendix B.</p>
+  <h3>11-1 · Rewrite simple CASE as searched CASE</h3>
+  <p>The book maps English, Italian, French, and German to latin1; Japanese and Mandarin to utf8;
+  everything else to Unknown. Rewrite this query using as few WHEN clauses as possible:</p>
+  <div class="code"><div class="bar"><span>Book exercise · simple CASE</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT name,
+  CASE name
+    WHEN 'English' THEN 'latin1'
+    WHEN 'Italian' THEN 'latin1'
+    WHEN 'French' THEN 'latin1'
+    WHEN 'German' THEN 'latin1'
+    WHEN 'Japanese' THEN 'utf8'
+    WHEN 'Mandarin' THEN 'utf8'
+    ELSE 'Unknown'
+  END character_set
+FROM language;</code></pre></div>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · searched CASE</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT name,
+  CASE
+    WHEN name IN ('English', 'Italian', 'French', 'German') THEN 'latin1'
+    WHEN name IN ('Japanese', 'Mandarin') THEN 'utf8'
+    ELSE 'Unknown'
+  END character_set
+FROM language;</code></pre></div>
+  <p>These are the book's example labels, not a recommendation to infer a character encoding from
+  language. NULL falls through to Unknown in both forms.</p></details>
+  <h3>11-2 · One count column per film rating</h3>
+  <p>The book's sample groups are PG 194, G 178, NC-17 210, PG-13 223, and R 195. Rewrite its query
+  to return one row with columns G, PG, PG_13, R, and NC_17:</p>
+  <div class="code"><div class="bar"><span>Book exercise · one row per rating</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT rating, count(*)
+FROM film
+GROUP BY rating;</code></pre></div>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · conditional counts</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT
+  COUNT(CASE WHEN rating = 'G' THEN 1 END) AS G,
+  COUNT(CASE WHEN rating = 'PG' THEN 1 END) AS PG,
+  COUNT(CASE WHEN rating = 'PG-13' THEN 1 END) AS PG_13,
+  COUNT(CASE WHEN rating = 'R' THEN 1 END) AS R,
+  COUNT(CASE WHEN rating = 'NC-17' THEN 1 END) AS NC_17
+FROM film;</code></pre></div>
+  <p>Result for the book's sample: <strong>178, 194, 223, 195, 210</strong>. COUNT ignores the NULL
+  produced by a nonmatching CASE and returns zero on empty input.</p></details>
+  <h3>Quick reference</h3>
+  <table><thead><tr><th>Need</th><th>Approach</th></tr></thead><tbody>
+  <tr><td>Test conditions</td><td>Searched CASE WHEN condition THEN value.</td></tr>
+  <tr><td>Compare one value</td><td>Simple CASE value WHEN expected THEN result.</td></tr>
+  <tr><td>Count a category</td><td>COUNT(CASE WHEN condition THEN 1 END).</td></tr>
+  <tr><td>Check existence</td><td>CASE WHEN EXISTS (subquery) THEN ...</td></tr>
+  <tr><td>Handle missing data</td><td>IS NULL or COALESCE; choose defaults intentionally.</td></tr>
+  </tbody></table>
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 12, <em>Transactions</em>,
+  explores treating related changes as a unit of work.</p></div>
 </section>
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–10 of <i>Learning SQL: Generate,
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–11 of <i>Learning SQL: Generate,
   Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
   ISBN 9781492057611). Figures 1-1…1-3 and 6-1…6-4 and the Table 2-6…2-8 crops are reproduced from
   the PDF in this repository for personal study; please buy the book if you like it. SQL snippets include
-  the book's teaching examples. Exercise answers for Chapters 3–10 are worked here, not copied from the book —
+  the book's teaching examples. Exercise answers for Chapters 3–11 are worked here, not copied from the book —
   its own solutions live in Appendix B. Diagrams marked <i>original</i> are drawn for this page.</p>
 </footer>
 </div>
@@ -5075,7 +5370,7 @@ const io=new IntersectionObserver(es=>{
 },{rootMargin:'-15% 0px -75% 0px'});
 document.querySelectorAll('main section').forEach(s=>io.observe(s));
 
-const KW=/\b(create|table|insert|into|values|select|from|where|inner|outer|left|right|cross|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max|union|all|any|with|intersect|except)\b/gi;
+const KW=/\b(create|table|insert|into|values|select|from|where|inner|outer|left|right|cross|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max|union|all|any|with|intersect|except|case|when|then|else|end)\b/gi;
 function hl(src){
   const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const toks=[];
