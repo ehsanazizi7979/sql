@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapters 1–16 · SQL Fundamentals, Views, Metadata and Analytic Functions — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Chapters 1–17 · SQL Fundamentals and Large Databases — Simple Summary (Learning SQL, 3rd Ed.)</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -211,7 +211,7 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapters 1–16, in plain English</h1>
+  <h1>Chapters 1–17, in plain English</h1>
   <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
   and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
   data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
@@ -229,12 +229,13 @@
   <b>Ch. 13 — Indexes and Constraints:</b> speeding lookups and enforcing data rules.
   <b>Ch. 14 — Views:</b> presenting stored queries as tables.
   <b>Ch. 15 — Metadata:</b> querying information about database objects.
-  <b>Ch. 16 — Analytic Functions:</b> rankings, running totals and comparisons across rows.</p>
+  <b>Ch. 16 — Analytic Functions:</b> rankings, running totals and comparisons across rows.
+  <b>Ch. 17 — Working with Large Databases:</b> partitioning, clustering, sharding and big data.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–286 (PDF pp. 19–304)</span>
-    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14 + 10 + 11 + 10 + 11 + 10 + 11 + 11</span>
+    <span><b>Book pages:</b> 1–302 (PDF pp. 19–320)</span>
+    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14 + 10 + 11 + 10 + 11 + 10 + 11 + 11 + 11</span>
     <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8, Figures 6-1…6-4, Figure 13-1</span>
-    <span><b>Reading time:</b> ~206 min</span>
+    <span><b>Reading time:</b> ~218 min</span>
   </div>
   <div class="jump">
     <a href="#tldr">↓ Chapter 1 · A Little Background</a>
@@ -253,6 +254,7 @@
     <a href="#ch14">↓ Chapter 14 · Views</a>
     <a href="#ch15">↓ Chapter 15 · Metadata</a>
     <a href="#ch16">↓ Chapter 16 · Analytic Functions</a>
+    <a href="#ch17">↓ Chapter 17 · Working with Large Databases</a>
   </div>
 </header>
 
@@ -468,6 +470,19 @@
     <li><a href="#ch16-lag">LAG and LEAD</a></li>
     <li><a href="#ch16-concat">Concatenating grouped values</a></li>
     <li><a href="#ch16-exercises">Exercises &amp; recap</a></li>
+  </ol>
+  <div class="brand" style="margin-top:18px">Chapter 17 · Working with large databases</div>
+  <ol>
+    <li><a href="#ch17-intro">The chapter in one paragraph</a></li>
+    <li><a href="#ch17-concepts">Partitioning and indexes</a></li>
+    <li><a href="#ch17-range">Range partitioning</a></li>
+    <li><a href="#ch17-list">List partitioning</a></li>
+    <li><a href="#ch17-hash">Hash partitioning</a></li>
+    <li><a href="#ch17-composite">Composite partitioning</a></li>
+    <li><a href="#ch17-benefits">Benefits and trade-offs</a></li>
+    <li><a href="#ch17-clustering">Clustering and sharding</a></li>
+    <li><a href="#ch17-big-data">Big data and cloud</a></li>
+    <li><a href="#ch17-recap">Recap</a></li>
   </ol>
 </nav>
 
@@ -6601,13 +6616,232 @@ ORDER BY year_no, month_no;</code></pre></div>
   <tr><td>Running or moving value</td><td>Window aggregate with an explicit ROWS or RANGE frame</td></tr>
   <tr><td>Compare neighboring rows</td><td>LAG and LEAD; mind missing periods</td></tr>
   <tr><td>Filter by a rank</td><td>Use an outer query where the database requires it</td></tr></tbody></table>
-  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 17, <em>Working with Large Databases</em>,
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p><a href="#ch17">Chapter 17, <em>Working with Large Databases</em></a>,
   explores techniques for managing larger datasets.</p></div>
+</section>
+<div class="chap" id="ch17">
+  <div class="kicker">Chapter 17 · book pages 287–302 (PDF pp. 305–320)</div>
+  <h2><span class="num">17.0</span>Working with Large Databases</h2>
+  <p>How to divide, distribute and manage data as a database grows.</p>
+</div>
+<section id="ch17-intro">
+  <h2><span class="num">17.1</span>The chapter in one paragraph</h2>
+  <p class="lede">A large database can be hard to query, maintain and serve from one machine.</p>
+  <p><b>Partitioning</b> divides a table into manageable pieces; <b>clustering</b> brings multiple
+  servers together; <b>sharding</b> divides data among separate databases. Big-data systems add other
+  approaches to storing and processing massive or varied data. Each choice adds operational complexity,
+  and the best solution depends on the workload, not a magic row count.</p>
+</section>
+<section id="ch17-concepts">
+  <h2><span class="num">17.2</span>Partitioning and indexes</h2>
+  <p>As tables grow, full scans, index rebuilds, statistics, archiving and backups can become slower.
+  Horizontal partitioning assigns each whole row to one partition according to a <b>partition key</b>;
+  the partitions share the table's column definitions. Users normally query one logical table.
+  Vertical splitting separates columns instead and generally requires a separate design.</p>
+  <p>Depending on the database, individual partitions may be managed differently, such as using
+  different storage or maintenance schedules. A <b>local index</b> is divided with the table; a
+  <b>global index</b> spans partitions and can help when the partition key is not filtered.
+  These options are vendor-specific: do not assume MySQL offers every index or storage feature
+  described generically in the chapter.</p>
+  <div class="code"><div class="bar"><span>Book example · query without the date partition key</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT sum(amount) FROM sales WHERE geo_region_cd = 'US';</code></pre></div>
+  <p>Without a useful date predicate the engine may need to consider all date partitions. An index can
+  still help locate matching rows, but the actual access plan depends on the engine and statistics.</p>
+</section>
+<section id="ch17-range">
+  <h2><span class="num">17.3</span>Range partitioning</h2>
+  <p>Put rows into ordered ranges, often based on dates. The book's MySQL example uses
+  <span class="inline">YEARWEEK(sale_date)</span> and upper bounds: <b>LESS THAN is exclusive</b>.
+  The first partition includes all values below 202002, including earlier years—not just week one.
+  The final MAXVALUE partition catches all values at or above the last explicit bound.</p>
+  <div class="code"><div class="bar"><span>Book example · weekly range partitions (MySQL)</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE TABLE sales
+ (sale_id INT NOT NULL,
+  cust_id INT NOT NULL,
+  store_id INT NOT NULL,
+  sale_date DATE NOT NULL,
+  amount DECIMAL(9,2))
+PARTITION BY RANGE (yearweek(sale_date))
+ (PARTITION s1 VALUES LESS THAN (202002),
+  PARTITION s2 VALUES LESS THAN (202003),
+  PARTITION s3 VALUES LESS THAN (202004),
+  PARTITION s4 VALUES LESS THAN (202005),
+  PARTITION s5 VALUES LESS THAN (202006),
+  PARTITION s999 VALUES LESS THAN (MAXVALUE));</code></pre></div>
+  <div class="note"><b>Compatibility:</b> partition expression restrictions differ by engine and
+  version. YEARWEEK is not supported as a partitioning function in some MySQL versions; check your
+  server's allowed functions before running this book example. Week numbering and year boundaries also
+  depend on the function's mode. These examples create alternative versions of <span class="inline">sales</span>,
+  not tables to create together under the same name.</div>
+  <p>Inspect partitions, then split the catch-all partition before future data accumulates in it:</p>
+  <div class="code"><div class="bar"><span>Book examples · inspect and reorganize</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT partition_name, partition_method, partition_expression
+FROM information_schema.partitions
+WHERE table_name = 'sales'
+ORDER BY partition_ordinal_position;
+
+ALTER TABLE sales REORGANIZE PARTITION s999 INTO
+ (PARTITION s6 VALUES LESS THAN (202007),
+  PARTITION s7 VALUES LESS THAN (202008),
+  PARTITION s999 VALUES LESS THAN (MAXVALUE));</code></pre></div>
+  <p>In practice also filter <span class="inline">table_schema</span> when multiple schemas may contain
+  a sales table. Reorganization redistributes existing rows into the new ranges.</p>
+  <div class="code"><div class="bar"><span>Book example · insert and inspect named partitions</span><button class="copy">Copy</button></div><pre><code class="sql">INSERT INTO sales VALUES
+ (1, 1, 1, '2020-01-18', 2765.15),
+ (2, 3, 4, '2020-02-07', 5322.08);
+
+SELECT concat('# of rows in S2 = ', count(*)) partition_rowcount
+FROM sales PARTITION (s2) UNION ALL
+SELECT concat('# of rows in S5 = ', count(*)) partition_rowcount
+FROM sales PARTITION (s5);</code></pre></div>
+  <p>In the book's run, S2 and S5 each hold one row. Explicit partition selection is useful for
+  administration but restricts the query to the named partitions.</p>
+</section>
+<section id="ch17-list">
+  <h2><span class="num">17.4</span>List partitioning</h2>
+  <p>For a small set of known categories, explicitly assign values to partitions. This is a separate
+  definition of the sales table, not an alteration of the earlier range example.</p>
+  <div class="code"><div class="bar"><span>Book example · geographic lists (MySQL)</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE TABLE sales
+ (sale_id INT NOT NULL, cust_id INT NOT NULL, store_id INT NOT NULL,
+  sale_date DATE NOT NULL, geo_region_cd VARCHAR(6) NOT NULL,
+  amount DECIMAL(9,2))
+PARTITION BY LIST COLUMNS (geo_region_cd)
+ (PARTITION NORTHAMERICA VALUES IN ('US_NE','US_SE','US_MW',
+                                    'US_NW','US_SW','CAN','MEX'),
+  PARTITION EUROPE VALUES IN ('EUR_E','EUR_W'),
+  PARTITION ASIA VALUES IN ('CHN','JPN','IND'));
+
+INSERT INTO sales VALUES
+ (1, 1, 1, '2020-01-18', 'US_NE', 2765.15),
+ (2, 3, 4, '2020-02-07', 'CAN', 5322.08),
+ (3, 6, 27, '2020-03-11', 'KOR', 4267.12);</code></pre></div>
+  <p>The insert fails because KOR is missing. The book adds it to ASIA and retries the insert:</p>
+  <div class="code"><div class="bar"><span>Book example · add the missing list value</span><button class="copy">Copy</button></div><pre><code class="sql">ALTER TABLE sales REORGANIZE PARTITION ASIA INTO
+ (PARTITION ASIA VALUES IN ('CHN','JPN','IND','KOR'));
+
+SELECT partition_name, partition_expression, partition_description
+FROM information_schema.partitions
+WHERE table_name = 'sales'
+ORDER BY partition_ordinal_position;</code></pre></div>
+  <p>MySQL list partitioning has no general MAXVALUE catch-all: plan for new region codes and
+  transaction behavior. Other database products may provide default list partitions.</p>
+</section>
+<section id="ch17-hash">
+  <h2><span class="num">17.5</span>Hash partitioning</h2>
+  <p>A hash-based scheme assigns rows to buckets using the key. It can spread work when keys have many
+  well-distributed values, but an even split is not guaranteed—skewed or repeated keys can create hot
+  partitions. The mapping depends on the database's implementation.</p>
+  <div class="code"><div class="bar"><span>Book example · four customer buckets (MySQL)</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE TABLE sales
+ (sale_id INT NOT NULL, cust_id INT NOT NULL, store_id INT NOT NULL,
+  sale_date DATE NOT NULL, amount DECIMAL(9,2))
+PARTITION BY HASH (cust_id)
+ PARTITIONS 4
+ (PARTITION H1, PARTITION H2, PARTITION H3, PARTITION H4);
+
+INSERT INTO sales VALUES
+ (1, 1, 1, '2020-01-18', 1.1), (2, 3, 4, '2020-02-07', 1.2),
+ (3, 17, 5, '2020-01-19', 1.3), (4, 23, 2, '2020-02-08', 1.4),
+ (5, 56, 1, '2020-01-20', 1.6), (6, 77, 5, '2020-02-09', 1.7),
+ (7, 122, 4, '2020-01-21', 1.8), (8, 153, 1, '2020-02-10', 1.9),
+ (9, 179, 5, '2020-01-22', 2.0), (10, 244, 2, '2020-02-11', 2.1),
+ (11, 263, 1, '2020-01-23', 2.2), (12, 312, 4, '2020-02-12', 2.3),
+ (13, 346, 2, '2020-01-24', 2.4), (14, 389, 3, '2020-02-13', 2.5),
+ (15, 472, 1, '2020-01-25', 2.6), (16, 502, 1, '2020-02-14', 2.7);</code></pre></div>
+  <div class="code"><div class="bar"><span>Book example · inspect the distribution</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT concat('# of rows in H1 = ', count(*)) partition_rowcount
+FROM sales PARTITION (h1) UNION ALL
+SELECT concat('# of rows in H2 = ', count(*)) partition_rowcount
+FROM sales PARTITION (h2) UNION ALL
+SELECT concat('# of rows in H3 = ', count(*)) partition_rowcount
+FROM sales PARTITION (h3) UNION ALL
+SELECT concat('# of rows in H4 = ', count(*)) partition_rowcount
+FROM sales PARTITION (h4);</code></pre></div>
+  <p>The book's 16 rows distribute as 4, 5, 3 and 4 across H1–H4. Real distributions need monitoring.</p>
+</section>
+<section id="ch17-composite">
+  <h2><span class="num">17.6</span>Composite partitioning</h2>
+  <p>Combine two methods: first group by a range, then split each range into hash subpartitions.
+  The book creates six date partitions with four customer subpartitions apiece (24 total).</p>
+  <div class="code"><div class="bar"><span>Book example · range and hash (MySQL)</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE TABLE sales
+ (sale_id INT NOT NULL, cust_id INT NOT NULL, store_id INT NOT NULL,
+  sale_date DATE NOT NULL, amount DECIMAL(9,2))
+PARTITION BY RANGE (yearweek(sale_date))
+SUBPARTITION BY HASH (cust_id)
+ (PARTITION s1 VALUES LESS THAN (202002)
+   (SUBPARTITION s1_h1, SUBPARTITION s1_h2, SUBPARTITION s1_h3, SUBPARTITION s1_h4),
+  PARTITION s2 VALUES LESS THAN (202003)
+   (SUBPARTITION s2_h1, SUBPARTITION s2_h2, SUBPARTITION s2_h3, SUBPARTITION s2_h4),
+  PARTITION s3 VALUES LESS THAN (202004)
+   (SUBPARTITION s3_h1, SUBPARTITION s3_h2, SUBPARTITION s3_h3, SUBPARTITION s3_h4),
+  PARTITION s4 VALUES LESS THAN (202005)
+   (SUBPARTITION s4_h1, SUBPARTITION s4_h2, SUBPARTITION s4_h3, SUBPARTITION s4_h4),
+  PARTITION s5 VALUES LESS THAN (202006)
+   (SUBPARTITION s5_h1, SUBPARTITION s5_h2, SUBPARTITION s5_h3, SUBPARTITION s5_h4),
+  PARTITION s999 VALUES LESS THAN (MAXVALUE)
+   (SUBPARTITION s999_h1, SUBPARTITION s999_h2,
+    SUBPARTITION s999_h3, SUBPARTITION s999_h4));</code></pre></div>
+  <p>The YEARWEEK compatibility warning above applies here too. After reinserting the 16 rows from
+  the hash example, the book reads either the whole date partition or just one subpartition:</p>
+  <div class="code"><div class="bar"><span>Book examples · partition and subpartition</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT * FROM sales PARTITION (s3);
+SELECT * FROM sales PARTITION (s3_h3);</code></pre></div>
+  <p>Its example returns seven rows from S3 and two from S3_H3. No ordering is promised without ORDER BY.</p>
+</section>
+<section id="ch17-benefits">
+  <h2><span class="num">17.7</span>Benefits and trade-offs</h2>
+  <p><b>Partition pruning</b> means the optimizer can skip partitions that cannot match a predicate.
+  A date range filter can reduce work when it aligns with the partitioning scheme; check the query plan
+  rather than assuming pruning occurred. Some engines can also perform <b>partition-wise joins</b>,
+  joining compatible partition pairs separately; pruning and partition-wise joins are related but distinct.</p>
+  <div class="code"><div class="bar"><span>Book example · date predicate</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT * FROM sales
+WHERE sale_date BETWEEN '2019-12-01' AND '2020-01-15';</code></pre></div>
+  <p>For a DATE column BETWEEN includes both endpoints. For timestamps, a half-open range ending
+  before the next day is often safer. Dropping an old partition can remove an entire retention period
+  efficiently, but <b>deletes its data</b>: verify backups, boundaries, constraints and vendor-specific
+  behavior first. Partitioning also introduces planning, monitoring and maintenance costs; it does not
+  automatically speed every query or replace indexes.</p>
+</section>
+<section id="ch17-clustering">
+  <h2><span class="num">17.8</span>Clustering and sharding</h2>
+  <p><b>Clustering</b> uses multiple servers to provide database service. The chapter focuses on a
+  shared-disk/shared-cache architecture, where nodes can access the same data and connections can fail
+  over. Other clusters use different architectures; scaling and failover behavior are not automatic
+  guarantees and depend on configuration, workload and application behavior.</p>
+  <p><b>Sharding</b> splits data across separate databases. For the book's hypothetical billion-user
+  service, 100 shards could hold about 10 million users each. A shard key determines where each user's
+  data lives. This distributes capacity but raises questions:</p>
+  <ul><li>How will requests find the right shard, and will traffic be evenly distributed?</li>
+  <li>How will shared reference data be replicated and kept consistent?</li>
+  <li>How will data be moved when more shards are needed?</li>
+  <li>How will schema changes, cross-shard queries and transactions be coordinated?</li></ul>
+</section>
+<section id="ch17-big-data">
+  <h2><span class="num">17.9</span>Big data and the cloud</h2>
+  <p>The chapter describes the three Vs: <b>volume</b> (amount), <b>velocity</b> (arrival rate), and
+  <b>variety</b> (different formats). The Hadoop ecosystem offers HDFS for distributed files,
+  MapReduce for parallel processing and YARN for resource management and scheduling. SQL interfaces
+  such as Hive, Impala and Drill can make some distributed data accessible through SQL.</p>
+  <p>Document databases can store JSON-like documents with varying shapes; this shifts some work to
+  validation and querying. NoSQL is a broad family, not just key-value or document stores, and many
+  systems still support schemas or constraints. Cloud platforms provide on-demand computing and
+  managed options such as relational, document, graph and analytical databases. Scaling, costs,
+  availability, portability and security still need planning; the book's 2020 product examples are
+  illustrative, not a current catalog.</p>
+</section>
+<section id="ch17-recap">
+  <h2><span class="num">17.10</span>Recap</h2>
+  <table><thead><tr><th>Approach</th><th>Plain-English idea</th><th>Watch out for</th></tr></thead><tbody>
+  <tr><td>Range</td><td>Route rows by ordered boundaries</td><td>Exclusive bounds and future partitions</td></tr>
+  <tr><td>List</td><td>Route named categories to partitions</td><td>New values need coverage</td></tr>
+  <tr><td>Hash</td><td>Distribute by key into buckets</td><td>Skew and hot keys</td></tr>
+  <tr><td>Composite</td><td>Use partitions and subpartitions</td><td>More complexity and vendor limits</td></tr>
+  <tr><td>Cluster</td><td>Multiple servers provide database service</td><td>Architecture and failover requirements</td></tr>
+  <tr><td>Shard</td><td>Divide data among databases</td><td>Routing, rebalancing and cross-shard operations</td></tr>
+  </tbody></table>
+  <p>This chapter has no end-of-chapter exercises. Its partition syntax and administrative features are
+  specific to the database and version; test on a disposable system before applying them to real data.</p>
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 18, <em>SQL and Big Data</em>,
+  explores using SQL to query data in different formats and systems.</p></div>
 </section>
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–16 of <i>Learning SQL: Generate,
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–17 of <i>Learning SQL: Generate,
   Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
   ISBN 9781492057611). Figures 1-1…1-3, 6-1…6-4 and 13-1 and the Table 2-6…2-8 crops are reproduced from
   the PDF in this repository for personal study; please buy the book if you like it. SQL snippets include
