@@ -230,9 +230,9 @@
       figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">6 chapters covered</span>
-      <span class="badge">46 book listings</span>
-      <span class="badge">128 figures</span>
+      <span class="badge">7 chapters covered</span>
+      <span class="badge">64 book listings</span>
+      <span class="badge">159 figures</span>
       <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
@@ -300,6 +300,15 @@
     <a class="mini" href="#ch6-delete">DELETE plans</a>
     <a class="mini" href="#ch6-merge">MERGE plans</a>
     <a class="mini" href="#ch6-cheatsheet">Cheat sheet</a>
+
+    <div class="grp">Chapter 7 · Common T-SQL Statements</div>
+    <a class="mini" href="#ch7-procedures">Stored procedures</a>
+    <a class="mini" href="#ch7-subqueries">Subqueries</a>
+    <a class="mini" href="#ch7-apply">APPLY &amp; derived tables</a>
+    <a class="mini" href="#ch7-cte">Common Table Expressions</a>
+    <a class="mini" href="#ch7-views">Views</a>
+    <a class="mini" href="#ch7-functions">Functions</a>
+    <a class="mini" href="#ch7-cheatsheet">Cheat sheet</a>
   </nav>
 
   <main>
@@ -3694,6 +3703,713 @@ Table <span class="str">'SalesOrderDetail'</span>. Scan count 1, logical reads 2
         Read modification plans exactly as you read SELECT plans — with the same tools, the same
         properties and the same questions about estimated cost. A lot happens inside them, but with
         careful review most of it is identifiable.
+      </div>
+    </section>
+
+
+    <div class="chapterbar" id="chapter7">
+      <span class="cnum">Chapter 7</span>
+      <div>
+        <h2>Execution Plans for Common T-SQL Statements</h2>
+        <p>Stored procedures, subqueries, APPLY, CTEs, views and functions. Bigger plans, same
+        method — plus the chapter's real gift: proof of what scalar and multi-statement
+        functions hide from you.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch7-procedures">
+      <h2><span class="num">1</span> Stored procedures</h2>
+      <p class="lede">A procedure is not one plan. It's one plan per statement — and no plan at all for DDL.</p>
+
+      <div class="code">
+        <header><span>Listing 7-1 · a typical "grown over time" procedure</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE OR ALTER PROCEDURE</span> Sales.TaxRateByState @CountryRegionCode <span class="kw">NVARCHAR</span>(3)
+<span class="kw">AS</span>
+<span class="kw">SET NOCOUNT ON</span>;
+<span class="kw">CREATE TABLE</span> #TaxRateByState
+(
+    SalesTaxRateID <span class="kw">INT NOT NULL</span>,
+    TaxRateName <span class="kw">NVARCHAR</span>(50) <span class="kw">COLLATE DATABASE_DEFAULT NOT NULL</span>,
+    TaxRate <span class="kw">SMALLMONEY NOT NULL</span>,
+    TaxType <span class="kw">TINYINT NOT NULL</span>,
+    StateName <span class="kw">NVARCHAR</span>(50) <span class="kw">COLLATE DATABASE_DEFAULT NOT NULL</span>
+);
+<span class="kw">INSERT INTO</span> #TaxRateByState (SalesTaxRateID, TaxRateName, TaxRate, TaxType, StateName)
+<span class="kw">SELECT</span> st.SalesTaxRateID,
+       st.Name,
+       st.TaxRate,
+       st.TaxType,
+       sp.Name <span class="kw">AS</span> StateName
+<span class="kw">FROM</span> Sales.SalesTaxRate <span class="kw">AS</span> st
+    <span class="kw">JOIN</span> Person.StateProvince <span class="kw">AS</span> sp
+        <span class="kw">ON</span> st.StateProvinceID = sp.StateProvinceID
+<span class="kw">WHERE</span> sp.CountryRegionCode = @CountryRegionCode;
+
+<span class="kw">DELETE</span> #TaxRateByState
+<span class="kw">WHERE</span> TaxRate &lt; 7.5;
+
+<span class="kw">SELECT</span> soh.SubTotal,
+       soh.TaxAmt,
+       trbs.TaxRate,
+       trbs.TaxRateName
+<span class="kw">FROM</span> Sales.SalesOrderHeader <span class="kw">AS</span> soh
+    <span class="kw">JOIN</span> Sales.SalesTerritory <span class="kw">AS</span> st
+        <span class="kw">ON</span> st.TerritoryID = soh.TerritoryID
+    <span class="kw">JOIN</span> Person.StateProvince <span class="kw">AS</span> sp
+        <span class="kw">ON</span> sp.TerritoryID = st.TerritoryID
+    <span class="kw">JOIN</span> #TaxRateByState <span class="kw">AS</span> trbs
+        <span class="kw">ON</span> trbs.StateName = sp.Name;
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 7-2 · execute it</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> Sales.TaxRateByState @CountryRegionCode = <span class="fn">N</span><span class="str">'US'</span>;
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter7/fig-7-1-procedure-multiple-plans.png"
+             alt="Three plans stacked in one window: Query 1 INSERT 3%, Query 2 DELETE 2%, Query 3 SELECT 96% with Hash Match, two Nested Loops, Table Scan on the temp table and a 68% clustered index scan on SalesOrderHeader.">
+        <figcaption><b>Figure 7-1</b> — Five statements in, three plans out — and each one labelled with its <b>cost relative to the batch</b>: 3%, 2%, 96%.</figcaption>
+      </figure>
+
+      <p>Two statements get no plan at all:</p>
+      <ul>
+        <li><b>CREATE TABLE</b> — DDL. It can only be resolved one way, so it's never optimized.</li>
+        <li><b>SET NOCOUNT ON</b> — not a query.</li>
+      </ul>
+      <div class="note">
+        <b>An estimated plan will show a T-SQL operator for these</b> — but no real execution plan.
+        So if you're counting plans, never assume "n statements = n plans".
+      </div>
+
+      <div class="note warn">
+        <b>Watch out for procedures with many statements</b>
+        In a loop you can generate <b>hundreds</b> of plans, and capturing them all can hang SSMS.
+        Prefer an <b>estimated</b> plan; if you need actual plans, capture individual statements with a
+        <b>filtered Extended Events session</b>, or bracket the statement with
+        <code class="inl">SET STATISTICS XML ON</code> / <code class="inl">OFF</code>.
+      </div>
+
+      <h3 class="step">Parameter sniffing, visible in the plan</h3>
+      <p>
+        There is no "stored procedure operator" — the optimizer compiles the T-SQL inside just as if
+        you'd run it from a query window. And because the procedure takes a parameter, you can watch
+        sniffing happen:
+      </p>
+      <ol>
+        <li>The batch is compiled first, setting <code class="inl">@CountryRegionCode = N'US'</code>.</li>
+        <li><code class="inl">EXEC</code> runs, no plan is cached, so the procedure is compiled — and the
+          optimizer <b>sniffs</b> <code class="inl">'US'</code> to build statistics-based estimates.</li>
+        <li>Run it again with a different country: the plan is <b>reused</b>, and you see a new
+          <b>Runtime</b> value with the <b>same Compiled</b> value.</li>
+      </ol>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter7/fig-7-2-insert-parameter-list.png"
+               alt="INSERT operator Parameter List showing compiled and runtime values.">
+          <figcaption><b>Figure 7-2</b> — Parameter List on the INSERT: compiled value vs. runtime value.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter7/fig-7-3-select-changed-parameters.png"
+               alt="SELECT operator Parameter List showing changed runtime value with the same compiled value.">
+          <figcaption><b>Figure 7-3</b> — Second execution: runtime value changed, compiled value unchanged ⇒ <b>the same plan was reused</b>.</figcaption>
+        </figure>
+      </div>
+      <p>
+        That only matters when the compiled value's row count was atypical for the values you actually
+        pass. Chapter 8 goes deeper.
+      </p>
+
+      <figure>
+        <img src="images/chapter7/fig-7-4-query3-plan.png"
+             alt="Query 3 plan: SELECT, Hash Match 30%, Nested Loops, Nested Loops, Table Scan on the temp table, Index Seek on StateProvince, Key Lookup, Clustered Index Scan on SalesOrderHeader 68%.">
+        <figcaption><b>Figure 7-4</b> — Query 3, the 96% plan. The temp table has 5 rows, so the inner branches execute 5 times — but the Hash Match probes 31,465 rows to return 23,752.</figcaption>
+      </figure>
+    </section>
+
+    <section class="card" id="ch7-subqueries">
+      <h2><span class="num">2</span> Subqueries</h2>
+      <p class="lede">A correlated subquery runs once per outer row. The plan shows exactly how expensive that is.</p>
+
+      <div class="code">
+        <header><span>Listing 7-3 · correlated subquery with TOP (1)</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.Name,
+       p.ProductNumber,
+       ph.ListPrice
+<span class="kw">FROM</span> Production.Product <span class="kw">AS</span> p
+    <span class="kw">INNER JOIN</span> Production.ProductListPriceHistory <span class="kw">AS</span> ph
+        <span class="kw">ON</span> p.ProductID = ph.ProductID
+           <span class="kw">AND</span> ph.StartDate = (   <span class="kw">SELECT TOP</span> (1)
+                                         ph2.StartDate
+                                  <span class="kw">FROM</span> Production.ProductListPriceHistory <span class="kw">AS</span> ph2
+                                  <span class="kw">WHERE</span> ph2.ProductID = p.ProductID
+                                  <span class="kw">ORDER BY</span> ph2.StartDate <span class="kw">DESC</span>);</code></pre>
+        <div class="cap">Intent: show only the <b>current</b> list price per product. Classic "versioned data" query.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter7/fig-7-5-subquery-plan.png"
+             alt="Plan: two Clustered Index Scans merged by a Merge Join, then Nested Loops with an inner branch of Clustered Index Seek 72%, Top and Filter.">
+        <figcaption><b>Figure 7-5</b> — Two scans → <b>Merge Join</b> (395 rows) → Nested Loops whose inner branch is a <b>72%</b> Clustered Index Seek + Top + Filter.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter7/fig-7-6-merge-join-columns.png"
+               alt="Merge Join Where (join columns) property showing ProductID on both sides.">
+          <figcaption><b>Figure 7-6</b> — Merge Join on ProductID.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter7/fig-7-7-ordered-clustered-scan.png"
+               alt="Clustered Index Scan properties showing Ordered True.">
+          <figcaption><b>Figure 7-7</b> — Both scans are <b>Ordered = True</b>, which is what makes the Merge Join free of sorts.</figcaption>
+        </figure>
+      </div>
+
+      <p>
+        The outer input pushes <b>ProductID and StartDate</b> down as Outer References. For each of the
+        395 merged rows, the inner branch seeks, the <b>Top</b> takes the single most recent row, and the
+        <b>Filter</b> checks whether StartDate matched:
+      </p>
+
+      <figure>
+        <img src="images/chapter7/fig-7-8-filter-predicate.png"
+             alt="Filter operator Predicate property showing the StartDate comparison.">
+        <figcaption><b>Figure 7-8</b> — The Filter's Predicate: use the pushed-down StartDate to accept or reject that one row. Executed <b>395 times</b>, returning 293 matches.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>Why the Filter returns no data</b>
+        Its Output List is an <b>empty row shell</b>. The Nested Loops doesn't need the values — only the
+        <b>presence or absence</b> of a row. And <b>Startup Expression = False</b> means the child operators
+        are called on <b>every</b> execution; if it were a Startup Expression Predicate, they'd only be
+        called for rows that pass that predicate.
+      </div>
+
+      <p>
+        The real problem is the execution count. Swap in more typical numbers — 200 products, 15 prices
+        each — and the Merge Join emits 3,000 rows, so the inner branch runs <b>3,000 times</b>, re-reading
+        the same 200 rows over and over.
+      </p>
+      <div class="note tip">
+        <b>Two fixes worth trying</b>
+        (1) Replace <code class="inl">SELECT TOP (1) … ORDER BY</code> with
+        <code class="inl">SELECT MAX(ph2.StartDate)</code> — the plan changes to two Merge Joins and gets faster.
+        (2) Use <b>APPLY</b> with a derived table, below.
+      </div>
+    </section>
+
+    <section class="card" id="ch7-apply">
+      <h2><span class="num">3</span> APPLY and derived tables</h2>
+      <p class="lede">Same results, different plan, measurably different I/O — and a nice lesson in why you measure instead of guess.</p>
+
+      <div class="code">
+        <header><span>Listing 7-4 · the APPLY version</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.Name,
+       p.ProductNumber,
+       ph.ListPrice
+<span class="kw">FROM</span> Production.Product p
+    <span class="kw">CROSS APPLY</span>
+     (
+         <span class="kw">SELECT TOP</span> (1)
+             ph2.ProductID,
+             ph2.ListPrice
+         <span class="kw">FROM</span> Production.ProductListPriceHistory ph2
+         <span class="kw">WHERE</span> ph2.ProductID = p.ProductID
+         <span class="kw">ORDER BY</span> ph2.StartDate <span class="kw">DESC</span>
+     ) ph;</code></pre>
+      </div>
+
+      <div class="note">
+        <b>CROSS APPLY vs OUTER APPLY</b>
+        <b>CROSS</b> combines each left row with each row the right side returns (drops left rows with no
+        match). <b>OUTER</b> keeps those left rows too, filling right-side columns with NULLs. The
+        big win over a subquery in the <code class="inl">ON</code> clause: the derived table's columns become
+        <b>available to the rest of the query</b>.
+      </div>
+
+      <figure>
+        <img src="images/chapter7/fig-7-9-apply-plan.png"
+             alt="APPLY plan: Clustered Index Scan on Products 504 rows, Nested Loops, inner branch Clustered Index Seek with Top.">
+        <figcaption><b>Figure 7-9</b> — Now the outer input is a <b>scan of all 504 products</b> ⇒ the inner branch executes <b>504</b> times with ProductID pushed down as Outer References.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter7/fig-7-10-apply-metrics.png"
+             alt="Extended Events output comparing logical reads for the two query forms.">
+        <figcaption><b>Figure 7-10</b> — Measured with the Chapter 2 Extended Events session. Identical result sets: subquery <b>811</b> logical reads vs. APPLY <b>1,024</b>.</figcaption>
+      </figure>
+
+      <p>
+        The subquery wins here — <b>395 executions</b> vs. <b>504</b> — but only because of this data
+        distribution: 211 products have no price history at all, so the 395 merged rows are fewer than the
+        504 products. With multiple prices for every product, APPLY would win.
+      </p>
+
+      <h3 class="step">Now add a WHERE clause</h3>
+      <div class="code">
+        <header><span>Listing 7-5 · filter to one product</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">WHERE</span> p.ProductID = 839</code></pre>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter7/fig-7-11-plan-after-where.png"
+               alt="Plan after adding WHERE: three Clustered Index Seeks and two Nested Loops, no Filter, no Merge Join.">
+          <figcaption><b>Figure 7-11</b> — The subquery plan transforms: the Filter is gone, the Merge Join is gone, and the TOP moved into the <i>outer</i> query's branch. Three seeks, two Nested Loops, each inner input executed <b>once</b>.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter7/fig-7-12-apply-plan-with-where.png"
+               alt="APPLY plan with WHERE: nearly identical, but the Clustered Index Scan became a Clustered Index Seek.">
+          <figcaption><b>Figure 7-12</b> — The APPLY plan barely changes: only the scan becomes a <b>seek</b>.</figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="images/chapter7/fig-7-13-metrics-after-where.png"
+             alt="Extended Events metrics after adding WHERE: 4 logical reads for the APPLY query vs 6 for the subquery.">
+        <figcaption><b>Figure 7-13</b> — With the WHERE clause the ranking flips: APPLY <b>4</b> logical reads vs. subquery <b>6</b> — and APPLY is consistently faster when run repeatedly.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>Two lessons from this flip-flop</b>
+        (1) <b>Test with representative data</b> — this "good enough" verdict depends entirely on a
+        distribution where most products have no history. (2) <b>Re-test when the data changes</b> — as
+        distribution shifts, so do plans and performance.
+      </div>
+    </section>
+
+    <section class="card" id="ch7-cte">
+      <h2><span class="num">4</span> Common Table Expressions</h2>
+      <p class="lede">A CTE is still a derived table. Except when it's recursive — then the plan grows spools and a stack.</p>
+
+      <p>
+        A CTE is a named result set scoped to a single statement. Two things a derived table can't do:
+        be <b>self-referential</b>, and be <b>referenced repeatedly</b> in one query. (And one thing it
+        can't do that a derived table can: be <b>correlated</b>, even with APPLY.)
+      </p>
+
+      <div class="code">
+        <header><span>Listing 7-6 · recursive CTE (the anchor + recursive member pattern)</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE OR ALTER PROCEDURE</span> dbo.uspGetEmployeeManagers
+    @BusinessEntityID <span class="kw">INT</span>
+<span class="kw">AS</span>
+<span class="kw">BEGIN</span>
+    <span class="kw">SET NOCOUNT ON</span>;
+    <span class="kw">WITH</span> EMP_cte(BusinessEntityID, OrganizationNode, FirstName, LastName,
+                 JobTitle, RecursionLevel)
+    <span class="kw">AS</span> (
+        <span class="cm">-- ANCHOR MEMBER: get the initial employee</span>
+        <span class="kw">SELECT</span> e.BusinessEntityID, e.OrganizationNode, p.FirstName, p.LastName,
+               e.JobTitle, 0
+        <span class="kw">FROM</span> HumanResources.Employee e
+            <span class="kw">INNER JOIN</span> Person.Person <span class="kw">AS</span> p
+            <span class="kw">ON</span> p.BusinessEntityID = e.BusinessEntityID
+        <span class="kw">WHERE</span> e.BusinessEntityID = @BusinessEntityID
+        <span class="kw">UNION ALL</span>
+        <span class="cm">-- RECURSIVE MEMBER: join back to the CTE itself</span>
+        <span class="kw">SELECT</span> e.BusinessEntityID, e.OrganizationNode, p.FirstName, p.LastName,
+               e.JobTitle, RecursionLevel + 1
+        <span class="kw">FROM</span> HumanResources.Employee e
+            <span class="kw">INNER JOIN</span> EMP_cte
+            <span class="kw">ON</span> e.OrganizationNode = EMP_cte.OrganizationNode.GetAncestor(1)
+            <span class="kw">INNER JOIN</span> Person.Person p
+            <span class="kw">ON</span> p.BusinessEntityID = e.BusinessEntityID
+    )
+    <span class="cm">-- Join back to Employee to return the manager name</span>
+    <span class="kw">SELECT</span> EMP_cte.RecursionLevel, EMP_cte.BusinessEntityID, EMP_cte.FirstName,
+           EMP_cte.LastName, EMP_cte.OrganizationNode.ToString() <span class="kw">AS</span> OrganizationNode,
+           p.FirstName <span class="kw">AS</span> <span class="str">'ManagerFirstName'</span>,
+           p.LastName <span class="kw">AS</span> <span class="str">'ManagerLastName'</span>
+    <span class="kw">FROM</span> EMP_cte
+        <span class="kw">INNER JOIN</span> HumanResources.Employee e
+        <span class="kw">ON</span> EMP_cte.OrganizationNode.GetAncestor(1) = e.OrganizationNode
+        <span class="kw">INNER JOIN</span> Person.Person p
+        <span class="kw">ON</span> p.BusinessEntityID = e.BusinessEntityID
+    <span class="kw">ORDER BY</span> RecursionLevel, EMP_cte.OrganizationNode.ToString()
+    <span class="kw">OPTION</span> (<span class="kw">MAXRECURSION</span> 25)
+<span class="kw">END</span>;
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 7-7 · run it</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> dbo.uspGetEmployeeManagers
+    @BusinessEntityID = 9;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter7/fig-7-14-recursive-cte-full-plan.png"
+             alt="Large recursive CTE plan with Index Spool, Concatenation, Table Spool (Lazy Spool), Assert, Nested Loops, Filter, Sort.">
+        <figcaption><b>Figure 7-14</b> — A big plan — but you've met every operator in it before. The recursion is driven by the <b>Index Spool</b> / <b>Table Spool</b> pair.</figcaption>
+      </figure>
+
+      <h3 class="step">How the recursion is actually executed</h3>
+      <figure>
+        <img src="images/chapter7/fig-7-15-cte-initial-access.png"
+             alt="Initial data access section: Index Spool (Lazy Spool) 6%, Concatenation 12%, two Compute Scalars, two Clustered Index Seeks.">
+        <figcaption><b>Figure 7-15</b> — Start here: <b>Index Spool (Lazy Spool)</b> fed by a <b>Concatenation</b> (that's the UNION ALL). The <b>top input</b> is the anchor member — a Nested Loops over two seeks returning the single employee, with two Compute Scalars setting <code class="inl">RecursionLevel = 0</code>.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter7/fig-7-16-cte-table-spool-section.png"
+             alt="Table Spool section with Assert, Nested Loops, Compute Scalar, Table Spool (Lazy Spool), Filter and Employee scans.">
+        <figcaption><b>Figure 7-16</b> — The <b>bottom input</b> is the recursive member. The <b>Table Spool (Lazy Spool)</b> here is what loops.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter7/fig-7-17-table-spool-properties.png"
+               alt="Table Spool properties: Logical Operation Lazy Spool, Node ID 14, Primary Node ID 4, With Stack True.">
+          <figcaption><b>Figure 7-17</b> — The two magic properties: <b>Primary Node ID = 4</b> (reads the Index Spool) and <b>With Stack = True</b>.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter7/fig-7-18-employee-scan-executions.png"
+               alt="Clustered Index Scan properties for Employee: Estimated Number of Executions 4, Estimated Number of Rows 290, Actual Number of Rows 1160.">
+          <figcaption><b>Figure 7-18</b> — 4 executions × 290 rows = <b>1,160 actual rows</b>. The estimates reconcile exactly.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note">
+        <b>With Stack = True, explained</b>
+        The spool behaves like a <b>stack</b>: new data goes on top, data is read from the top, and each row
+        is <b>removed</b> after being read. That's what drives the recursion — the Table Spool reads and
+        removes the anchor row, the plan finds that row's manager, and the Index Spool pushes the manager
+        onto the stack for the next pass. The <b>Assert</b> enforces
+        <code class="inl">MAXRECURSION 25</code>.
+      </div>
+
+      <p>
+        The tail of the story: the Concatenation emits <b>4 rows</b> (1 anchor + 3 recursive), but only
+        <b>3</b> reach the client. The fourth row is the <b>CEO</b> — no manager, so the Filter returns
+        nothing and recursion stops; then the final join back to Employee finds no manager name for that
+        row, and it's dropped.
+      </p>
+    </section>
+
+    <section class="card" id="ch7-views">
+      <h2><span class="num">5</span> Views</h2>
+      <p class="lede">The optimizer never sees a view. It sees the query the view expands into.</p>
+
+      <div class="note warn">
+        <b>The cardinal sin with views</b>
+        Views look like tables, so people join views to views and nest views inside views. That produces
+        <b>horrible performance</b>, because the resulting plan complexity overwhelms the optimizer.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 7-8 · everything the view offers</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  *
+<span class="kw">FROM</span>    Sales.vIndividualCustomer
+<span class="kw">WHERE</span>   BusinessEntityId = 8743;</code></pre>
+        <div class="cap"><code class="inl">SELECT *</code> is used here deliberately — to show what happens when every column the view references is needed.</div>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter7/fig-7-19-view-full-plan.png"
+               alt="Very wide plan for a query against a view with many joins.">
+          <figcaption><b>Figure 7-19</b> — Eight tables, seven joins: the view's definition, fully expanded.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter7/fig-7-20-view-plan-subsection.png"
+               alt="Subsection of the view plan showing five ordinary operators.">
+          <figcaption><b>Figure 7-20</b> — The right-hand five operators: nothing special, just the base tables.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note">
+        <b>Where did the view go?</b> During <b>query binding</b>, the algebrizer <b>expands</b> the view —
+        replaces it with its definition — and passes the result to the optimizer. The optimizer only ever
+        sees the 8 tables and 7 joins. A view makes code easier to read; it does <b>not</b> reduce the work.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 7-9 · ask for only four columns</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> ic.BusinessEntityID,
+       ic.Title,
+       ic.LastName,
+       ic.FirstName
+<span class="kw">FROM</span> Sales.vIndividualCustomer <span class="kw">AS</span> ic
+<span class="kw">WHERE</span> BusinessEntityID = 8743;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter7/fig-7-21-view-column-list-plan.png"
+             alt="Much smaller plan for the same view with a short column list.">
+        <figcaption><b>Figure 7-21</b> — Same view, wildly different plan. The <b>simplification</b> phase eliminated tables that aren't needed — so the number of operators collapses.</figcaption>
+      </figure>
+      <p>
+        Simplification doesn't catch everything, though: <code class="inl">EmailAddress</code> is still being
+        touched in this plan even though nothing is selected from it.
+      </p>
+
+      <h3 class="step">Indexed views</h3>
+      <p>
+        An indexed view is a <b>view plus a clustered index</b> — a real physical structure. Creation cost is
+        high but one-off; ongoing <b>maintenance</b> cost is the thing to weigh. If an underlying table takes
+        100 INSERTs a minute, every one of them must be reflected in the view.
+      </p>
+      <div class="note tip">
+        <b>Aggregates are the sweet spot</b> — the aggregation is computed once at index-creation time and
+        read back with a simple SELECT, with a substantial I/O saving.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 7-10 · create an indexed view</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DROP VIEW</span> Person.vStateProvinceCountryRegion;
+<span class="kw">GO</span>
+<span class="kw">CREATE OR ALTER VIEW</span> Person.vStateProvinceCountryRegion
+<span class="kw">WITH SCHEMABINDING</span>
+<span class="kw">AS</span>
+<span class="kw">SELECT</span> sp.StateProvinceID,
+       sp.StateProvinceCode,
+       sp.IsOnlyStateProvinceFlag,
+       sp.Name <span class="kw">AS</span> StateProvinceName,
+       sp.TerritoryID,
+       cr.CountryRegionCode,
+       cr.Name <span class="kw">AS</span> CountryRegionName
+<span class="kw">FROM</span> Person.StateProvince sp
+    <span class="kw">INNER JOIN</span> Person.CountryRegion cr
+        <span class="kw">ON</span> sp.CountryRegionCode = cr.CountryRegionCode;
+<span class="kw">GO</span>
+<span class="kw">CREATE UNIQUE CLUSTERED INDEX</span> IX_vStateProvinceCountryRegion
+<span class="kw">ON</span> Person.vStateProvinceCountryRegion
+(
+    StateProvinceID <span class="kw">ASC</span>,
+    CountryRegionCode <span class="kw">ASC</span>
+);
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter7/fig-7-22-indexed-view-creation.png"
+             alt="Plan for creating the indexed view: two table accesses joined by Nested Loops feeding a Clustered Index Insert.">
+        <figcaption><b>Figure 7-22</b> — Creating the index runs the view's query: two tables, a Nested Loops, and an <b>Index Insert (Clustered)</b>. This is why DDL here <i>does</i> have a plan.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter7/fig-7-23-query-against-indexed-view.png"
+               alt="Plan for a query against the indexed view: a single Clustered Index Scan.">
+          <figcaption><b>Figure 7-23</b> — Query the indexed view and you get a <b>single Clustered Index Scan</b>. No join at all.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter7/fig-7-24-expanded-indexed-view.png"
+               alt="Plan where the indexed view was expanded back into its base tables and joins.">
+          <figcaption><b>Figure 7-24</b> — But join the indexed view to something else (Listing 7-13) and the algebrizer <b>expands it again</b> — the materialized index is ignored because the optimizer judged direct table access cheaper.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note">
+        <b>Editions and hints</b> Enterprise/Developer editions match indexed views automatically. On Standard
+        (pre-2016 SP1) or Express you need <code class="inl">WITH (NOEXPAND)</code> to get the behaviour in
+        Figure 7-23 — Chapter 10 covers the hint.
+      </div>
+    </section>
+
+    <section class="card" id="ch7-functions">
+      <h2><span class="num">6</span> Functions — the hidden cost chapter</h2>
+      <p class="lede">Scalar and multi-statement functions hide entire plans behind one innocent-looking operator. This is the most valuable section in the chapter.</p>
+
+      <h3 class="step">Scalar functions</h3>
+      <div class="code">
+        <header><span>Listing 7-14 · a scalar UDF that reads data</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE OR ALTER FUNCTION</span> dbo.ufnGetStock(@ProductID <span class="kw">int</span>)
+<span class="kw">RETURNS int</span>
+<span class="kw">AS</span>
+<span class="cm">-- Returns the stock level for the product.</span>
+<span class="kw">BEGIN</span>
+    <span class="kw">DECLARE</span> @ret <span class="kw">int</span>;
+    <span class="kw">SELECT</span> @ret = <span class="kw">SUM</span>(p.Quantity)
+    <span class="kw">FROM</span> Production.ProductInventory p
+    <span class="kw">WHERE</span> p.ProductID = @ProductID
+        <span class="kw">AND</span> p.LocationID = <span class="str">'6'</span>; <span class="cm">-- misc storage only</span>
+    <span class="kw">IF</span> (@ret <span class="kw">IS NULL</span>)
+        <span class="kw">SET</span> @ret = 0
+    <span class="kw">RETURN</span> @ret
+<span class="kw">END</span>;</code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 7-15 · use it</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.Name,
+       dbo.ufnGetStock(p.ProductID) <span class="kw">AS</span> StockLevel
+<span class="kw">FROM</span> Production.Product <span class="kw">AS</span> p
+<span class="kw">WHERE</span> p.Color = <span class="str">'Black'</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter7/fig-7-25-scalar-function-plan.png"
+             alt="Simple plan: SELECT, Compute Scalar, Clustered Index Scan on Product.">
+        <figcaption><b>Figure 7-25</b> — The actual plan looks trivial: scan (93 black products) → <b>Compute Scalar</b> → SELECT. Where's the data access inside the function? <b>Nowhere.</b></figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter7/fig-7-26-scalar-function-defined-values.png"
+             alt="Compute Scalar Defined Values showing the call to the scalar function.">
+        <figcaption><b>Figure 7-26</b> — The Compute Scalar's <b>Defined Values</b> is the entire visible evidence of the function call.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>The reveal: capture an <i>estimated</i> plan instead</b>
+        The estimated plan shows <b>two</b> plans: your query, plus the function's own plan. That second plan
+        is the hidden cost behind the Compute Scalar.
+      </div>
+
+      <figure>
+        <img src="images/chapter7/fig-7-27-estimated-plan-with-function-plans.png"
+             alt="Estimated plan showing a UDF T-SQL operator with three sub-branches: SELECT with Stream Aggregate, COND with ASSIGN, and RETURN.">
+        <figcaption><b>Figure 7-27</b> — The function's three statements, each with its own branch: <b>SELECT</b> (seek + Stream Aggregate), <b>COND → ASSIGN</b> (the <code class="inl">IF @ret IS NULL</code> check) and <b>RETURN</b>.</figcaption>
+      </figure>
+
+      <p>
+        Each sub-branch carries its own Plan Hash and Optimization Level. And the arithmetic of the hidden
+        cost is brutal:
+      </p>
+      <div class="code">
+        <header><span>Counting the real work</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="cm">-- STATISTICS IO reports only this:</span>
+Table <span class="str">'Product'</span>. logical reads 15   <span class="cm">-- 93 rows returned</span>
+
+<span class="cm">-- Extended Events reports the truth:</span>
+logical reads 211        <span class="cm">-- 93 executions of the UDF, each seeking</span>
+rows         365         <span class="cm">-- processed inside the function</span></code></pre>
+        <div class="cap">The UDF runs once per output row — 93 times — and <code class="inl">STATISTICS IO</code> doesn't count the I/O inside it.</div>
+      </div>
+      <p>
+        A join between the same two tables would return the same rows with far fewer logical reads.
+      </p>
+
+      <h3 class="step">Inline table-valued functions</h3>
+      <div class="code">
+        <header><span>Listing 7-16 · rewrite as an inline TVF</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE FUNCTION</span> dbo.GetStock (@ProductID <span class="kw">INT</span>)
+<span class="kw">RETURNS TABLE</span>
+<span class="kw">AS</span>
+<span class="kw">RETURN</span>
+(
+    <span class="kw">SELECT SUM</span>(pi.Quantity) <span class="kw">AS</span> QuantitySum
+    <span class="kw">FROM</span> Production.ProductInventory <span class="kw">AS</span> pi
+    <span class="kw">WHERE</span> pi.ProductID = @ProductID
+          <span class="kw">AND</span> pi.LocationID = <span class="str">'6'</span>
+);</code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 7-17 · call it with CROSS APPLY</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.Name,
+       gs.QuantitySum
+<span class="kw">FROM</span> Production.Product <span class="kw">AS</span> p
+<span class="kw">CROSS APPLY</span> dbo.GetStock(p.ProductID) <span class="kw">AS</span> gs
+<span class="kw">WHERE</span> p.Color = <span class="kw">'Black'</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter7/fig-7-28-inline-tvf-plan.png"
+             alt="Inline TVF plan: Merge Join (Right Outer Join) 23% between ProductInventory scan 31% and Product scan 44%, with a Compute Scalar.">
+        <figcaption><b>Figure 7-28</b> — Fully merged into one plan. <b>No aggregation operator anywhere</b> — see below for why.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>Why there's no SUM operator</b>
+        The optimizer combines the <code class="inl">LocationID = '6'</code> filter with the metadata that
+        <code class="inl">ProductID</code> is <b>unique</b> in the index, and concludes: at most one row per
+        product. If there can only be one row, summing is pointless — so the aggregation is eliminated.
+        The Compute Scalar is just the <code class="inl">SMALLINT → INT</code> conversion that SUM would
+        have done.
+      </div>
+      <p>
+        Crucially: <b>no hidden cost</b>. An estimated plan of Listing 7-17 looks the same as Figure 7-28
+        minus runtime values, and all the rows the query needs are visible.
+      </p>
+
+      <h3 class="step">Multi-statement table-valued functions</h3>
+      <div class="code">
+        <header><span>Listing 7-18 · the same logic, as an MSTVF</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE FUNCTION</span> dbo.GetStock2 (@ProductID <span class="kw">INT</span>)
+<span class="kw">RETURNS</span> @GetStock <span class="kw">TABLE</span> (QuantitySum <span class="kw">int NULL</span>)
+<span class="kw">AS</span>
+<span class="kw">BEGIN</span>
+    <span class="kw">INSERT</span> @GetStock (QuantitySum)
+    <span class="kw">SELECT SUM</span>(pi.Quantity) <span class="kw">AS</span> QuantitySum
+    <span class="kw">FROM</span> Production.ProductInventory <span class="kw">AS</span> pi
+    <span class="kw">WHERE</span> pi.ProductID = @ProductID
+          <span class="kw">AND</span> pi.LocationID = <span class="kw">'6'</span>;
+    <span class="kw">RETURN</span>;
+<span class="kw">END</span></code></pre>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter7/fig-7-29-mstvf-plan.png"
+               alt="MSTVF plan with a Table Valued Function operator on the inner input of a Nested Loops.">
+          <figcaption><b>Figure 7-29</b> — Hidden functionality is back: a <b>Table Valued Function</b> operator on the inner input of a Nested Loops.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter7/fig-7-30-tvf-operator-properties.png"
+               alt="Table Valued Function operator properties showing Estimated Number of Executions 93, Estimated Number of Rows 100, Actual Number of Rows 93, Actual Rebinds 93.">
+          <figcaption><b>Figure 7-30</b> — The tell: <b>Estimated Number of Rows = 100</b>, and 93 executions ⇒ 9,300 rows guessed. Reality: 93.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note warn">
+        <b>The 100-row lie</b>
+        Multi-statement TVFs are treated as <b>table variables</b>, and table variables get no statistics.
+        The cardinality estimator hard-codes their size: <b>1 row</b> before SQL Server 2014, <b>100 rows</b>
+        from 2014 onward. That estimate is completely detached from reality, so the optimizer cannot make
+        good choices.
+      </div>
+
+      <figure>
+        <img src="images/chapter7/fig-7-31-mstvf-estimated-plan.png"
+             alt="Estimated plan for the MSTVF showing the function's internals including a Table Insert operator.">
+        <figcaption><b>Figure 7-31</b> — The estimated plan reveals the internals: almost identical to the scalar function, plus a <b>Table Insert</b> to populate the table variable.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>The measured difference between the two function styles</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>dbo.GetStock  (inline TVF)        logical reads:   44
+dbo.GetStock2 (multi-statement)   logical reads: 1141</code></pre>
+        <div class="cap">Same logic, ~26× the I/O — purely because the optimizer had no information to work with.</div>
+      </div>
+    </section>
+
+    <section class="card" id="ch7-cheatsheet">
+      <h2><span class="num">★</span> Chapter 7 cheat sheet</h2>
+
+      <table>
+        <thead><tr><th>Construct</th><th>What the plan shows</th><th>The trap</th></tr></thead>
+        <tbody>
+          <tr><td><b>Stored procedure</b></td><td>One plan per statement, each with cost relative to the batch</td><td>DDL and <code class="inl">SET</code> statements produce <b>no plan</b>; long procedures can generate hundreds.</td></tr>
+          <tr><td><b>Correlated subquery</b></td><td>Nested Loops whose inner branch runs per outer row</td><td>Execution count explodes. <code class="inl">MAX()</code> or APPLY often beats <code class="inl">TOP(1) ORDER BY</code>.</td></tr>
+          <tr><td><b>APPLY / derived table</b></td><td>Fully expanded join — no special operator</td><td>Which form wins <b>depends on data distribution</b>. Measure it.</td></tr>
+          <tr><td><b>Recursive CTE</b></td><td>Concatenation + Index Spool + Table Spool with <b>With Stack = True</b></td><td>Primary Node ID tells you the spools are chained.</td></tr>
+          <tr><td><b>View</b></td><td>The expanded base tables — the view itself never appears</td><td>Narrow column lists let <b>simplification</b> remove tables; <code class="inl">SELECT *</code> doesn't.</td></tr>
+          <tr><td><b>Indexed view</b></td><td>One Clustered Index Scan (if matched) — or fully expanded again</td><td>Joining it can defeat matching; <code class="inl">NOEXPAND</code> or Enterprise/Developer may be needed.</td></tr>
+          <tr><td><b>Scalar UDF</b></td><td>Just a Compute Scalar — with a hidden second plan</td><td>Runs once per row; <code class="inl">STATISTICS IO</code> <b>cannot see its I/O</b>.</td></tr>
+          <tr><td><b>Inline TVF</b></td><td>Inline as a derived table; may even drop the aggregate</td><td>None — this is the good option.</td></tr>
+          <tr><td><b>Multi-statement TVF</b></td><td>A Table Valued Function operator with a hidden plan</td><td>Always estimated at <b>100 rows</b>. Catastrophic estimates.</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>Nothing special about a stored procedure's plans</b> — identify which statement is the problem via cost relative to the batch.</li>
+        <li><b>Compiled vs runtime parameter values</b> in the Parameter List is parameter sniffing, made visible.</li>
+        <li><b>Estimated plans reveal more than actual plans for functions.</b> Use both.</li>
+        <li><b>Prefer inline TVFs</b>; avoid scalar UDFs on large row counts and multi-statement TVFs entirely.</li>
+        <li><b>Measure with Extended Events</b>, not <code class="inl">STATISTICS IO</code>, whenever functions are involved.</li>
+        <li><b>Test with representative data</b> — the subquery-vs-APPLY verdict reversed with one <code class="inl">WHERE</code> clause.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        These plans are bigger, but there's nothing new in them. Use the first operator to understand how
+        the engine resolved the query, then read properties to follow the data between operators. Large
+        plans only cost more <b>time</b> to read — not new knowledge.
       </div>
     </section>
 
