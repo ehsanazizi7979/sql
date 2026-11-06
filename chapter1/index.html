@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>T-SQL Fundamentals — Chapters 1 &amp; 2 | Plain-English Study Companion</title>
-<meta name="description" content="Plain-English summaries of Chapters 1 and 2 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, and code samples.">
+<title>T-SQL Fundamentals — Chapters 1–3 | Plain-English Study Companion</title>
+<meta name="description" content="Plain-English summaries of Chapters 1, 2, and 3 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, and code samples.">
 <style>
   :root{
     --paper:#f7f4ed;
@@ -133,6 +133,12 @@
   .fig-cap{font-size:.86rem;font-weight:700;color:#26333f;margin:0 0 .35rem}
   .fig-exp{font-size:.88rem;color:#4b5866;margin:0}
   .fig-exp strong{color:#26333f}
+  .join-scroll{overflow-x:auto;margin:.4rem 0}
+  .join-svg{display:block;width:100%;min-width:760px;height:auto}
+  .join-svg text{font-family:var(--sans)}
+  .join-svg .jtitle{font-size:11px;font-weight:800;fill:#0b4f49;letter-spacing:.04em}
+  .join-svg .jlabel{font-size:11px;font-weight:700;fill:#0b4f49}
+  .join-svg .jcap{font-size:10.5px;fill:#5d6b7a}
 
   /* ---------- tables ---------- */
   .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:11px;margin:1rem 0}
@@ -230,28 +236,28 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="#top"><span class="brand-mark">1–2</span> T-SQL Fundamentals · Chapters 1 &amp; 2</a>
+    <a class="brand" href="#top"><span class="brand-mark">1–3</span> T-SQL Fundamentals · Chapters 1–3</a>
     <div class="topbar-meta">
-      <span>Plain-English summaries</span><span class="dot"></span><span>9 figures + 3 tables</span><span class="dot"></span><span>30+ code samples</span>
+      <span>Plain-English summaries</span><span class="dot"></span><span>9 figures + 3 tables</span><span class="dot"></span><span>60+ code samples</span>
     </div>
-    <a class="pill" href="#ch2-select">Jump to Chapter 2 ↓</a>
+    <a class="pill" href="#ch3-cross">Jump to Chapter 3 ↓</a>
   </div>
 </header>
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <span class="eyebrow">📘 Chapters 1 &amp; 2 · T-SQL Fundamentals, 4th Edition</span>
+    <span class="eyebrow">📘 Chapters 1–3 · T-SQL Fundamentals, 4th Edition</span>
     <h1>The ideas behind the queries</h1>
-    <p class="lede">A plain-English study companion for Chapters 1 and 2 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
+    <p class="lede">A plain-English study companion for Chapters 1, 2, and 3 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
     <div class="chips">
-      <span class="chip">2 chapters · 116 book pages</span>
+      <span class="chip">3 chapters · 148 book pages</span>
       <span class="chip">9 figures + 3 tables from the book</span>
-      <span class="chip">30+ code samples</span>
-      <span class="chip">~30 min read</span>
+      <span class="chip">60+ code samples</span>
+      <span class="chip">~45 min read</span>
     </div>
     <div class="hero-quote">
-      <span>The two-chapter version</span>
-      <p>Chapter 1 gives you the mental model — sets, logic, keys, and how SQL Server is organized. Chapter 2 turns that model into a real query: FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY — plus NULLs, strings, dates, and metadata.</p>
+      <span>The three-chapter version</span>
+      <p>Chapter 1 gives you the mental model — sets, logic, keys, and how SQL Server is organized. Chapter 2 turns that model into a single-table query. Chapter 3 combines tables: cross joins, inner joins, and outer joins, with the ON-vs-WHERE rules that prevent silent bugs.</p>
     </div>
   </div>
 </section>
@@ -282,9 +288,17 @@
       <a href="#ch2-practice"><span class="n">2.8</span> Practice: 10 exercises</a>
       <a href="#ch2-recap"><span class="n">2.9</span> Recap &amp; key terms</a>
       <a href="#ch2-quiz"><span class="n">2.10</span> Check yourself</a>
+      <div class="toc-group">Chapter 3 · Joins</div>
+      <a href="#ch3-cross"><span class="n">3.1</span> Cross joins</a>
+      <a href="#ch3-inner"><span class="n">3.2</span> Inner joins</a>
+      <a href="#ch3-more"><span class="n">3.3</span> More join examples</a>
+      <a href="#ch3-outer"><span class="n">3.4</span> Outer joins</a>
+      <a href="#ch3-practice"><span class="n">3.5</span> Practice: 9 exercises</a>
+      <a href="#ch3-recap"><span class="n">3.6</span> Recap &amp; key terms</a>
+      <a href="#ch3-quiz"><span class="n">3.7</span> Check yourself</a>
     </nav>
     <div class="toc-foot">
-      <strong>Reading tip:</strong> Chapter 1 is theory first, architecture second, hands-on last. Chapter 2 is the query itself. If you only have five minutes, read both recaps.
+      <strong>Reading tip:</strong> Chapter 1 is theory, Chapter 2 is the single-table query, Chapter 3 is combining tables. If you only have five minutes, read the three recaps.
     </div>
   </aside>
 
@@ -1825,6 +1839,590 @@ ORDER BY
       </details>
     </section>
 
+    <!-- ================= CHAPTER 3 ================= -->
+    <div class="part-divider" id="chapter-3">
+      <span class="part-eyebrow">Chapter 3 · Joins</span>
+      <h2>Put the tables together</h2>
+      <p>Chapter 2 queried one table. Chapter 3 combines tables with the <code>JOIN</code> operator: cross joins, inner joins, and outer joins — plus the composite, non-equi, and multi-join patterns, and the ON-vs-WHERE rule that prevents silent outer-join bugs.</p>
+      <div class="part-chips">
+        <span>Book pages 117–148</span>
+        <span>No figures or tables in this chapter</span>
+        <span>9 practice exercises</span>
+      </div>
+    </div>
+
+    <!-- 3.1 -->
+    <section class="section" id="ch3-cross">
+      <div class="section-head">
+        <div class="sec-num">3.1</div>
+        <div>
+          <div class="kicker">Cross joins</div>
+          <h2>The Cartesian product</h2>
+        </div>
+      </div>
+      <p class="lead">The <code>FROM</code> clause is the first logical phase, and table operators live there. T-SQL supports four: <code>JOIN</code> (standard), plus <code>APPLY</code>, <code>PIVOT</code>, and <code>UNPIVOT</code> (T-SQL extensions). This chapter focuses on <code>JOIN</code>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Join type</th><th>Logical phases</th><th>What it returns</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Cross join</strong></td><td>Cartesian product</td><td>Every row of the first table paired with every row of the second</td></tr>
+            <tr><td><strong>Inner join</strong></td><td>Cartesian product + filter</td><td>Only pairs for which the <code>ON</code> predicate is TRUE</td></tr>
+            <tr><td><strong>Outer join</strong></td><td>Cartesian product + filter + add outer rows</td><td>Inner matches plus unmatched rows from the preserved side, with NULLs</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>A cross join pairs each of the <em>m</em> rows in one input with all <em>n</em> rows in the other, producing <em>m × n</em> rows. T-SQL supports both the SQL-92 <code>CROSS JOIN</code> syntax and the older SQL-89 comma syntax.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cross join (SQL-92)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+SELECT C.custid, E.empid
+FROM Sales.Customers AS C
+  CROSS JOIN HR.Employees AS E;</code></pre>
+      </div>
+      <p>The sample database has 91 customers and 9 employees, so this returns 819 rows. The SQL-89 equivalent is <code>FROM Sales.Customers AS C, HR.Employees AS E</code>. Both are standard and perform identically; the book recommends the SQL-92 syntax for consistency and safety.</p>
+
+      <h3 class="subhead">Self cross joins</h3>
+      <p>You can join two instances of the same table. Aliasing is mandatory in a self join; otherwise every column name is ambiguous. Nine employees produce 81 pairs.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · self cross join</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT
+  E1.empid, E1.firstname, E1.lastname,
+  E2.empid, E2.firstname, E2.lastname
+FROM HR.Employees AS E1
+  CROSS JOIN HR.Employees AS E2;</code></pre>
+      </div>
+
+      <h3 class="subhead">Producing a table of numbers</h3>
+      <p>Cross joins are a classic way to generate a sequence of integers. Create a <code>Digits</code> table with 0–9, then cross join three instances to get 1,000 numbers. Add more instances for more numbers.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · create the Digits table</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+DROP TABLE IF EXISTS dbo.Digits;
+CREATE TABLE dbo.Digits(digit INT NOT NULL PRIMARY KEY);
+INSERT INTO dbo.Digits(digit)
+  VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9);</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · numbers 1–1000</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT D3.digit * 100 + D2.digit * 10 + D1.digit + 1 AS n
+FROM         dbo.Digits AS D1
+  CROSS JOIN dbo.Digits AS D2
+  CROSS JOIN dbo.Digits AS D3
+ORDER BY n;</code></pre>
+      </div>
+      <div class="note">
+        <strong>SQL Server 2022+ shortcut</strong>
+        <code>GENERATE_SERIES</code> produces a sequence of numbers directly, so the cross-join technique is mainly for older versions. The sample database also includes an auxiliary <code>dbo.Nums</code> table.
+      </div>
+    </section>
+
+    <!-- 3.2 -->
+    <section class="section" id="ch3-inner">
+      <div class="section-head">
+        <div class="sec-num">3.2</div>
+        <div>
+          <div class="kicker">Inner joins</div>
+          <h2>Matches only</h2>
+        </div>
+      </div>
+      <p class="lead">An inner join applies the Cartesian product and then filters rows by the <code>ON</code> predicate. Only rows for which the predicate is TRUE survive; FALSE and UNKNOWN are discarded.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · inner join (SQL-92)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+SELECT E.empid, E.firstname, E.lastname, O.orderid
+FROM HR.Employees AS E
+  INNER JOIN Sales.Orders AS O
+    ON E.empid = O.empid;</code></pre>
+      </div>
+      <p>Conceptually, SQL Server first produces 9 × 830 = 7,470 pairs, then filters to the 830 matching pairs. The <code>INNER</code> keyword is optional; <code>JOIN</code> alone means inner join. The SQL-89 equivalent puts the predicate in <code>WHERE</code>:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · inner join (SQL-89)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT E.empid, E.firstname, E.lastname, O.orderid
+FROM HR.Employees AS E, Sales.Orders AS O
+WHERE E.empid = O.empid;</code></pre>
+      </div>
+
+      <h3 class="subhead">Why the SQL-92 syntax is safer</h3>
+      <p>If you forget the <code>ON</code> clause in SQL-92, the query fails with a syntax error. If you forget the join predicate in the SQL-89 syntax, the query silently becomes a cross join — a logical bug that may go unnoticed. The SQL-92 syntax is also the only one that supports outer joins, so the book recommends it consistently.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · missing ON clause</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>-- This fails: Incorrect syntax near ';'
+SELECT E.empid, E.firstname, E.lastname, O.orderid
+FROM HR.Employees AS E
+  INNER JOIN Sales.Orders AS O;</code></pre>
+      </div>
+    </section>
+
+    <!-- 3.3 -->
+    <section class="section" id="ch3-more">
+      <div class="section-head">
+        <div class="sec-num">3.3</div>
+        <div>
+          <div class="kicker">More join examples</div>
+          <h2>Composite, non-equi, and multi-joins</h2>
+        </div>
+      </div>
+      <p class="lead">Joins can match on several columns, use operators other than equality, and chain together across many tables.</p>
+
+      <h3 class="subhead">Composite joins</h3>
+      <p>A composite join matches on multiple attributes. This is common when a primary key–foreign key relationship spans more than one column. In the sample database, <code>OrderDetails</code> is keyed on <code>(orderid, productid)</code>, so an audit table that references it needs both columns in the <code>ON</code> clause.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · composite join</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT OD.orderid, OD.productid, OD.qty,
+  ODA.dt, ODA.loginname, ODA.oldval, ODA.newval
+FROM Sales.OrderDetails AS OD
+  INNER JOIN Sales.OrderDetailsAudit AS ODA
+    ON OD.orderid = ODA.orderid
+    AND OD.productid = ODA.productid
+WHERE ODA.columnname = N'qty';</code></pre>
+      </div>
+
+      <h3 class="subhead">Non-equi joins</h3>
+      <p>An equi join uses only equality. A non-equi join uses any other operator. A <em>theta join</em> is an inner join with an explicit binary predicate; both equi and non-equi joins are theta joins. T-SQL does not implement the standard <code>NATURAL JOIN</code>.</p>
+      <p>The following self join uses <code>&lt;</code> to produce each pair of employees once: no self-pairs and no mirrored duplicates. Of the 81 pairs a cross join would return, 36 remain.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · non-equi join</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT
+  E1.empid, E1.firstname, E1.lastname,
+  E2.empid, E2.firstname, E2.lastname
+FROM HR.Employees AS E1
+  INNER JOIN HR.Employees AS E2
+    ON E1.empid &lt; E2.empid;</code></pre>
+      </div>
+
+      <h3 class="subhead">Multi-join queries</h3>
+      <p>A join operator works on two tables, but a query can chain many. Table operators are logically processed in written order: the result of the first join becomes the left input of the second, and so on. The engine may reorder cross and inner joins internally for optimization, because reordering them cannot change the result.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · multi-join</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT
+  C.custid, C.companyname, O.orderid,
+  OD.productid, OD.qty
+FROM Sales.Customers AS C
+  INNER JOIN Sales.Orders AS O
+    ON C.custid = O.custid
+  INNER JOIN Sales.OrderDetails AS OD
+    ON O.orderid = OD.orderid;</code></pre>
+      </div>
+    </section>
+
+    <!-- 3.4 -->
+    <section class="section" id="ch3-outer">
+      <div class="section-head">
+        <div class="sec-num">3.4</div>
+        <div>
+          <div class="kicker">Outer joins</div>
+          <h2>Keep the rows that don’t match</h2>
+        </div>
+      </div>
+      <p class="lead">An outer join adds a third phase: after the Cartesian product and the filter, it adds back the unmatched rows from the preserved side, using NULLs as placeholders for the nonpreserved side.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">JOIN TYPES</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 200" role="img" aria-label="Diagram of cross, inner, left outer, right outer, and full outer joins">
+                <defs>
+                  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                </defs>
+                <g transform="translate(0,0)">
+                  <text x="90" y="18" text-anchor="middle" class="jtitle">CROSS JOIN</text>
+                  <rect x="18" y="58" width="52" height="84" rx="4" fill="#e4f1ee" stroke="#0f6b63"/>
+                  <text x="44" y="105" text-anchor="middle" class="jlabel">T1</text>
+                  <rect x="110" y="58" width="52" height="84" rx="4" fill="#e4f1ee" stroke="#0f6b63"/>
+                  <text x="136" y="105" text-anchor="middle" class="jlabel">T2</text>
+                  <line x1="72" y1="100" x2="108" y2="100" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow)"/>
+                  <text x="90" y="88" text-anchor="middle" class="jlabel">m × n</text>
+                  <text x="90" y="170" text-anchor="middle" class="jcap">every pair</text>
+                </g>
+                <g transform="translate(180,0)">
+                  <text x="90" y="18" text-anchor="middle" class="jtitle">INNER JOIN</text>
+                  <text x="55" y="55" text-anchor="middle" class="jlabel">T1</text>
+                  <text x="125" y="55" text-anchor="middle" class="jlabel">T2</text>
+                  <circle cx="70" cy="100" r="38" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <circle cx="110" cy="100" r="38" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <path d="M 90 67.7 A 38 38 0 0 1 90 132.3 A 38 38 0 0 1 90 67.7" fill="#0f6b63"/>
+                  <text x="90" y="170" text-anchor="middle" class="jcap">matches only</text>
+                </g>
+                <g transform="translate(360,0)">
+                  <text x="90" y="18" text-anchor="middle" class="jtitle">LEFT OUTER JOIN</text>
+                  <text x="55" y="55" text-anchor="middle" class="jlabel">T1</text>
+                  <text x="125" y="55" text-anchor="middle" class="jlabel">T2</text>
+                  <circle cx="70" cy="100" r="38" fill="#9fd8cf" stroke="#0f6b63" stroke-width="1.5"/>
+                  <circle cx="110" cy="100" r="38" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <path d="M 90 67.7 A 38 38 0 0 1 90 132.3 A 38 38 0 0 1 90 67.7" fill="#0b4f49"/>
+                  <text x="90" y="170" text-anchor="middle" class="jcap">all T1 + matches</text>
+                </g>
+                <g transform="translate(540,0)">
+                  <text x="90" y="18" text-anchor="middle" class="jtitle">RIGHT OUTER JOIN</text>
+                  <text x="55" y="55" text-anchor="middle" class="jlabel">T1</text>
+                  <text x="125" y="55" text-anchor="middle" class="jlabel">T2</text>
+                  <circle cx="70" cy="100" r="38" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <circle cx="110" cy="100" r="38" fill="#9fd8cf" stroke="#0f6b63" stroke-width="1.5"/>
+                  <path d="M 90 67.7 A 38 38 0 0 1 90 132.3 A 38 38 0 0 1 90 67.7" fill="#0b4f49"/>
+                  <text x="90" y="170" text-anchor="middle" class="jcap">all T2 + matches</text>
+                </g>
+                <g transform="translate(720,0)">
+                  <text x="90" y="18" text-anchor="middle" class="jtitle">FULL OUTER JOIN</text>
+                  <text x="55" y="55" text-anchor="middle" class="jlabel">T1</text>
+                  <text x="125" y="55" text-anchor="middle" class="jlabel">T2</text>
+                  <circle cx="70" cy="100" r="38" fill="#9fd8cf" stroke="#0f6b63" stroke-width="1.5"/>
+                  <circle cx="110" cy="100" r="38" fill="#9fd8cf" stroke="#0f6b63" stroke-width="1.5"/>
+                  <path d="M 90 67.7 A 38 38 0 0 1 90 132.3 A 38 38 0 0 1 90 67.7" fill="#0b4f49"/>
+                  <text x="90" y="170" text-anchor="middle" class="jcap">all T1 + all T2</text>
+                </g>
+              </svg>
+            </div>
+            <p class="fig-cap">The three fundamental join types</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> an original study diagram (the book has no figures for this chapter). A cross join pairs every row with every row. An inner join keeps only the overlap. A left outer join keeps all of T1 plus the overlap; a right outer join keeps all of T2 plus the overlap; a full outer join keeps everything. The dark lens is the matched region.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">Left, right, and full outer joins</h3>
+      <p>The <strong>preserved side</strong> is the table whose rows you want to keep. The <strong>nonpreserved side</strong> may contribute NULLs. A left outer join preserves the left table; a right outer join preserves the right table; a full outer join preserves both.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · left outer join</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT C.custid, C.companyname, O.orderid
+FROM Sales.Customers AS C
+  LEFT OUTER JOIN Sales.Orders AS O
+    ON C.custid = O.custid;</code></pre>
+      </div>
+      <p>Customers 22 and 57 placed no orders. The outer join returns them with <code>NULL</code> in the order columns; an inner join would drop them. The result has 832 rows: 830 inner rows plus 2 outer rows.</p>
+
+      <h3 class="subhead">The ON vs. WHERE rule</h3>
+      <p>This is the most important practical rule in the chapter. The <code>ON</code> predicate is <strong>nonfinal</strong>: it decides which rows from the nonpreserved side match, but it does not decide whether a preserved row appears. The <code>WHERE</code> predicate is <strong>final</strong>: it runs after outer rows are produced. If you put a predicate on the nonpreserved side in <code>WHERE</code>, all outer rows are discarded and the outer join silently becomes an inner join.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the classic outer-join bug</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT C.custid, C.companyname, O.orderid, O.orderdate
+FROM Sales.Customers AS C
+  LEFT OUTER JOIN Sales.Orders AS O
+    ON C.custid = O.custid
+WHERE O.orderdate &gt;= '20220101';</code></pre>
+      </div>
+      <p>For customers with no orders, <code>O.orderdate</code> is NULL, so the predicate evaluates to UNKNOWN and the WHERE clause removes those rows. The outer join becomes an inner join. If the date condition is meant to control which orders match, put it in the <code>ON</code> clause.</p>
+
+      <h3 class="subhead">Finding customers with no orders</h3>
+      <p>To return only outer rows, filter the nonpreserved side for NULL in the <code>WHERE</code> clause. Choose a column that can be NULL only for an outer row — a primary key, the join column, or a <code>NOT NULL</code> column.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · customers with no orders</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT C.custid, C.companyname
+FROM Sales.Customers AS C
+  LEFT OUTER JOIN Sales.Orders AS O
+    ON O.custid = C.custid
+WHERE O.orderid IS NULL;</code></pre>
+      </div>
+
+      <h3 class="subhead">Including missing values</h3>
+      <p>Outer joins are also a tool for reporting on gaps. To return every date in a range — including dates with no orders — generate the dates with <code>dbo.Nums</code>, then left join to <code>Orders</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · all dates, including missing ones</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT DATEADD(day, Nums.n - 1, CAST('20200101' AS DATE)) AS orderdate,
+  O.orderid, O.custid, O.empid
+FROM dbo.Nums
+  LEFT OUTER JOIN Sales.Orders AS O
+    ON DATEADD(day, Nums.n - 1, CAST('20200101' AS DATE)) = O.orderdate
+WHERE Nums.n &lt;= DATEDIFF(day, '20200101', '20221231') + 1
+ORDER BY orderdate;</code></pre>
+      </div>
+      <p>Dates with no orders appear with NULLs in the order columns. SQL Server 2022+ can replace <code>dbo.Nums</code> with <code>GENERATE_SERIES</code>.</p>
+
+      <h3 class="subhead">Outer joins in multi-join queries</h3>
+      <p>Table operators are processed in written order. If an outer join is followed by an inner join that compares a NULL from the nonpreserved side, the outer rows are discarded. The outer join is effectively nullified.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · outer join nullified by a later inner join</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT C.custid, O.orderid, OD.productid, OD.qty
+FROM Sales.Customers AS C
+  LEFT OUTER JOIN Sales.Orders AS O
+    ON C.custid = O.custid
+  INNER JOIN Sales.OrderDetails AS OD
+    ON O.orderid = OD.orderid;</code></pre>
+      </div>
+      <p>Customers 22 and 57 disappear because <code>O.orderid</code> is NULL for them, so the second join’s predicate is UNKNOWN. Three fixes:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · fix 1: make the second join an outer join</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT C.custid, O.orderid, OD.productid, OD.qty
+FROM Sales.Customers AS C
+  LEFT OUTER JOIN Sales.Orders AS O
+    ON C.custid = O.custid
+  LEFT OUTER JOIN Sales.OrderDetails AS OD
+    ON O.orderid = OD.orderid;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · fix 2: inner join first, then right outer join</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT C.custid, O.orderid, OD.productid, OD.qty
+FROM Sales.Orders AS O
+  INNER JOIN Sales.OrderDetails AS OD
+    ON O.orderid = OD.orderid
+  RIGHT OUTER JOIN Sales.Customers AS C
+    ON O.custid = C.custid;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · fix 3: nested joins</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT C.custid, O.orderid, OD.productid, OD.qty
+FROM Sales.Customers AS C
+  LEFT OUTER JOIN
+      (Sales.Orders AS O
+         INNER JOIN Sales.OrderDetails AS OD
+           ON O.orderid = OD.orderid)
+    ON C.custid = O.custid;</code></pre>
+      </div>
+      <p>Fix 1 preserves orders that have no order lines, which is usually not what you want. Fix 2 produces the outer rows last, so they survive. Fix 3 treats the inner join as one unit and is often the clearest.</p>
+
+      <h3 class="subhead">COUNT(*) vs. COUNT(column) with outer joins</h3>
+      <p><code>COUNT(*)</code> counts rows, including outer rows. If you want to count only matches, count a column from the nonpreserved side: <code>COUNT(O.orderid)</code> ignores the NULLs in outer rows.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · counting orders per customer</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT C.custid, COUNT(O.orderid) AS numorders
+FROM Sales.Customers AS C
+  LEFT OUTER JOIN Sales.Orders AS O
+    ON O.custid = C.custid
+GROUP BY C.custid;</code></pre>
+      </div>
+      <p>Customers 22 and 57 now show 0 instead of 1. Use a column that can be NULL only for an outer row, such as the primary key <code>orderid</code>.</p>
+    </section>
+
+    <!-- 3.5 -->
+    <section class="section" id="ch3-practice">
+      <div class="section-head">
+        <div class="sec-num">3.5</div>
+        <div>
+          <div class="kicker">Practice</div>
+          <h2>Nine exercises, with the book’s solutions</h2>
+        </div>
+      </div>
+      <p class="lead">Try each one before opening the solution. The sample database is <code>TSQLV6</code>; the main tables are <code>HR.Employees</code>, <code>Sales.Customers</code>, <code>Sales.Orders</code>, <code>Sales.OrderDetails</code>, and <code>dbo.Nums</code>.</p>
+
+      <details>
+        <summary>Exercise 1-1 · Five copies of each employee row</summary>
+        <div class="answer">
+          <p>Cross join <code>Employees</code> with <code>dbo.Nums</code>, then filter to five numbers.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT E.empid, E.firstname, E.lastname, N.n
+FROM HR.Employees AS E
+  CROSS JOIN dbo.Nums AS N
+WHERE N.n &lt;= 5
+ORDER BY n, empid;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 1-2 · A row for each employee and each day, June 12–16, 2022</summary>
+        <div class="answer">
+          <p>Cross join with <code>dbo.Nums</code>, use <code>DATEDIFF</code> to calculate the number of days, and add <code>n - 1</code> days to the start date.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT E.empid,
+  DATEADD(day, D.n - 1, CAST('20220612' AS DATE)) AS dt
+FROM HR.Employees AS E
+  CROSS JOIN dbo.Nums AS D
+WHERE D.n &lt;= DATEDIFF(day, '20220612', '20220616') + 1
+ORDER BY empid, dt;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 2 · Fix the invalid alias references</summary>
+        <div class="answer">
+          <p>The query aliases the tables as <code>C</code> and <code>O</code>, but then refers to <code>Customers</code> and <code>Orders</code>. Once aliased, only the alias is available. Use the aliases (or drop the aliases and use the full names).</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · corrected query</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT C.custid, C.companyname, O.orderid, O.orderdate
+FROM Sales.Customers AS C
+  INNER JOIN Sales.Orders AS O
+    ON C.custid = O.custid;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 3 · US customers with total orders and quantities</summary>
+        <div class="answer">
+          <p>Join all three tables, filter by country, group by customer. Because the join produces one row per order line, use <code>COUNT(DISTINCT O.orderid)</code> for the number of orders.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT C.custid, COUNT(DISTINCT O.orderid) AS numorders,
+  SUM(OD.qty) AS totalqty
+FROM Sales.Customers AS C
+  INNER JOIN Sales.Orders AS O
+    ON O.custid = C.custid
+  INNER JOIN Sales.OrderDetails AS OD
+    ON OD.orderid = O.orderid
+WHERE C.country = N'USA'
+GROUP BY C.custid;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 4 · Customers and their orders, including customers with no orders</summary>
+        <div class="answer">
+          <p>A left outer join preserves all customers.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT C.custid, C.companyname, O.orderid, O.orderdate
+FROM Sales.Customers AS C
+  LEFT OUTER JOIN Sales.Orders AS O
+    ON O.custid = C.custid;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 5 · Customers who placed no orders</summary>
+        <div class="answer">
+          <p>Left join, then keep only outer rows with <code>WHERE O.orderid IS NULL</code>.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT C.custid, C.companyname
+FROM Sales.Customers AS C
+  LEFT OUTER JOIN Sales.Orders AS O
+    ON O.custid = C.custid
+WHERE O.orderid IS NULL;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 6 · Customers with orders on February 12, 2022</summary>
+        <div class="answer">
+          <p>An inner join plus a date filter is enough, because the request only asks for customers with orders on that date.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT C.custid, C.companyname, O.orderid, O.orderdate
+FROM Sales.Customers AS C
+  INNER JOIN Sales.Orders AS O
+    ON O.custid = C.custid
+WHERE O.orderdate = '20220212';</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 7 · All customers, matching orders only on February 12, 2022</summary>
+        <div class="answer">
+          <p>Preserve all customers with a left outer join, and put the date predicate in <code>ON</code> — it is a nonfinal matching predicate.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT C.custid, C.companyname, O.orderid, O.orderdate
+FROM Sales.Customers AS C
+  LEFT OUTER JOIN Sales.Orders AS O
+    ON O.custid = C.custid
+    AND O.orderdate = '20220212';</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 8 · Why the WHERE OR query is wrong</summary>
+        <div class="answer">
+          <p>The query is:</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · the incorrect query</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT C.custid, C.companyname, O.orderid, O.orderdate
+FROM Sales.Customers AS C
+  LEFT OUTER JOIN Sales.Orders AS O
+    ON O.custid = C.custid
+WHERE O.orderdate = '20220212'
+   OR O.orderid IS NULL;</code></pre>
+          </div>
+          <p>It keeps customers with an order on February 12 and customers with no orders at all. But it drops customers who placed orders on other dates — and Exercise 7 requires <em>all</em> customers. The date predicate belongs in <code>ON</code>, not <code>WHERE</code>.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 9 · All customers with a Yes/No for February 12, 2022</summary>
+        <div class="answer">
+          <p>Left join with the date predicate in <code>ON</code>, then use a <code>CASE</code> expression on the nonpreserved side. <code>DISTINCT</code> collapses multiple matching orders into one row per customer.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT DISTINCT C.custid, C.companyname,
+  CASE WHEN O.orderid IS NOT NULL THEN 'Yes' ELSE 'No' END
+    AS HasOrderOn20220212
+FROM Sales.Customers AS C
+  LEFT OUTER JOIN Sales.Orders AS O
+    ON O.custid = C.custid
+    AND O.orderdate = '20220212';</code></pre>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- 3.6 -->
+    <section class="section" id="ch3-recap">
+      <div class="section-head">
+        <div class="sec-num">3.6</div>
+        <div>
+          <div class="kicker">Takeaways</div>
+          <h2>Chapter 3 in ten bullets</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li><strong><code>JOIN</code> is a table operator</strong> processed in the <code>FROM</code> clause. Cross, inner, and outer are the three fundamental types.</li>
+        <li><strong>A cross join is a Cartesian product:</strong> every row of the first table paired with every row of the second, producing <em>m × n</em> rows.</li>
+        <li><strong>An inner join is a Cartesian product plus a filter:</strong> only pairs where the <code>ON</code> predicate is TRUE survive.</li>
+        <li><strong>Use the SQL-92 syntax.</strong> It is the only syntax that supports outer joins, and a missing <code>ON</code> clause fails loudly instead of silently becoming a cross join.</li>
+        <li><strong>Composite joins</strong> match on multiple columns; <strong>non-equi joins</strong> use operators other than equality.</li>
+        <li><strong>Multi-joins are processed in written order:</strong> each join’s result becomes the left input of the next. The engine may reorder cross and inner joins for optimization.</li>
+        <li><strong>An outer join adds unmatched rows</strong> from the preserved side, using NULLs for the nonpreserved side.</li>
+        <li><strong><code>ON</code> is nonfinal; <code>WHERE</code> is final.</strong> Filtering the nonpreserved side in <code>WHERE</code> turns an outer join into an inner join.</li>
+        <li><strong>Outer rows can be nullified</strong> by a later inner join or right outer join that compares their NULLs. Use nested joins or reorder the joins.</li>
+        <li><strong><code>COUNT(*)</code> counts outer rows;</strong> <code>COUNT(O.orderid)</code> counts only matches. Use a column that is NULL only for outer rows.</li>
+      </ul>
+
+      <h3 class="subhead">Chapter 3 key terms</h3>
+      <dl class="terms">
+        <div class="term"><dt>Cross join</dt><dd>A join that returns the Cartesian product of two tables: every row paired with every row.</dd></div>
+        <div class="term"><dt>Inner join</dt><dd>A join that returns only rows for which the <code>ON</code> predicate is TRUE.</dd></div>
+        <div class="term"><dt>Outer join</dt><dd>A join that preserves unmatched rows from one or both sides, filling the other side with NULLs.</dd></div>
+        <div class="term"><dt>Preserved side</dt><dd>The table whose rows an outer join keeps, even when no match exists.</dd></div>
+        <div class="term"><dt>Nonpreserved side</dt><dd>The table that may contribute NULLs in outer rows.</dd></div>
+        <div class="term"><dt>Inner row / outer row</dt><dd>An inner row has a match; an outer row has no match and contains NULLs on the nonpreserved side.</dd></div>
+        <div class="term"><dt>Composite join</dt><dd>A join whose <code>ON</code> predicate matches on more than one column.</dd></div>
+        <div class="term"><dt>Non-equi join</dt><dd>A join whose predicate uses an operator other than equality, such as <code>&lt;</code> or <code>&gt;</code>.</dd></div>
+        <div class="term"><dt>Theta join</dt><dd>An inner join with an explicit binary predicate; both equi and non-equi joins are theta joins.</dd></div>
+        <div class="term"><dt>Multi-join</dt><dd>A query with more than one table operator, processed in written order.</dd></div>
+        <div class="term"><dt>Nonfinal predicate</dt><dd>A matching predicate in <code>ON</code>; it controls which rows match, not whether preserved rows survive.</dd></div>
+        <div class="term"><dt>Final predicate</dt><dd>A filter in <code>WHERE</code>, applied after outer rows are produced.</dd></div>
+        <div class="term"><dt>Nested join</dt><dd>A join grouped with parentheses so it is treated as a single unit by an outer join.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 3.7 -->
+    <section class="section" id="ch3-quiz">
+      <div class="section-head">
+        <div class="sec-num">3.7</div>
+        <div>
+          <div class="kicker">Check yourself</div>
+          <h2>Six quick questions</h2>
+        </div>
+      </div>
+      <p class="lead">Try to answer before opening each one. If you can explain it in your own words, you’ve got the chapter.</p>
+
+      <details>
+        <summary>What logical phases does each fundamental join type apply?</summary>
+        <div class="answer"><strong>Cross join:</strong> Cartesian product only. <strong>Inner join:</strong> Cartesian product + filter. <strong>Outer join:</strong> Cartesian product + filter + add outer rows. The outer join’s third phase preserves unmatched rows from the preserved side and fills the nonpreserved side with NULLs.</div>
+      </details>
+      <details>
+        <summary>Why does the book recommend the SQL-92 join syntax?</summary>
+        <div class="answer">It is the only syntax that supports all three fundamental join types, and it fails with a syntax error if you forget the <code>ON</code> clause. The SQL-89 comma syntax silently turns a forgotten predicate into a cross join, which is a logical bug that can go unnoticed.</div>
+      </details>
+      <details>
+        <summary>What is the difference between a predicate in ON and a predicate in WHERE?</summary>
+        <div class="answer"><code>ON</code> is a nonfinal matching predicate: it decides which rows from the nonpreserved side match. <code>WHERE</code> is a final filter, applied after outer rows are produced. Putting a nonpreserved-side predicate in <code>WHERE</code> discards all outer rows and turns the outer join into an inner join.</div>
+      </details>
+      <details>
+        <summary>How do you return customers who placed no orders?</summary>
+        <div class="answer">Use a left outer join from <code>Customers</code> to <code>Orders</code>, then filter with <code>WHERE O.orderid IS NULL</code>. Choose a column that can be NULL only for an outer row, such as the primary key, the join column, or a <code>NOT NULL</code> column.</div>
+      </details>
+      <details>
+        <summary>Why can an outer join followed by an inner join silently become an inner join?</summary>
+        <div class="answer">Outer rows have NULLs on the nonpreserved side. If the next join compares those NULLs to another table, the predicate evaluates to UNKNOWN and the outer rows are filtered out. Use another outer join, a right outer join, or nested joins to preserve them.</div>
+      </details>
+      <details>
+        <summary>Why use COUNT(O.orderid) instead of COUNT(*) with an outer join?</summary>
+        <div class="answer"><code>COUNT(*)</code> counts outer rows too, so a customer with no orders would show a count of 1. <code>COUNT(O.orderid)</code> ignores the NULL in the nonpreserved side, so the customer shows 0.</div>
+      </details>
+    </section>
+
   </main>
 </div>
 
@@ -1832,12 +2430,12 @@ ORDER BY
   <div class="footer-inner">
     <div>
       <h3>About this summary</h3>
-      <p>A study companion for <strong>Chapters 1 and 2</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26, and Chapter 2, pages 27–116.</p>
-      <p class="fine">All nine figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
+      <p>A study companion for <strong>Chapters 1, 2, and 3</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148.</p>
+      <p class="fine">All nine figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapter 3 has no figures or tables; the join-types diagram is an original study aid, not from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
     </div>
     <div>
       <h3>Navigate</h3>
-      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch2-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch2-quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch3-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch3-quiz" style="color:#9fe0d6">Quiz</a></p>
       <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
     </div>
   </div>
