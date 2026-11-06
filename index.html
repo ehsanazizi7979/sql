@@ -230,9 +230,9 @@
       figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">7 chapters covered</span>
-      <span class="badge">64 book listings</span>
-      <span class="badge">159 figures</span>
+      <span class="badge">8 chapters covered</span>
+      <span class="badge">80 book listings</span>
+      <span class="badge">182 figures</span>
       <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
@@ -309,6 +309,15 @@
     <a class="mini" href="#ch7-views">Views</a>
     <a class="mini" href="#ch7-functions">Functions</a>
     <a class="mini" href="#ch7-cheatsheet">Cheat sheet</a>
+
+    <div class="grp">Chapter 8 · Examining Index Usage</div>
+    <a class="mini" href="#ch8-indexes">How indexes get chosen</a>
+    <a class="mini" href="#ch8-statistics">Statistics &amp; selectivity</a>
+    <a class="mini" href="#ch8-stale">Stale statistics</a>
+    <a class="mini" href="#ch8-sniffing">Parameter sniffing</a>
+    <a class="mini" href="#ch8-columnstore">Columnstore indexes</a>
+    <a class="mini" href="#ch8-inmemory">Memory-optimized indexes</a>
+    <a class="mini" href="#ch8-cheatsheet">Cheat sheet</a>
   </nav>
 
   <main>
@@ -4410,6 +4419,876 @@ dbo.GetStock2 (multi-statement)   logical reads: 1141</code></pre>
         These plans are bigger, but there's nothing new in them. Use the first operator to understand how
         the engine resolved the query, then read properties to follow the data between operators. Large
         plans only cost more <b>time</b> to read — not new knowledge.
+      </div>
+    </section>
+
+    <div class="chapterbar" id="chapter8">
+      <span class="cnum">Chapter 8</span>
+      <div>
+        <h2>Examining Index Usage</h2>
+        <p>Why the optimizer picks the index it picks — and the three things that break that
+        choice: bad statistics, stale statistics, and parameter sniffing. Then the two index types
+        that look different in a plan: columnstore and memory-optimized.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch8-indexes">
+      <h2><span class="num">1</span> The optimizer's shopping list</h2>
+      <p class="lede">An index is only used if it's <b>selective</b> — and "selective" is a number the optimizer pulls out of statistics, not a quality you can see by looking at your query.</p>
+
+      <p>
+        The chapter opens with a warning worth taking literally: you <b>cannot</b> fix every slow query
+        by adding an index, and you can absolutely have <b>too many</b> indexes. Every index you add is
+        maintained on every <code class="inl">INSERT</code>, <code class="inl">UPDATE</code>,
+        <code class="inl">DELETE</code> and <code class="inl">MERGE</code>. The goal is the
+        <b>minimal set</b> that helps the optimizer resolve the most important, expensive and frequent
+        queries in your workload as cheaply as possible.
+      </p>
+
+      <div class="plain">
+        <div><span>Clustered index</span>Replaces the heap. Stores <b>all</b> the table data, ordered by the clustering key, so ranges of keys are physically adjacent.</div>
+        <div><span>Nonclustered index</span>Stores only the key values plus a <b>pointer</b> back to the row (the clustered key, or the RID on a heap). <code class="inl">INCLUDE</code> pads it with extra leaf-level columns.</div>
+      </div>
+
+      <p>
+        To experiment, the book builds a heap-free copy of <code class="inl">Sales.SalesOrderDetail</code>
+        with a clustered primary key and two nonclustered indexes — one on
+        <code class="inl">ProductID</code>, one on <code class="inl">OrderQty</code>:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 8-1 · build the test table</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DROP TABLE IF EXISTS</span> NewOrders ;
+<span class="kw">GO</span>
+<span class="kw">SELECT</span> SalesOrderID,
+       SalesOrderDetailID,
+       CarrierTrackingNumber,
+       OrderQty,
+       ProductID,
+       SpecialOfferID,
+       UnitPrice,
+       UnitPriceDiscount,
+       LineTotal,
+       rowguid,
+       ModifiedDate
+<span class="kw">INTO</span> dbo.NewOrders
+<span class="kw">FROM</span> Sales.SalesOrderDetail;
+<span class="kw">GO</span>
+<span class="kw">ALTER TABLE</span> dbo.NewOrders
+<span class="kw">ADD</span>  <span class="kw">CONSTRAINT</span> PK_NewOrders_SalesOrderID_SalesOrderDetailID
+<span class="kw">PRIMARY KEY CLUSTERED</span>
+(
+   SalesOrderID,
+   SalesOrderDetailID
+);
+<span class="kw">CREATE NONCLUSTERED INDEX</span> IX_NewOrders_ProductID
+<span class="kw">ON</span> dbo.NewOrders (ProductID);
+<span class="kw">GO</span>
+<span class="kw">CREATE NONCLUSTERED INDEX</span> IX_NewOrders_OrderQty
+<span class="kw">ON</span> dbo.NewOrders(OrderQty);
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 8-2 · the query that starts the argument</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> OrderQty,
+       SalesOrderID,
+       SalesOrderDetailID,
+       LineTotal
+<span class="kw">FROM</span> dbo.NewOrders
+<span class="kw">WHERE</span> OrderQty = 20;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter8/fig-8-1-index-selection-plan.png"
+             alt="Plan: Index Seek on IX_NewOrders_OrderQty 2 percent, Nested Loops Inner Join, Key Lookup 98 percent, SELECT.">
+        <figcaption><b>Figure 8-1</b> — The index selection process: seek the nonclustered index (2%), then <b>46 Key Lookups</b> (98%) because the index doesn't cover the query. The lookups dominate the cost.</figcaption>
+      </figure>
+
+      <p>
+        Note what already happened there. The index isn't covering — the query asks for
+        <code class="inl">LineTotal</code>, which the index doesn't have — yet the optimizer still
+        preferred seek-plus-46-lookups over one big scan. It had a reason, and the reason is statistics.
+      </p>
+    </section>
+
+    <section class="card" id="ch8-statistics">
+      <h2><span class="num">2</span> Statistics: density, histogram, tipping point</h2>
+      <p class="lede">The optimizer's "data about the data". Three result sets, and every index decision in the chapter comes out of them.</p>
+
+      <div class="code">
+        <header><span>Listing 8-3 · look at the statistics</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DBCC SHOW_STATISTICS</span>('dbo.NewOrders',
+                     'IX_NewOrders_OrderQty');</code></pre>
+      </div>
+
+      <p>
+        It returns three result sets — <b>header</b>, <b>density graph</b>, <b>histogram</b> — in that order.
+      </p>
+
+      <h3 class="step">The header</h3>
+      <figure>
+        <img src="images/chapter8/fig-8-2-statistics-header.png"
+             alt="Statistics header: index name, rows, rows sampled, steps, density.">
+        <figcaption><b>Figure 8-2</b> — The header: how many rows, how many were <b>sampled</b> (here all of them), and how many steps the histogram has — <b>40</b>.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>Why 40 steps for 41 distinct values?</b>
+        A histogram holds at most <b>200</b> steps. It's built in a single pass that only keeps the
+        most "interesting" data points, so it can miss one. Don't read the step count as a distinct count.
+      </div>
+
+      <h3 class="step">The density graph</h3>
+      <figure>
+        <img src="images/chapter8/fig-8-3-density-graph.png"
+             alt="Density graph rows showing All density 0.02439024 for OrderQty.">
+        <figcaption><b>Figure 8-3</b> — Density for <code class="inl">OrderQty</code> = <b>0.02439024</b>, i.e. roughly 1 in 41 rows.</figcaption>
+      </figure>
+
+      <p>
+        Density is the optimizer's <b>uniqueness</b> estimate: lower density means more distinct values,
+        which means a more selective index. A unique column in a 10,000-row table has density
+        <code class="inl">1/10000 = 0.0001</code>, and an equality predicate on it has the same
+        selectivity as a number — they're computed identically.
+      </p>
+      <p>
+        Density has a second job: estimating rows after an aggregate. A
+        <code class="inl">Color</code> column with 5 distinct values in 10,000 rows has density
+        <code class="inl">1/5 = 0.2</code>, so <code class="inl">GROUP BY Color</code> is estimated at
+        <code class="inl">1/0.2 = 5</code> rows. That's the same mechanism that gives every
+        <code class="inl">GROUP BY</code> its estimate in Chapter 5.
+      </p>
+
+      <div class="note tip">
+        <b>The two formulas the whole chapter runs on</b>
+        <b>Unknown value (can't sniff):</b> estimated rows = <b>density × row count</b> —
+        <code class="inl">0.02439024 × 121317 ≈ 2958.95</code>.<br>
+        <b>Unknown value with an inequality</b> (<code class="inl">&gt;</code>, <code class="inl">&lt;</code>):
+        the density is ignored and the optimizer uses a hard-coded <b>30%</b> estimate instead.
+      </div>
+
+      <h3 class="step">The histogram</h3>
+      <figure>
+        <img src="images/chapter8/fig-8-4-histogram-extract.png"
+             alt="Histogram extract with RANGE_HI_KEY, RANGE_ROWS, EQ_ROWS, DISTINCT_RANGE_ROWS, AVG_RANGE_ROWS; row 20 highlighted with 46 EQ_ROWS.">
+        <figcaption><b>Figure 8-4</b> — Row <b>20</b> is highlighted: <code class="inl">EQ_ROWS = 46</code>. That single cell is why the plan is a seek.</figcaption>
+      </figure>
+
+      <p>
+        When the value <i>is</i> known — hard-coded, or sniffed — the optimizer switches from the density
+        graph to the histogram. An exact match on <code class="inl">RANGE_HI_KEY</code> means it reads
+        <code class="inl">EQ_ROWS</code> directly: 46 rows. No match means it looks at the range the value
+        falls into and uses <code class="inl">AVG_RANGE_ROWS</code>, which is just
+        <code class="inl">RANGE_ROWS / DISTINCT_RANGE_ROWS</code>. Ask for
+        <code class="inl">OrderQty = 35</code> and there's no 35 row; 35 falls in the range topped by 36,
+        so the estimate becomes that row's <code class="inl">AVG_RANGE_ROWS</code> — <b>2 rows</b>.
+      </p>
+
+      <h3 class="step">The tipping point</h3>
+      <p>
+        With 46 rows estimated, the optimizer prices <i>one seek + 46 lookups</i> against its only real
+        alternative, <i>one clustered index scan</i>, and the seek wins. But lookups scale linearly while a
+        scan doesn't, so there is a crossover. In this table it's around <b>400 rows</b>:
+      </p>
+      <ul>
+        <li><code class="inl">WHERE OrderQty = 11</code> → <b>392</b> estimated rows → still seek + lookups.</li>
+        <li><code class="inl">WHERE OrderQty = 12</code> → <b>466</b> estimated rows → it tips, and you get a scan.</li>
+      </ul>
+
+      <figure>
+        <img src="images/chapter8/fig-8-5-clustered-scan-tipping-point.png"
+             alt="Plan showing a Clustered Index Scan instead of a seek plus lookups.">
+        <figcaption><b>Figure 8-5</b> — A clustered index scan caused purely by a change in <b>estimated</b> rows. The query didn't change shape; the number did.</figcaption>
+      </figure>
+
+      <h3 class="step">The local-variable trap</h3>
+      <div class="code">
+        <header><span>Listing 8-4 · the same query with a variable</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> @OrderQuantity <span class="kw">SMALLINT</span>
+<span class="kw">SET</span> @OrderQuantity = 20
+<span class="kw">SELECT</span> OrderQty,
+       SalesOrderID,
+       SalesOrderDetailID,
+       LineTotal
+<span class="kw">FROM</span> dbo.NewOrders
+<span class="kw">WHERE</span> OrderQty = @OrderQuantity;</code></pre>
+      </div>
+
+      <p>
+        Semantically identical to Listing 8-2, yet this one gets the <b>scan</b> — even though the actual
+        row count is way below the tipping point. The optimizer <b>cannot sniff a local variable</b>, so
+        it falls back to the density graph and estimates <b>2,958.95 rows</b>, which is far above the
+        crossover.
+      </p>
+
+      <figure>
+        <img src="images/chapter8/fig-8-6-properties-estimated-rows.png"
+             alt="Properties sheet of a Clustered Index Scan showing Estimated Number of Rows 2958.95.">
+        <figcaption><b>Figure 8-6</b> — The proof, in the Properties sheet: <b>Estimated Number of Rows = 2958.95</b> for a query that actually returns 46.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>Change even less and the estimate gets worse</b>
+        Write <code class="inl">WHERE OrderQty &gt; @OrderQuantity</code> and there's no density to fall
+        back on at all: the optimizer applies its hard-coded <b>30%</b> and estimates
+        <b>36,395.1 rows</b> when only <b>164</b> are returned. You will always get the scan. Variables
+        are the single easiest way to accidentally throw away a good index.
+      </div>
+
+      <h3 class="step">Covering indexes</h3>
+      <p>
+        All of the above is a fight over the <b>lookup</b>. When rows are few, a lookup is cheap; when
+        there are many, the lookups are the whole cost. Covering the index — either by putting the columns
+        in the key, or by <code class="inl">INCLUDE</code>-ing them at the leaf — removes the fight
+        entirely. But pay for it once, in writes: each added index or INCLUDE'd column is reordered,
+        inserted and deleted with the data. Weigh the query's importance and frequency against that
+        permanent tax.
+      </p>
+
+      <div class="note">
+        <b>When the optimizer ignores a perfectly good index</b>
+        Usually it's one of these, and only the last is a statistics problem:
+        <b>implicit conversion</b> because a parameter's data type doesn't match the column's;
+        a <b>function wrapped around the column</b> in the predicate; a <b>complex or inequality</b>
+        predicate; or an index that is genuinely cheaper elsewhere in the plan because it delivers data
+        pre-sorted for a Merge Join, a Stream Aggregate, or an <code class="inl">ORDER BY</code>.
+      </div>
+    </section>
+
+    <section class="card" id="ch8-stale">
+      <h2><span class="num">3</span> When statistics go stale</h2>
+      <p class="lede">Same query, same plan, wildly different cost. One script, three measurements — and one number that should make you sit up.</p>
+
+      <p>
+        Four things can produce a bad plan out of the statistics themselves: <b>missing</b> statistics
+        (e.g. <code class="inl">AUTO_CREATE_STATISTICS OFF</code>), <b>stale</b> statistics,
+        <b>reuse of a cached plan</b> that no longer matches the data, and <b>skewed</b> distributions
+        that defeat averaging.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 8-5 · capture, skew, re-capture, fix</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SET STATISTICS XML ON</span>;
+<span class="kw">GO</span>
+<span class="kw">SELECT</span> OrderQty,
+       CarrierTrackingNumber
+<span class="kw">FROM</span> dbo.NewOrders
+<span class="kw">WHERE</span> ProductID = 897;
+<span class="kw">GO</span>
+<span class="kw">SET STATISTICS XML OFF</span>;
+<span class="kw">GO</span>
+<span class="cm">--Modify the data</span>
+<span class="kw">BEGIN TRAN</span>;
+<span class="kw">INSERT INTO</span> dbo.NewOrders (SalesOrderID,
+                           CarrierTrackingNumber,
+                           OrderQty,
+                           ProductID,
+                           SpecialOfferID,
+                           UnitPrice,
+                           UnitPriceDiscount,
+                           LineTotal,
+                           rowguid,
+                           ModifiedDate)
+<span class="kw">SELECT TOP</span> (5) <span class="kw">PERCENT</span>
+       SalesOrderID,
+       CarrierTrackingNumber,
+       OrderQty,
+       <span class="kw">897</span>,
+       SpecialOfferID,
+       UnitPrice,
+       UnitPriceDiscount,
+       LineTotal,
+       rowguid,
+       ModifiedDate
+<span class="kw">FROM</span> Sales.SalesOrderDetail
+<span class="kw">ORDER BY</span> SalesOrderID;
+<span class="kw">GO</span>
+<span class="kw">SET STATISTICS XML ON</span>;
+<span class="kw">GO</span>
+<span class="kw">SELECT</span> OrderQty,
+       CarrierTrackingNumber
+<span class="kw">FROM</span> dbo.NewOrders
+<span class="kw">WHERE</span> ProductID = 897;
+<span class="kw">GO</span>
+<span class="kw">SET STATISTICS XML OFF</span>;
+<span class="kw">GO</span>
+<span class="cm">--Manually update statistics</span>
+<span class="kw">UPDATE STATISTICS</span> dbo.NewOrders
+<span class="kw">GO</span>
+<span class="kw">SET STATISTICS XML ON</span>;
+<span class="kw">GO</span>
+<span class="kw">SELECT</span> OrderQty,
+       CarrierTrackingNumber
+<span class="kw">FROM</span> dbo.NewOrders
+<span class="kw">WHERE</span> ProductID = 897;
+<span class="kw">GO</span>
+<span class="kw">SET STATISTICS XML OFF</span>;
+<span class="kw">GO</span>
+<span class="kw">ROLLBACK TRAN</span>;
+<span class="cm">--Manually update statistics</span>
+<span class="kw">UPDATE STATISTICS</span> dbo.NewOrders;
+<span class="kw">GO</span></code></pre>
+        <div class="cap">Five percent of the table's rows, all with <code>ProductID = 897</code> — enough to skew the data, not enough to trip the automatic statistics update threshold. <code>SET STATISTICS XML</code> in separate batches is what keeps the <code>INSERT</code>'s own plan out of the captures.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter8/fig-8-7-initial-plan-before-stats-update.png"
+             alt="Plan with Index Seek on IX_NewOrders_ProductID and Key Lookup.">
+        <figcaption><b>Figure 8-7</b> — Before the skew: seek the <code class="inl">ProductID</code> index, estimating <b>50.817</b> rows from <code class="inl">AVG_RANGE_ROWS</code>. It actually returns <b>2</b> rows — the estimate was already wrong, but harmlessly so.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter8/fig-8-8-inefficient-plan-stale-stats.png"
+             alt="Same Index Seek plus Key Lookup plan, now with 6068 actual rows.">
+        <figcaption><b>Figure 8-8</b> — After the insert: the <b>identical plan</b>, reused from cache. But the Index Seek now returns <b>6,068</b> rows, so the Key Lookup runs 6,068 times.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>The numbers that make the lesson</b>
+        <b>52</b> logical reads before the insert → <b>19,385</b> logical reads after it.
+        Same query. Same plan. Same second of wall clock, different data.
+      </div>
+
+      <figure>
+        <img src="images/chapter8/fig-8-9-correct-plan-fresh-stats.png"
+             alt="Plan with a Clustered Index Scan replacing the seek and lookups.">
+        <figcaption><b>Figure 8-9</b> — After <code class="inl">UPDATE STATISTICS</code> the cached plan is invalidated, a new one is compiled, and the optimizer picks the scan — correctly, because a large percentage of the table now matches. Reads drop to <b>1,723</b> for the same 6,068 rows.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>What to do about it</b>
+        Leave <code class="inl">AUTO_UPDATE_STATISTICS</code> <b>on</b>, always. For large tables consider
+        a scheduled <code class="inl">UPDATE STATISTICS</code> job, because the automatic threshold is
+        proportional and big tables can go a long time without a refresh. If a specific skew hurts a
+        specific important query, look at <b>filtered statistics</b>.
+      </div>
+    </section>
+
+    <section class="card" id="ch8-sniffing">
+      <h2><span class="num">4</span> Parameter sniffing, both faces</h2>
+      <p class="lede">The feature that saves you one day charges you 239,186 logical reads the next. It's the same plan, and it's doing exactly what it was told.</p>
+
+      <p>
+        When a batch calls a procedure, SQL Server compiles the batch first — setting variables and
+        evaluating expressions — then checks the plan cache, and only compiles the procedure if there's no
+        plan. At that moment the optimizer can <b>peek at the value</b> being passed and use the histogram
+        row for it instead of an average. That's parameter sniffing.
+      </p>
+      <div class="plain">
+        <div><span>Sniffing is your friend</span>A million-row table, filtered to the last week by an inequality. Without sniffing you get a 30% (300,000-row) plan for a query returning hundreds.</div>
+        <div><span>Sniffing is irrelevant</span>Predicates on the primary key, or on keys with an even distribution, where every value costs the same. Every plan is fine.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 8-6 · the query as a procedure, with an optional parameter</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE OR ALTER PROCEDURE</span> dbo.OrdersByQty
+    @OrderQty <span class="kw">SMALLINT</span> = <span class="kw">NULL</span>
+<span class="kw">AS</span>
+<span class="kw">SELECT</span> SalesOrderID,
+       SalesOrderDetailID,
+       OrderQty,
+       LineTotal
+<span class="kw">FROM</span> dbo.NewOrders
+<span class="kw">WHERE</span>
+      (
+          OrderQty = @OrderQty
+          <span class="kw">OR</span> @OrderQty <span class="kw">IS NULL</span>
+      );
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter8/fig-8-10-parameter-sniffing-key-lookups.png"
+             alt="Plan: Index Scan on IX_NewOrders_OrderQty plus Key Lookup under Nested Loops.">
+        <figcaption><b>Figure 8-10</b> — Sniffed <code class="inl">@OrderQty = 20</code>: the good plan comes back, but as an <b>Index Scan</b> + Key Lookups, not a seek. 424 logical reads, ~10 ms.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter8/fig-8-11-parameter-list-same-values.png"
+             alt="Parameter List properties showing equal compiled and runtime parameter values.">
+        <figcaption><b>Figure 8-11</b> — Healthy sniffing looks like this: <b>compiled value = runtime value</b>. The plan was built for the value it's running with.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>Why scan the index instead of seeking it?</b>
+        Because of the optional parameter. Peek at the Index Scan's Predicate and you'll see
+        <code class="inl">OrderQty = @OrderQty OR @OrderQty IS NULL</code>, not a Seek Predicate. A plan has
+        to be <b>safe for reuse</b>: if a plan with a seek predicate on
+        <code class="inl">OrderQty = @OrderQty</code> were reused with no value supplied, the seek would
+        compare against NULL and return <b>nothing</b> — when the intent was to return everything. The
+        optimizer trades a little speed for correctness. Any <code class="inl">OR … IS NULL</code>
+        "optional parameter" pattern costs you seeks.
+      </div>
+
+      <h3 class="step">The dark side</h3>
+      <div class="code">
+        <header><span>Listing 8-7 · same procedure, very different value</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> dbo.OrdersByQty @OrderQty = 1;
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <p>
+        The cached plan is reused — it was compiled for 46 rows, and now <b>74,954</b> rows match. So the
+        Key Lookup executes 74,954 times. Logical reads go from 424 to <b>239,186</b>; runtime from about
+        10 ms to about <b>1,400 ms</b>.
+      </p>
+
+      <figure>
+        <img src="images/chapter8/fig-8-12-parameter-list-different-values.png"
+             alt="Parameter List showing compiled value 20 and runtime value 1.">
+        <figcaption><b>Figure 8-12</b> — The symptom, in one property sheet: <b>compiled value 20, runtime value 1</b>. When you see that mismatch on a slow procedure, you've found bad parameter sniffing.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 8-8 · flush one plan, not the whole cache</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> @PlanHandle <span class="kw">VARBINARY</span>(64);
+<span class="kw">SELECT</span>  @PlanHandle = deps.plan_handle
+<span class="kw">FROM</span>    sys.dm_exec_procedure_stats <span class="kw">AS</span> deps
+<span class="kw">WHERE</span>   deps.object_id = OBJECT_ID('dbo.OrdersByQty');
+<span class="kw">IF</span> @PlanHandle <span class="kw">IS NOT NULL</span>
+    <span class="kw">BEGIN</span>
+        <span class="kw">DBCC FREEPROCCACHE</span>(@PlanHandle);
+    <span class="kw">END</span>
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <p>
+        Re-run Listing 8-7 and the optimizer compiles fresh, reads the histogram, estimates 74,954 rows
+        (spot on), and chooses the clustered index scan: <b>1,512</b> logical reads instead of 239,186.
+        Same result set.
+      </p>
+
+      <h3 class="step">The four ways out</h3>
+      <table>
+        <thead><tr><th>Fix</th><th>What it does</th><th>What it costs</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">OPTION (RECOMPILE)</code></td><td>Recompiles that one statement for the actual value every time</td><td>Compilation on every execution. Put it on <b>only</b> the affected statement, not the whole procedure.</td></tr>
+          <tr><td><code class="inl">OPTION (OPTIMIZE FOR @p = 20)</code></td><td>Forces the plan to be built for a value <b>you</b> choose</td><td>You must know the best value — and it may stop being the best as data changes.</td></tr>
+          <tr><td><code class="inl">OPTION (OPTIMIZE FOR (@p UNKNOWN))</code></td><td>Generic plan from the density graph (2,958.95 rows here)</td><td>Deliberately imprecise: fine for most values, poor for the extremes.</td></tr>
+          <tr><td><b>Plan forcing</b> (Chapter 9)</td><td>Pin a known-good plan</td><td>The data may move out from under the pinned plan.</td></tr>
+        </tbody>
+      </table>
+      <p>
+        A useful side effect of <code class="inl">RECOMPILE</code>: because the plan will never be reused,
+        the optimizer no longer has to play safe with the optional parameter, so the Index <b>Seek</b>
+        comes back instead of the Index Scan.
+      </p>
+    </section>
+
+    <section class="card" id="ch8-columnstore">
+      <h2><span class="num">5</span> Columnstore indexes</h2>
+      <p class="lede">Different storage, different rules: no seeks at all, aggregation that happens <i>inside</i> the scan, and estimated rows that mean the opposite of what you expect.</p>
+
+      <p>
+        A columnstore index stores data <b>by column</b> rather than by row — all the values for one column
+        packed into their own pages and compressed. A <b>clustered</b> columnstore replaces the heap with
+        a column-wise copy of the whole table; a <b>nonclustered</b> columnstore can sit alongside your
+        normal rowstore indexes.
+      </p>
+
+      <div class="plain">
+        <div><span>Built for</span>Data warehouse and reporting: very large tables (millions to billions of rows), queries that touch <b>all rows or large selections</b>, aggregations.</div>
+        <div><span>Terrible for</span>Single-row or small-subset lookups — the engine has to read a page per column to reconstruct one row. Below ~100,000 rows per partition you also lose most of the compression benefit.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 8-9 · baseline aggregation query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.Name,
+       <span class="fn">COUNT</span>(th.ProductID) <span class="kw">AS</span> CountProductID,
+       <span class="fn">SUM</span>(th.Quantity) <span class="kw">AS</span> SumQuantity,
+       <span class="fn">AVG</span>(th.ActualCost) <span class="kw">AS</span> AvgActualCost
+<span class="kw">FROM</span> Production.TransactionHistory <span class="kw">AS</span> th
+    <span class="kw">JOIN</span> Production.Product <span class="kw">AS</span> p
+        <span class="kw">ON</span> p.ProductID = th.ProductID
+<span class="kw">GROUP BY</span> th.ProductID,
+         p.Name;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter8/fig-8-13-aggregation-no-columnstore.png"
+             alt="Rowstore plan: Clustered Index Scan on TransactionHistory 64 percent, Hash Match Aggregate 35 percent, Compute Scalar, Hash Match Inner Join, Index Scan on Product by AK_Product_Name, SELECT.">
+        <figcaption><b>Figure 8-13</b> — No columnstore: scan the clustered index (64%), Hash Match (Aggregate) 35% building a hash table keyed on <code class="inl">ProductID</code>, Compute Scalar computing the AVG, then a Hash Match (Inner Join) whose probe input is an Index Scan of <code class="inl">AK_Product_Name</code> for the name.</figcaption>
+      </figure>
+
+      <p>
+        That plan returns 441 rows in an average <b>127 ms</b>, with <b>803</b> logical reads. Now add a
+        nonclustered columnstore index over just the columns the query needs:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 8-10 · add a nonclustered columnstore index</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE NONCLUSTERED COLUMNSTORE INDEX</span> ix_csTest
+<span class="kw">ON</span> Production.TransactionHistory
+(
+    ProductID,
+    Quantity,
+    ActualCost,
+    ReferenceOrderID,
+    ReferenceOrderLineID,
+    ModifiedDate
+);</code></pre>
+      </div>
+
+      <p>
+        Same query, same 441 rows: <b>55 ms</b> and <b>84</b> logical reads. The structure lets the engine
+        read only the requested columns and skip the rest of the table entirely.
+      </p>
+
+      <figure>
+        <img src="images/chapter8/fig-8-14-aggregation-columnstore.png"
+             alt="Columnstore plan with Columnstore Index Scan and Adaptive Join.">
+        <figcaption><b>Figure 8-14</b> — The plan changes shape: a <b>Columnstore Index Scan</b> and an <b>Adaptive Join</b> (Chapter 4; requires compatibility level 140+).</figcaption>
+      </figure>
+
+      <h3 class="step">Aggregate pushdown</h3>
+      <figure>
+        <img src="images/chapter8/fig-8-15-locally-aggregated-rows.png"
+             alt="Columnstore Index Scan properties: Actual Execution Mode Batch, Actual Number of Locally Aggregated Rows 113443, Actual Number of Rows 0, Estimated Number of Rows 113443.">
+        <figcaption><b>Figure 8-15</b> — Read this property sheet carefully: <b>Actual Number of Locally Aggregated Rows = 113,443</b> but <b>Actual Number of Rows = 0</b>. Also note <b>Batch</b> for both actual and estimated execution mode.</figcaption>
+      </figure>
+
+      <p>
+        That looks like a contradiction until you know about <b>aggregate pushdown</b> (SQL Server 2016+).
+        Because the data is stored pivoted by column, the scan itself can do some or all of the
+        aggregation and inject the results straight into the aggregating operator. The arrow out of the
+        operator only carries rows that <b>couldn't</b> be aggregated locally — here, none. That's why the
+        Hash Match (Aggregate) appears to <i>thicken</i> the arrow: rows arrive out of band, not through it.
+      </p>
+
+      <h3 class="step">No seek, but predicates get pushed down</h3>
+      <div class="code">
+        <header><span>Listing 8-11 · add a filter</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.Name,
+       <span class="fn">COUNT</span>(th.ProductID) <span class="kw">AS</span> CountProductID,
+       <span class="fn">SUM</span>(th.Quantity) <span class="kw">AS</span> SumQuantity,
+       <span class="fn">AVG</span>(th.ActualCost) <span class="kw">AS</span> AvgActualCost
+<span class="kw">FROM</span> Production.TransactionHistory <span class="kw">AS</span> th
+    <span class="kw">JOIN</span> Production.Product <span class="kw">AS</span> p
+        <span class="kw">ON</span> p.ProductID = th.ProductID
+<span class="kw">WHERE</span> th.TransactionID &gt; 150000
+<span class="kw">GROUP BY</span> th.ProductID,
+         p.Name;</code></pre>
+      </div>
+
+      <p>
+        The plan keeps the same shape and the same operators — <b>still a Columnstore Index Scan</b>. There
+        is <b>no Seek operator for a columnstore index</b>, ever: the data isn't sorted, so there's no
+        structure to navigate to a value. Filtering is done by pushing the predicate into the scan.
+      </p>
+
+      <figure>
+        <img src="images/chapter8/fig-8-16-predicate-pushdown-columnstore.png"
+             alt="Columnstore Index Scan Predicate property showing TransactionID greater than 150000.">
+        <figcaption><b>Figure 8-16</b> — <code class="inl">TransactionID &gt; 150000</code> pushed into the scan as a <b>Predicate</b>.</figcaption>
+      </figure>
+
+      <p>
+        Pushdown matters far more here than on a rowstore index, because a pushed predicate enables
+        <b>rowgroup elimination</b> (older documentation calls it segment elimination). Each partition is
+        split into rowgroups of up to about a million rows, compressed together; with min/max metadata per
+        rowgroup, whole rowgroups can be skipped without being read. You see it in
+        <code class="inl">SET STATISTICS IO</code> as <b>"segment skipped"</b>:
+      </p>
+
+      <div class="code">
+        <header><span>Statistics IO for Listing 8-11</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>(434 rows affected)
+Table 'TransactionHistory'. Scan count 2, logical reads 0, physical
+reads 0, read-ahead reads 0, lob logical reads 63, lob physical
+reads 0, lob read-ahead reads 0.
+Table 'TransactionHistory'. Segment reads 1, segment skipped 0.
+Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0,
+read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob
+read-ahead reads 0.
+Table 'Product'. Scan count 1, logical reads 6, physical reads 0,
+read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob
+read-ahead reads 0.</code></pre>
+        <div class="cap">Note the two things a columnstore changes about STATISTICS IO: rowstore reads are near zero (the data comes through LOB reads), and there's a new <b>segment reads / segment skipped</b> line. On this 113K-row table everything is in one rowgroup, so nothing is skipped — on a 60-million-row table that count is where your win shows up.</div>
+      </div>
+
+      <div class="note warn">
+        <b>Compare actual to estimated execution mode</b>
+        On a columnstore scan, both should read <b>Batch</b> (Figure 8-15). If actual says
+        <b>Row</b> while estimated says <b>Batch</b>, you have a batch-mode plan that fell back to row
+        mode mid-execution — catastrophic for performance. Per the book this is only an issue on SQL
+        Server 2012, where a batch-mode plan falls back when a hash operation spills to tempdb.
+      </div>
+    </section>
+
+    <section class="card" id="ch8-inmemory">
+      <h2><span class="num">6</span> Memory-optimized indexes</h2>
+      <p class="lede">Two new index structures, and plans that look almost reassuringly normal — with two sharp edges: a hash index can't do ranges, and natively-compiled plans report every cost as zero.</p>
+
+      <div class="plain">
+        <div><span>Hash index</span>An array of hash buckets; each bucket points at a row in memory. <b>Point lookups only</b> — it's the fastest thing in the book for <code class="inl">WHERE key = value</code>.</div>
+        <div><span>Range index</span>A Bw-tree, the memory-optimized cousin of the B-tree. Used for ranges and ordering. This is what you need when the hash index can't help.</div>
+      </div>
+
+      <p>
+        These exist for the very-high-throughput OLTP case where you'd otherwise be bottlenecked on page
+        latches. Their other common use is making <b>table variables</b> faster (Chapter 7's 100-row
+        estimate relies on the same machinery).
+      </p>
+
+      <div class="code">
+        <header><span>Listing 8-12 · a memory-optimized database and three tables</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE DATABASE</span> InMemoryTest
+<span class="kw">ON PRIMARY</span> (<span class="kw">NAME</span> = InMemTestData,
+            <span class="kw">FILENAME</span> = 'C:\Data\InMemTest.mdf',
+            <span class="kw">SIZE</span> = 10GB,
+            <span class="kw">FILEGROWTH</span> = 10GB),
+   <span class="kw">FILEGROUP</span> InMem <span class="kw">CONTAINS MEMORY_OPTIMIZED_DATA</span> (<span class="kw">NAME</span> = InMem,
+                                                   <span class="kw">FILENAME</span> = 'c:\data\inmem.ndf')
+<span class="kw">LOG ON</span> (<span class="kw">NAME</span> = InMemTestLog,
+        <span class="kw">FILENAME</span> = 'C:\Data\InMemTestLog.ldf',
+        <span class="kw">SIZE</span> = 5GB,
+        <span class="kw">FILEGROWTH</span> = 1GB);
+<span class="kw">GO</span>
+<span class="cm">--Move to the new database</span>
+<span class="kw">USE</span> InMemoryTest;
+<span class="kw">GO</span>
+<span class="cm">--Create some tables</span>
+<span class="kw">CREATE TABLE</span> dbo.Address (AddressID <span class="kw">INTEGER NOT NULL IDENTITY</span>
+                              <span class="kw">PRIMARY KEY NONCLUSTERED HASH</span>
+                              <span class="kw">WITH</span> (BUCKET_COUNT = 128),
+                          AddressLine1 <span class="kw">VARCHAR</span>(60) <span class="kw">NOT NULL</span>,
+                          City <span class="kw">VARCHAR</span>(30) <span class="kw">NOT NULL</span>,
+                          StateProvinceID <span class="kw">INT NOT NULL</span>)
+<span class="kw">WITH</span> (MEMORY_OPTIMIZED = <span class="kw">ON</span>, DURABILITY = SCHEMA_AND_DATA);
+<span class="kw">GO</span>
+<span class="kw">CREATE TABLE</span> dbo.StateProvince (StateProvinceID <span class="kw">INTEGER NOT NULL</span>
+                                     <span class="kw">PRIMARY KEY NONCLUSTERED</span>,
+                                StateProvinceName <span class="kw">VARCHAR</span>(50) <span class="kw">NOT NULL</span>,
+                                CountryRegionCode <span class="kw">NVARCHAR</span>(3) <span class="kw">NOT NULL</span>)
+<span class="kw">WITH</span> (MEMORY_OPTIMIZED = <span class="kw">ON</span>, DURABILITY = SCHEMA_AND_DATA);
+<span class="kw">CREATE TABLE</span> dbo.CountryRegion (CountryRegionCode <span class="kw">NVARCHAR</span>(3) <span class="kw">NOT NULL</span>
+                                     <span class="kw">PRIMARY KEY NONCLUSTERED</span>,
+                                CountryRegionName <span class="kw">NVARCHAR</span>(50) <span class="kw">NOT NULL</span>)
+<span class="kw">WITH</span> (MEMORY_OPTIMIZED = <span class="kw">ON</span>, DURABILITY = SCHEMA_AND_DATA);
+<span class="cm">--Add Data to the tables</span>
+<span class="cm">--Cross database queries can't be used with in-memory tables</span>
+<span class="kw">SELECT</span> a.AddressLine1,
+       a.City,
+       a.StateProvinceID
+<span class="kw">INTO</span> dbo.AddressStage
+<span class="kw">FROM</span> AdventureWorks2014.Person.Address <span class="kw">AS</span> a;
+<span class="kw">INSERT INTO</span> dbo.Address (AddressLine1,
+                         City,
+                         StateProvinceID)
+<span class="kw">SELECT</span> a.AddressLine1,
+       a.City,
+       a.StateProvinceID
+<span class="kw">FROM</span> dbo.AddressStage <span class="kw">AS</span> a;
+<span class="kw">DROP TABLE</span> dbo.AddressStage;
+<span class="kw">SELECT</span> sp.StateProvinceID,
+       sp.Name,
+       sp.CountryRegionCode
+<span class="kw">INTO</span> dbo.ProvinceStage
+<span class="kw">FROM</span> AdventureWorks2014.Person.StateProvince <span class="kw">AS</span> sp;
+<span class="kw">INSERT INTO</span> dbo.StateProvince (StateProvinceID,
+                               StateProvinceName,
+                               CountryRegionCode)
+<span class="kw">SELECT</span> ps.StateProvinceID,
+       ps.Name,
+       ps.CountryRegionCode
+<span class="kw">FROM</span> dbo.ProvinceStage <span class="kw">AS</span> ps;
+<span class="kw">DROP TABLE</span> dbo.ProvinceStage;
+<span class="kw">SELECT</span> cr.CountryRegionCode,
+       cr.Name
+<span class="kw">INTO</span> dbo.CountryStage
+<span class="kw">FROM</span> AdventureWorks2014.Person.CountryRegion <span class="kw">AS</span> cr;
+<span class="kw">INSERT INTO</span> dbo.CountryRegion (CountryRegionCode,
+                               CountryRegionName)
+<span class="kw">SELECT</span> cs.CountryRegionCode,
+       cs.Name
+<span class="kw">FROM</span> dbo.CountryStage <span class="kw">AS</span> cs
+<span class="kw">DROP TABLE</span> dbo.CountryStage;
+<span class="kw">GO</span></code></pre>
+        <div class="cap">Adjust the file paths and sizes for your own system. Note the staging tables: memory-optimized tables can't be read across databases, so the AdventureWorks data has to be copied in first.</div>
+      </div>
+
+      <h3 class="step">First, the disk-based baseline</h3>
+      <div class="code">
+        <header><span>Listing 8-13 · the same shape of query on rowstore tables</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> a.AddressLine1,
+       a.City,
+       sp.Name,
+       cr.Name
+<span class="kw">FROM</span> Person.Address <span class="kw">AS</span> a
+    <span class="kw">JOIN</span> Person.StateProvince <span class="kw">AS</span> sp
+        <span class="kw">ON</span> sp.StateProvinceID = a.StateProvinceID
+    <span class="kw">JOIN</span> Person.CountryRegion <span class="kw">AS</span> cr
+        <span class="kw">ON</span> cr.CountryRegionCode = sp.CountryRegionCode
+<span class="kw">WHERE</span> a.AddressID = 42;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter8/fig-8-17-plan-standard-tables.png"
+             alt="Standard plan with Clustered Index Seeks on Address, StateProvince and CountryRegion.">
+        <figcaption><b>Figure 8-17</b> — Nothing surprising: three clustered index seeks joined by Nested Loops.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 8-14 · identical query against the memory-optimized copy</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">USE</span> InMemoryTest;
+<span class="kw">GO</span>
+<span class="kw">SELECT</span> a.AddressLine1,
+       a.City,
+       sp.StateProvinceName,
+       cr.CountryRegionName
+<span class="kw">FROM</span> dbo.Address <span class="kw">AS</span> a
+    <span class="kw">JOIN</span> dbo.StateProvince <span class="kw">AS</span> sp
+        <span class="kw">ON</span> sp.StateProvinceID = a.StateProvinceID
+    <span class="kw">JOIN</span> dbo.CountryRegion <span class="kw">AS</span> cr
+        <span class="kw">ON</span> cr.CountryRegionCode = sp.CountryRegionCode
+<span class="kw">WHERE</span> a.AddressID = 42;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter8/fig-8-18-plan-memory-optimized-tables.png"
+             alt="Memory-optimized plan with Index Seek NonClusteredHash operator.">
+        <figcaption><b>Figure 8-18</b> — Interop mode lets interpreted T-SQL query these tables, and the plan looks almost standard — but the Address seek is a new operator: <b>Index Seek (NonClusteredHash)</b>.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>Three differences worth spotting in Figure 8-18</b>
+        (1) The <b>NonClusteredHash</b> seek on <code class="inl">Address</code>. (2) The
+        <b>Storage</b> property of every seek reads <code class="inl">MemoryOptimized</code> instead of
+        <code class="inl">RowStore</code>. (3) Estimated costs are <b>lower</b> — and that means nothing on
+        its own. Estimated cost assumes disk access in a rowstore plan and memory access here; you can't
+        compare an operator's cost across two different plans. They're estimates, not measurements.
+      </div>
+
+      <h3 class="step">Where the hash index falls over</h3>
+      <div class="code">
+        <header><span>Listing 8-15 · change the point lookup into a range</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> a.AddressLine1,
+       a.City,
+       sp.StateProvinceName,
+       cr.CountryRegionName
+<span class="kw">FROM</span> dbo.Address <span class="kw">AS</span> a
+    <span class="kw">JOIN</span> dbo.StateProvince <span class="kw">AS</span> sp
+        <span class="kw">ON</span> sp.StateProvinceID = a.StateProvinceID
+    <span class="kw">JOIN</span> dbo.CountryRegion <span class="kw">AS</span> cr
+        <span class="kw">ON</span> cr.CountryRegionCode = sp.CountryRegionCode
+<span class="kw">WHERE</span> a.AddressID <span class="kw">BETWEEN</span> 42
+                  <span class="kw">AND</span>     52;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter8/fig-8-19-standard-plan-index-seeks.png"
+             alt="Standard plan with Clustered Index Seek on Address using the BETWEEN range.">
+        <figcaption><b>Figure 8-19</b> — Rowstore: <code class="inl">BETWEEN</code> is still an <b>Index Seek</b>. A B-tree doesn't care whether it's one value or eleven.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter8/fig-8-20-hash-index-table-scan.png"
+             alt="Memory-optimized plan showing a Table Scan on Address instead of a hash seek.">
+        <figcaption><b>Figure 8-20</b> — Memory-optimized: the seek is gone, replaced by a <b>Table Scan</b> of Address. A hash index has no order, so a range can only be scanned — and in Interop mode the predicate can't even be pushed down, so all <b>19,614 rows</b> go to a Filter operator.</figcaption>
+      </figure>
+
+      <p>
+        The fix would be a memory-optimized <b>nonclustered (range)</b> index on
+        <code class="inl">AddressID</code>. This is the general lesson: a hash index is a point-lookup
+        machine, and the plan tells you immediately when you've asked it for something else.
+      </p>
+
+      <h3 class="step">Natively-compiled procedures: costs of zero</h3>
+      <div class="code">
+        <header><span>Listing 8-16 · natively-compiled version of the range query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE OR ALTER PROC</span> dbo.AddressDetails @AddressIDMin <span class="kw">INT</span>, @AddressIDMax <span class="kw">INT</span>
+<span class="kw">WITH NATIVE_COMPILATION, SCHEMABINDING, EXECUTE AS OWNER AS</span>
+<span class="kw">BEGIN ATOMIC WITH</span> (TRANSACTION ISOLATION LEVEL = SNAPSHOT, LANGUAGE = N'us_english')
+ <span class="kw">SELECT</span> a.AddressLine1,
+       a.City,
+       sp.StateProvinceName,
+       cr.CountryRegionName
+<span class="kw">FROM</span> dbo.Address <span class="kw">AS</span> a
+    <span class="kw">JOIN</span> dbo.StateProvince <span class="kw">AS</span> sp
+        <span class="kw">ON</span> sp.StateProvinceID = a.StateProvinceID
+    <span class="kw">JOIN</span> dbo.CountryRegion <span class="kw">AS</span> cr
+        <span class="kw">ON</span> cr.CountryRegionCode = sp.CountryRegionCode
+<span class="kw">WHERE</span> a.AddressID <span class="kw">BETWEEN</span> @AddressIDMin
+                  <span class="kw">AND</span>     @AddressIDMax;
+<span class="kw">END</span>
+<span class="kw">GO</span>
+<span class="kw">EXECUTE</span> dbo.AddressDetails @AddressIDMin = 42, <span class="cm">-- int</span>
+                           @AddressIDMax = 52;  <span class="cm">-- int</span></code></pre>
+      </div>
+
+      <div class="note warn">
+        <b>You cannot get an actual plan for a natively-compiled procedure</b>
+        That's a real limitation. Estimated plans only.
+      </div>
+
+      <figure>
+        <img src="images/chapter8/fig-8-21-natively-compiled-plan.png"
+             alt="Estimated plan for natively-compiled procedure showing Table Scan on Address.">
+        <figcaption><b>Figure 8-21</b> — Still a <b>Table Scan</b> on Address — no supporting index — but this time the predicate <b>is</b> pushed down.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter8/fig-8-22-predicate-pushdown-native.png"
+             alt="Table Scan Predicate property showing the BETWEEN range.">
+        <figcaption><b>Figure 8-22</b> — Predicate pushdown <b>is</b> supported in natively-compiled code, unlike Interop mode (Figure 8-20). Compare the two and you've learned something you can only learn from plans.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter8/fig-8-23-estimated-costs-zero.png"
+             alt="SELECT operator properties: Estimated Operator Cost 0 (0%), Estimated Subtree Cost 0, IsNativelyCompiled True, Procedure Name dbo.AddressDetails.">
+        <figcaption><b>Figure 8-23</b> — Every cost is <b>zero</b>: Estimated Operator Cost 0 (0%), Estimated Subtree Cost 0, <code class="inl">IsNativelyCompiled = True</code>. No <i>Reason for Early Termination</i>, no row counts — the complete property list, and it's short.</figcaption>
+      </figure>
+
+      <p>
+        The costs are zero because these procedures are costed in a new way that isn't exposed
+        externally; the plans aren't even in the plan cache. You lose costs and row counts, which weakens
+        your ability to make decisions — but you still see <b>which operators ran and in what order</b>,
+        which is often enough to explain why a query is slow. And if you add a range index later, the plan
+        won't visibly change: the engine picks the index at runtime.
+      </p>
+    </section>
+
+    <section class="card" id="ch8-cheatsheet">
+      <h2><span class="num">★</span> Chapter 8 cheat sheet</h2>
+
+      <table>
+        <thead><tr><th>Situation</th><th>What you see</th><th>The number to check</th></tr></thead>
+        <tbody>
+          <tr><td><b>Index seek + key lookups</b></td><td>Nested Loops with a non-covering index on the outer side</td><td>Lookup <b>execution count</b>. Few rows = fine; thousands = tipping point passed.</td></tr>
+          <tr><td><b>Tipping point</b></td><td>Identical query flipping from seek/lookups to a scan</td><td><b>Estimated</b> rows vs. the crossover (~400 here), not actual rows.</td></tr>
+          <tr><td><b>Unknown value</b></td><td>Estimate = <b>density × rows</b>, e.g. 0.02439024 × 121317 ≈ 2,958.95</td><td>Density graph, <code class="inl">All density</code> for the key.</td></tr>
+          <tr><td><b>Unknown inequality</b></td><td>Hard-coded <b>30%</b> estimate — 36,395 for 164 actual rows</td><td>Nothing to check in statistics; it never looked.</td></tr>
+          <tr><td><b>Known value</b></td><td>Estimate from the histogram</td><td><code class="inl">EQ_ROWS</code> for an exact hit, <code class="inl">AVG_RANGE_ROWS</code> otherwise.</td></tr>
+          <tr><td><b>Stale statistics</b></td><td>Same plan, wildly more actual rows than estimated</td><td>Actual vs. estimated rows on the seek. Fix: <code class="inl">UPDATE STATISTICS</code>.</td></tr>
+          <tr><td><b>Bad parameter sniffing</b></td><td>Good plan for one value, terrible for another</td><td><b>Compiled value vs. runtime value</b> in the Parameter List.</td></tr>
+          <tr><td><b>Optional parameter</b></td><td>Index <b>Scan</b> where you expected a seek</td><td>Predicate <code class="inl">col = @p OR @p IS NULL</code> — a plan-safety compromise, not a bug.</td></tr>
+          <tr><td><b>Columnstore index</b></td><td>Columnstore Index Scan; no seek, ever; Aggregate pushdown</td><td><b>Locally Aggregated Rows</b> vs. <b>Actual Number of Rows = 0</b>; segment skipped.</td></tr>
+          <tr><td><b>Batch vs. row mode</b></td><td>Actual and estimated execution mode on the columnstore scan</td><td>Both should read <b>Batch</b>. Row actual + Batch estimated = fallback.</td></tr>
+          <tr><td><b>Hash index</b></td><td>Index Seek (NonClusteredHash) for equality — <b>Table Scan</b> for a range</td><td><b>Storage = MemoryOptimized</b>; row count hitting the Filter (19,614).</td></tr>
+          <tr><td><b>Natively compiled</b></td><td>Every estimated cost is <b>0</b>; no row counts; estimated plans only</td><td><code class="inl">IsNativelyCompiled</code>. Trust the shape, not the numbers.</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>The optimizer doesn't judge your index — it prices it.</b> Every decision in this chapter is estimated rows × estimated cost.</li>
+        <li><b>Seek vs. scan is an estimate fight, not a data fight.</b> Listing 8-4 returns 46 rows and gets a scan; Listing 8-2 returns the same 46 and gets a seek.</li>
+        <li><b>Variables kill estimates.</b> Density (2,958.95 rows) for equality, a blanket 30% for inequality.</li>
+        <li><b>Reused plans are reused decisions.</b> A plan compiled for 46 rows run against 6,068 rows costs 19,385 reads.</li>
+        <li><b>Compiled value ≠ runtime value</b> is the one property that diagnoses parameter sniffing in seconds.</li>
+        <li><b>Columnstore: pushdown and pushdown.</b> Predicate pushdown → rowgroup elimination; aggregate pushdown → locally aggregated rows that never travel the arrow.</li>
+        <li><b>Memory-optimized: hash for points, Bw-tree for ranges.</b> Estimated costs are lower because they assume memory — don't compare them to rowstore plan costs.</li>
+        <li><b>Zero costs still have a shape.</b> Natively-compiled plans omit the numbers but keep the operator order, which explains the slowness even when it can't measure it.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        Indexes and their statistics decide plan quality. You can't fix every query by adding an index,
+        and too many indexes is its own problem. Be selective with <i>predicates</i>, judicious with
+        <i>columns</i>, and certain that statistics reflect the data. Hard-coded values give exact
+        estimates but no plan reuse; sniffing gives exact estimates and reuse — until the next parameter
+        value is wildly different from the one the plan was built for. Everything here is a trade-off, and
+        there is not always a single correct answer.
       </div>
     </section>
 
