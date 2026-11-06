@@ -1,0 +1,439 @@
+    <div class="chapterbar" id="chapter17">
+      <span class="cnum">Chapter 17</span>
+      <div>
+        <h2>SSMS Tools for Exploring Execution Plans</h2>
+        <p>The last tooling chapter, and the shortest: five features in SSMS 17 that exist purely to help you
+        <i>navigate</i> a plan too big to read — Analyze Actual Execution Plan, Compare Showplan, Find Node,
+        and live query statistics three different ways. None of them replaces knowing how to read a plan.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch17-query">
+      <h2><span class="num">1</span> One deliberately simple query</h2>
+      <p class="lede">These tools earn their keep on 300-operator plans, which can't be printed in a book. So the chapter uses a small query with two real problems instead.</p>
+
+      <div class="code">
+        <header><span>Listing 17-1 · the running example</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> soh.OrderDate,
+       soh.Status,
+       sod.CarrierTrackingNumber,
+       sod.OrderQty,
+       p.Name
+<span class="kw">FROM</span> Sales.SalesOrderHeader <span class="kw">AS</span> soh
+    <span class="kw">JOIN</span> Sales.SalesOrderDetail <span class="kw">AS</span> sod
+        <span class="kw">ON</span> sod.SalesOrderID = soh.SalesOrderID
+    <span class="kw">JOIN</span> Production.Product <span class="kw">AS</span> p
+        <span class="kw">ON</span> p.ProductID = sod.ProductID
+<span class="kw">WHERE</span> sod.OrderQty * 2 &gt; 60
+      <span class="kw">AND</span> sod.ProductID = 867;</code></pre>
+      </div>
+
+      <p>Two faults, both familiar from earlier chapters:</p>
+      <ul class="biglist">
+        <li><b>The calculation is unnecessary.</b> <code class="inl">OrderQty * 2 &gt; 60</code> is non-SARGable — say <code class="inl">OrderQty &gt; 30</code> instead and the predicate can be used as a seek predicate (Chapter 3).</li>
+        <li><b>No index supports the WHERE clause</b>, so the plan scans the clustered index of <code class="inl">SalesOrderDetail</code>.</li>
+      </ul>
+
+      <figure>
+        <img src="images/chapter17/fig-17-1-problem-query-plan.png"
+             alt="Execution plan with a clustered index scan on SalesOrderDetail estimated as the most expensive operator, and a missing index hint at the top.">
+        <figcaption><b>Figure 17-1</b> — The clustered index scan on <code class="inl">SalesOrderDetail</code> is the most expensive operator, and the missing-index hint at the top says exactly what to create: key <code class="inl">ProductID</code>, includes <code class="inl">SalesOrderID</code>, <code class="inl">CarrierTrackingNumber</code>, <code class="inl">OrderQty</code>.</figcaption>
+      </figure>
+
+      <p>
+        Which, honestly, is enough to fix this query. Everything that follows is about the queries where it
+        <i>isn't</i> enough.
+      </p>
+    </section>
+
+    <section class="card" id="ch17-ssms17">
+      <h2><span class="num">2</span> Why SSMS 17 is different</h2>
+      <p class="lede">SSMS was decoupled from the engine release cycle just before SQL Server 2017. That's the whole reason any of these features exist.</p>
+
+      <div class="plain">
+        <div><span>Before</span>SSMS shipped with the engine. Improvements arrived with Service Packs and Cumulative Updates, roughly annually, and plan tooling barely moved for years.</div>
+        <div><span>After</span>Stand-alone, free, installed and maintained separately, installable side by side with older versions. Supported SQL Server 2008–2017 plus Azure SQL Database, with limited Azure SQL Data Warehouse support.</div>
+        <div><span>Result</span>The SSMS team ships faster than the engine team — which is why several plan features in this chapter have nothing to do with a SQL Server version at all.</div>
+      </div>
+
+      <p>Right-click inside a plan and three newer entries appear:</p>
+
+      <figure>
+        <img src="images/chapter17/fig-17-2-context-menu.png"
+             alt="Context menu inside a graphical plan showing Compare Showplan, Analyze Actual Execution Plan and Find Node.">
+        <figcaption><b>Figure 17-2</b> — The three: <b>Compare Showplan</b>, <b>Analyze Actual Execution Plan</b>, <b>Find Node</b>.</figcaption>
+      </figure>
+    </section>
+
+    <section class="card" id="ch17-analyze">
+      <h2><span class="num">3</span> Analyze Actual Execution Plan</h2>
+      <p class="lede">A second opinion on your plan, in a pane at the bottom of the window. Currently it knows exactly one thing — and it's the right thing.</p>
+
+      <figure>
+        <img src="images/chapter17/fig-17-3-showplan-analysis.png"
+             alt="Showplan Analysis pane opened below the query window with a radio button per query in the batch.">
+        <figcaption><b>Figure 17-3</b> — One entry per query in the batch. Pick one with the radio button, then open the <b>Scenarios</b> tab.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter17/fig-17-4-scenarios-tab.png"
+             alt="Scenarios tab showing the Inaccurate Cardinality Estimation scenario with a grid of operators and a guidance panel.">
+        <figcaption><b>Figure 17-4</b> — The <b>Scenarios</b> tab. In SSMS 17 only one scenario was defined: <b>Inaccurate Cardinality Estimation</b>.</figcaption>
+      </figure>
+
+      <p>
+        It's a good first scenario, because estimate-versus-actual mismatches are the most common cause of a
+        stable query suddenly performing badly — and a genuinely serious problem during upgrades, especially
+        from anything pre-2014 to 2014+ where the new cardinality estimator arrived (Chapter 10).
+      </p>
+
+      <p>The scenario splits into two halves:</p>
+
+      <table>
+        <thead><tr><th>Pane</th><th>Shows</th></tr></thead>
+        <tbody>
+          <tr><td><b>Left</b></td><td>The operators whose estimates differ significantly, in a grid: <b>Actual</b>, <b>Estimated</b>, node, and <b>% difference</b>.</td></tr>
+          <tr><td><b>Right</b></td><td>One or more possible <i>reasons</i> for the mismatch — and therefore guidance on how to address it.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note tip">
+        <b>The detail worth internalising</b>
+        For the highlighted Clustered Index Seek, <b>Actual Number of Rows = 6</b> and <b>Estimated Number
+        of Rows = 1</b> — which looks like a 6× error. But the analysis correctly accounts for
+        <b>Estimated Number of Executions = 69.4177</b>, giving 69.4177 rows estimated in total. SSMS is
+        multiplying estimate × executions for you, which is exactly the arithmetic that trips people up
+        reading properties by hand (Chapter 5's "per execution vs total" distinction).
+      </div>
+
+      <figure>
+        <img src="images/chapter17/fig-17-5-node-guidance.png"
+             alt="Selecting a different entry in the suggestions list selects the corresponding node in the graphical plan and updates the guidance.">
+        <figcaption><b>Figure 17-5</b> — Selecting the third entry (a Nested Loops) selects that node in the plan and rewrites the guidance for it. The list and the picture stay in sync.</figcaption>
+      </figure>
+
+      <div class="warn note">
+        <b>Validate it, always</b>
+        The guidance is a suggestion, not a diagnosis. The book's instruction is explicit: never assume it's
+        100% accurate, and confirm on your own system before acting on it.
+      </div>
+    </section>
+
+    <section class="card" id="ch17-compare">
+      <h2><span class="num">4</span> Compare Showplan</h2>
+      <p class="lede">Two plans, side by side, with matching regions shaded and mismatched properties flagged. The feature the author says he uses "all the time".</p>
+
+      <p>Any combination works — actual vs actual, estimated vs estimated, actual vs estimated — and across different SQL Server versions or patch levels. The only requirement: two valid plans, at least one saved to a file.</p>
+
+      <div class="code">
+        <header><span>Listing 17-2 · same query, different predicate</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> soh.OrderDate,
+       soh.Status,
+       sod.CarrierTrackingNumber,
+       sod.OrderQty,
+       p.Name
+<span class="kw">FROM</span> Sales.SalesOrderHeader <span class="kw">AS</span> soh
+    <span class="kw">JOIN</span> Sales.SalesOrderDetail <span class="kw">AS</span> sod
+        <span class="kw">ON</span> sod.SalesOrderID = soh.SalesOrderID
+    <span class="kw">JOIN</span> Production.Product <span class="kw">AS</span> p
+        <span class="kw">ON</span> p.ProductID = sod.ProductID
+<span class="kw">WHERE</span> sod.ProductID = 897;</code></pre>
+      </div>
+
+      <div class="plain">
+        <div><span>1</span>Run Listing 17-1, capture the actual plan, <b>Save Execution Plan As…</b> → a <code class="inl">.sqlplan</code> file.</div>
+        <div><span>2</span>Run Listing 17-2 and capture its actual plan.</div>
+        <div><span>3</span>Right-click → <b>Compare Showplans</b>, then pick the saved file.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter17/fig-17-6-showplan-comparison.png"
+             alt="Showplan Comparison window with two plans stacked, properties panes on the right, and the Showplan Analysis and Statement Options tabs below.">
+        <figcaption><b>Figure 17-6</b> — The comparison window: the plan you initiated from on top (17-2), the other below, property panes to the right, and <b>Showplan Analysis</b> plus a new <b>Statement Options</b> tab underneath.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter17/fig-17-7-statement-options.png"
+             alt="Blow-up of the Statement Options tab with the highlight checkboxes and a colour legend.">
+        <figcaption><b>Figure 17-7</b> — <b>Statement Options</b> blow-up: the <b>Highlight similar operations</b> checkbox (on by default), a <b>Highlight operators not matching similar segments</b> checkbox, and the colour legend for similar areas.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>Defaults worth knowing</b>
+        Similar operations are highlighted in distinct colours (pink, green, …) — one colour per similar area, so
+        you may see none or several. Directly-connected operators that match in both plans get grouped.
+        And <b>database names are ignored</b> by default, which is what makes comparing across environments
+        practical.
+      </div>
+
+      <p>
+        Property comparison is the other half. Select an operator in each plan and identical values stay
+        plain while differing ones get a <b>≠</b> marker:
+      </p>
+
+      <figure>
+        <img src="images/chapter17/fig-17-8-property-differences.png"
+             alt="Two Properties panes side by side with the SELECT operator selected in both, differing values marked with a not-equals sign.">
+        <figcaption><b>Figure 17-8</b> — SELECT operator in both plans. Differing properties get <b>≠</b> — and note that only the Listing 17-2 plan carries a <b>MissingIndexes</b> property at all, so a property can exist in one plan and not the other.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter17/fig-17-9-matching-operator.png"
+             alt="Properties of the Clustered Index Seek on Product in both plans, with almost every value identical and two differences highlighted.">
+        <figcaption><b>Figure 17-9</b> — The pink-highlighted Clustered Index Seek on <code class="inl">Product</code>: almost everything matches. Two things flagged — <b>Estimated Operator Cost</b>, because the percentage of the whole plan differs even though the absolute cost is identical, and <b>Seek Predicates</b>, because forced parameterization gave the two executions different parameter names. Without forced parameterization you'd see the literal values differ instead.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>Case study in "why did this flag?"</b>
+        A <i>relative</i> cost differing while the <i>absolute</i> cost is the same is not a real difference —
+        it's the plan total changing around it. Read the flagged property, not just the flag.
+      </div>
+
+      <figure>
+        <img src="images/chapter17/fig-17-10-non-matching-highlighted.png"
+             alt="Plan comparison with non-matching operators highlighted in yellow instead of similar ones in pink.">
+        <figcaption><b>Figure 17-10</b> — Switching to <b>Highlight operators not matching similar segments</b>: the inverse view, with non-matching operators in yellow. Use it instead of, or alongside, the similar-operations highlight.</figcaption>
+      </figure>
+
+      <p>
+        This is the feature's real value: differences between plans are often not glaring. They're one
+        operator that changed, in a 200-operator plan, with a large performance consequence. Highlighting the
+        odd one out finds it in seconds.
+      </p>
+    </section>
+
+    <section class="card" id="ch17-findnode">
+      <h2><span class="num">5</span> Find Node</h2>
+      <p class="lede">Search a plan by property value. Pointless on a six-operator plan; essential on a six-hundred-operator one.</p>
+
+      <figure>
+        <img src="images/chapter17/fig-17-11-find-node-properties.png"
+             alt="Find Node drop-down listing every property available to search on, from ActualRows to warnings.">
+        <figcaption><b>Figure 17-11</b> — The property list. Every property an operator can carry is searchable — <code class="inl">ActualRows</code>, <code class="inl">NodeId</code>, <code class="inl">ParentNodeID</code>, object names, column names.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter17/fig-17-12-comparison-operators.png"
+             alt="Comparison operator selector offering equals for numeric searches and contains for text searches.">
+        <figcaption><b>Figure 17-12</b> — Comparison: <b>equals</b> for numeric searches, <b>contains</b> for text. Text searches need no wildcards — it assumes you want similar matches as well as exact ones.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter17/fig-17-13-find-node-result.png"
+             alt="Find Node searching for ActualRows equals 6, with left and right arrows moving between matching operators in NodeId order.">
+        <figcaption><b>Figure 17-13</b> — Searching <code class="inl">ActualRows = 6</code>, then stepping through matches with the left/right arrows <b>in NodeId order</b>.</figcaption>
+      </figure>
+
+      <p>Two searches that pay for the feature immediately:</p>
+      <ul class="biglist">
+        <li><b><code class="inl">ParentNodeID</code> equals the <code class="inl">NodeId</code> of a Table Spool</b> — finds everything consuming that spool, without hunting through a rat's nest of arrows.</li>
+        <li><b>A column name, with "contains"</b> — finds every operator that touches a column, which is otherwise a property-by-property crawl.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="ch17-live">
+      <h2><span class="num">6</span> Live execution plans</h2>
+      <p class="lede">Per-operator runtime statistics, updating while the query runs. Three ways to get them, at three very different costs — and one way that's just a toolbar toggle.</p>
+
+      <p>
+        Why you'd want this: to see data actually moving through the plan on a long-running query, and to get
+        an <b>estimated query progress</b> — which is genuinely useful for deciding whether to kill something.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 17-3 · the long-running test query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> sys.objects <span class="kw">AS</span> o,
+     sys.columns <span class="kw">AS</span> c;</code></pre>
+      </div>
+
+      <p>
+        A cartesian join with <code class="inl">SELECT *</code> — a violation of several rules this book has
+        spent sixteen chapters establishing. It also takes about 40 seconds, which is exactly what makes it a
+        good test bed.
+      </p>
+
+      <h3 class="step">The history, in four versions</h3>
+
+      <table>
+        <thead><tr><th>Version</th><th>What it added</th></tr></thead>
+        <tbody>
+          <tr><td><b>SQL Server 2014</b></td><td><code class="inl">sys.dm_exec_query_profiles</code> — progress from another connection. High overhead: data was only captured if the query ran with the actual plan enabled.</td></tr>
+          <tr><td><b>2014 SP2 / 2016 SP1</b></td><td>Trace Flag <b>7412</b> — a lightweight query execution statistics profiling infrastructure. Both retrofitted into 2014 SP2.</td></tr>
+          <tr><td><b>SQL Server 2016</b></td><td>The <code class="inl">query_thread_profile</code> Extended Event (which enables the trace flag for you), and live statistics in SSMS.</td></tr>
+          <tr><td><b>2016+</b></td><td><b>Include Live Query Statistics</b> toggle in SSMS — no session, no trace flag, no DMV polling.</td></tr>
+        </tbody>
+      </table>
+
+      <p>Cost, cheapest first — and none of them free:</p>
+      <div class="plain">
+        <div><span>Cheapest</span>Trace Flag 7412.</div>
+        <div><span>Middle</span>The <code class="inl">query_thread_profile</code> event — it switches the flag on automatically.</div>
+        <div><span>Most expensive</span>Capturing the actual plan.</div>
+      </div>
+
+      <h3 class="step">Way 1 — the DMV</h3>
+
+      <div class="code">
+        <header><span>Listing 17-4 · turn on the lightweight profiling</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DBCC TRACEON</span> (7412, -1);</code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 17-5 · watch it from another session</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> deqp.session_id,
+       deqp.node_id,
+       deqp.physical_operator_name,
+       deqp.estimate_row_count,
+       deqp.row_count
+<span class="kw">FROM</span> sys.dm_exec_query_profiles <span class="kw">AS</span> deqp
+<span class="kw">WHERE</span> deqp.session_id &lt;&gt; @@SPID
+<span class="kw">ORDER BY</span> deqp.node_id <span class="kw">ASC</span>;</code></pre>
+      </div>
+
+      <p>
+        The <code class="inl">session_id &lt;&gt; @@SPID</code> filter keeps your own monitoring session out of
+        the results. The DMV returns far more columns than this; the two that matter are
+        <code class="inl">estimate_row_count</code> (the total the optimizer expects) and
+        <code class="inl">row_count</code> (what has actually been processed so far).
+      </p>
+
+      <figure>
+        <img src="images/chapter17/fig-17-14-query-profiles-results.png"
+             alt="sys.dm_exec_query_profiles results listing node id, operator name, estimated row count and actual row count.">
+        <figcaption><b>Figure 17-14</b> — Node 1, the Nested Loops: estimated <b>6,264,966</b> rows, processed <b>94,465</b>. Not finished, and not close.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter17/fig-17-15-query-profiles-progress.png"
+             alt="The same DMV queried again later, showing increased row counts for several operators.">
+        <figcaption><b>Figure 17-15</b> — Query it again: the numbers have moved. Re-run it after the query completes and you get <b>nothing at all</b> — there are no active sessions left.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>The obvious caveat</b>
+        Progress is measured against the <i>estimate</i>. If the estimate is wrong, the percentage is wrong
+        too — and the query may finish "before" 100%.
+      </div>
+
+      <h3 class="step">Way 2 — the Extended Event</h3>
+
+      <p>
+        If you only want the completed numbers, capture <code class="inl">query_thread_profile</code>. It fires
+        at the <b>end</b> of query execution, once per operator per execution thread. It lives on the
+        <b>Debug</b> channel, so in the GUI you must select Debug from the Channel drop-down before the event
+        is even visible.
+      </p>
+
+      <figure>
+        <img src="images/chapter17/fig-17-16-thread-profile-event.png"
+             alt="query_thread_profile event output for NodeId 1 showing estimated rows 6,264,966 and actual rows 1,273,188 plus cpu and total time.">
+        <figcaption><b>Figure 17-16</b> — The event for NodeId 1: estimated <b>6,264,966</b>, actual <b>1,273,188</b> — so the estimate was over 4× too high. Plus <code class="inl">total_time_us</code> and <code class="inl">cpu_time_us</code>, which the DMV doesn't hand you as neatly.</figcaption>
+      </figure>
+
+      <h3 class="step">Way 3 — the SSMS toggle</h3>
+
+      <figure>
+        <img src="images/chapter17/fig-17-17-live-query-statistics-icon.png"
+             alt="Toolbar icon and tooltip for Include Live Query Statistics, next to Include Actual Execution Plan.">
+        <figcaption><b>Figure 17-17</b> — <b>Include Live Query Statistics</b> in the SSMS toolbar, next to <b>Include Actual Execution Plan</b>. A toggle, same as its neighbour.</figcaption>
+      </figure>
+
+      <p>
+        Turn it on, run the query, and you get statistics while it executes. Turn it off and you don't —
+        unless you go via Activity Monitor. Since this captures the plan, you don't need the trace flag or the
+        event for it to work; and having the trace flag on doesn't make this cheaper, because you're still
+        paying for plan capture.
+      </p>
+
+      <figure>
+        <img src="images/chapter17/fig-17-18-live-plan.png"
+             alt="Live execution plan for the cartesian-join query showing Estimated query progress 12%, dashed lines between operators, and row counts with percentages beneath each operator.">
+        <figcaption><b>Figure 17-18</b> — The tells that this is live, not a finished plan: <b>Estimated query progress: 12 %</b> top-left, <b>dashed</b> arrows instead of solid, and each operator showing rows processed with a percentage — <code class="inl">96619 of 6264970 (1 %)</code>. In SSMS the dashes move and the counters climb. When it finishes, it's just an ordinary plan.</figcaption>
+      </figure>
+
+      <h3 class="step">Way 4 — from Activity Monitor</h3>
+
+      <p>
+        With the trace flag on (or the event captured), any tool can show a live plan for a running query
+        without capturing an actual plan. Activity Monitor's <b>Active Expensive Queries</b> is one:
+      </p>
+
+      <figure>
+        <img src="images/chapter17/fig-17-19-activity-monitor.png"
+             alt="Activity Monitor Active Expensive Queries report showing the cartesian-join query running.">
+        <figcaption><b>Figure 17-19</b> — Activity Monitor with Listing 17-3 active and expensive.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter17/fig-17-20-live-plan-menu.png"
+             alt="Right-click context menu on the active query with Show Live Execution Plan.">
+        <figcaption><b>Figure 17-20</b> — Right-click → <b>Show Live Execution Plan</b>. You land in the same window as Figure 17-18, behaving identically — but with no actual-plan capture cost, because the trace flag or event is supplying the data.</figcaption>
+      </figure>
+
+      <div class="warn note">
+        <b>The two limitations</b>
+        <b>1. They depend on estimates.</b> If the estimate is off, so is everything the live plan tells you —
+        including "progress". <b>2. Even the lightweight options cost something.</b> Trace Flag 7412 or
+        <code class="inl">query_thread_profile</code> may still be too expensive for some systems. Test before
+        enabling on production.
+      </div>
+    </section>
+
+    <section class="card" id="ch17-thirdparty">
+      <h2><span class="num">7</span> Third-party tools, briefly</h2>
+      <p class="lede">Not covered in depth, but named — because at some plan size, a different viewer is the practical answer.</p>
+
+      <table>
+        <thead><tr><th>Tool</th><th>What it is</th><th>Why you'd reach for it</th></tr></thead>
+        <tbody>
+          <tr><td><b>Plan Explorer</b> (SentryOne)</td><td>Stand-alone application, many views and layouts of a plan.</td><td>Intelligent analysis of properties, index statistics and runtime stats to make large plans readable.</td></tr>
+          <tr><td><b>Supratimas</b></td><td>Free browser-based tool at supratimas.com.</td><td>Drag and drop query text or a <code class="inl">.sqlplan</code>; highlights important properties and the most expensive operators. Free/ads-supported SSMS plug-in, or paid.</td></tr>
+          <tr><td><b>SSMS Tools Pack</b> (Mladen Prajdić)</td><td>Add-on collection for SSMS, including an <b>Execution Plan Analyzer</b>.</td><td>Works inside the query window; highlights expensive operators and large estimate/actual mismatches, and suggests actions.</td></tr>
+          <tr><td><b>SQL Monitor</b> (Redgate) and similar</td><td>Performance monitoring tools that capture plans as part of diagnostics.</td><td>A different job: they don't teach you to read plans, they put the plan in the context of everything else happening at that moment.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <b>Three versions of the same warning</b>
+        Chapters 3 and 6 said it about graphical plans; it applies equally here. Every tool in this chapter
+        — and every one in the table — <b>adds to</b> your understanding of how the optimizer works. None
+        replaces it.
+      </div>
+    </section>
+
+    <section class="card" id="ch17-cheatsheet">
+      <h2><span class="num">8</span> Cheat sheet</h2>
+      <p class="lede">Which tool for which problem.</p>
+
+      <table>
+        <thead><tr><th>Problem</th><th>Tool</th><th>Gotcha</th></tr></thead>
+        <tbody>
+          <tr><td>"Are my estimates wrong?"</td><td><b>Analyze Actual Execution Plan</b> → Scenarios</td><td>Only one scenario existed in SSMS 17 (Inaccurate Cardinality Estimation). It already multiplies estimate × executions for you.</td></tr>
+          <tr><td>"What changed between these two plans?"</td><td><b>Compare Showplan</b></td><td>Needs one plan saved as a file. Similar areas get colours; ignore database names by default. Switch to "not matching" to invert the highlight.</td></tr>
+          <tr><td>"Why is this property flagged when the value looks the same?"</td><td>Read it, don't trust the flag</td><td>Relative operator cost changes when the plan total changes, even if absolute cost is identical.</td></tr>
+          <tr><td>"Where does this column/spool appear in a 300-operator plan?"</td><td><b>Find Node</b></td><td><code class="inl">equals</code> for numbers, <code class="inl">contains</code> for text; no wildcards needed; arrows step in NodeId order.</td></tr>
+          <tr><td>"How far along is this query?"</td><td><code class="inl">sys.dm_exec_query_profiles</code> / <b>Live Query Statistics</b></td><td>Both are relative to estimates. Nothing to see after it completes.</td></tr>
+          <tr><td>"How long did each operator <i>really</i> take?"</td><td><code class="inl">query_thread_profile</code> event</td><td>Debug channel — must be enabled in the GUI. Fires at end of execution, per operator, per thread.</td></tr>
+          <tr><td>"Is it worth killing this query?"</td><td>Estimated query progress in a live plan</td><td>Progress is meaningless if the estimate is wrong.</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>SSMS 17 is decoupled from the engine</b> — that's why these features exist and why some don't require a particular SQL Server version.</li>
+        <li><b>Analyze Actual Execution Plan is a hint, not a diagnosis.</b> Validate every recommendation on your own system.</li>
+        <li><b>Compare Showplan finds the one operator that changed</b> — often the entire explanation for a regression.</li>
+        <li><b>Find Node turns property hunting into searching.</b> The killer query is <code class="inl">ParentNodeID = &lt;a spool's NodeId&gt;</code>.</li>
+        <li><b>Live plans cost money three ways</b> — flag cheapest, event next, actual-plan capture most. None free.</li>
+        <li><b>Live ≠ finished.</b> Dashed arrows, a progress percentage, and per-operator "x of y (z %)" are the tells.</li>
+        <li><b>Tools don't replace knowledge.</b> They make you faster at applying what you already know.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        SSMS 17 gives you materially more help understanding plans, and understanding the differences
+        between plans, than any previous version — and third-party tools are useful when you need to navigate
+        something very large. Each brings different strengths. None of them replaces knowing how the optimizer
+        generates a plan and how to read one.
+      </div>
+    </section>
