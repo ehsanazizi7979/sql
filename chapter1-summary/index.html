@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 1 · A Little Background — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<style>
+  :root{
+    --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
+    --accent:#c1440e; --accent-soft:#f4e3d8; --line:#e6e0d6;
+    --code-bg:#22252b; --code-ink:#e8e6e1; --good:#2f6f4f;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--serif);font-size:18px;line-height:1.68;-webkit-font-smoothing:antialiased}
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent);z-index:99}
+  .layout{display:grid;grid-template-columns:248px minmax(0,1fr);gap:48px;
+    max-width:1240px;margin:0 auto;padding:0 28px 96px}
+  /* ---------- sidebar ---------- */
+  nav.toc{position:sticky;top:0;align-self:start;padding:34px 0 20px;font-family:var(--sans);font-size:14px}
+  nav.toc .brand{font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  nav.toc ol{list-style:none;margin:0;padding:0;border-left:2px solid var(--line)}
+  nav.toc a{display:block;padding:6px 14px;color:var(--muted);text-decoration:none;border-left:2px solid transparent;margin-left:-2px}
+  nav.toc a:hover{color:var(--accent)}
+  nav.toc a.active{color:var(--accent);border-left-color:var(--accent);background:linear-gradient(90deg,var(--accent-soft),transparent);font-weight:600}
+  /* ---------- header ---------- */
+  header.hero{grid-column:1/-1;padding:64px 0 34px;border-bottom:1px solid var(--line);margin-bottom:14px}
+  .kicker{font-family:var(--sans);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:clamp(2.3rem,5.4vw,3.5rem);line-height:1.08;margin:.35em 0 .3em;letter-spacing:-.02em}
+  .sub{font-size:1.16rem;color:var(--muted);max-width:62ch}
+  .meta{font-family:var(--sans);font-size:13.5px;color:var(--muted);margin-top:22px;display:flex;flex-wrap:wrap;gap:10px 22px}
+  .meta b{color:var(--ink);font-weight:600}
+  /* ---------- typography ---------- */
+  main section{padding:38px 0 6px;scroll-margin-top:20px;border-bottom:1px dashed var(--line)}
+  main section:last-of-type{border-bottom:0}
+  h2{font-family:var(--sans);font-size:1.72rem;line-height:1.25;margin:0 0 6px;letter-spacing:-.015em}
+  h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.5em;font-weight:800}
+  h3{font-family:var(--sans);font-size:1.12rem;margin:26px 0 4px;letter-spacing:-.01em}
+  p{margin:.75em 0}
+  .lede{font-size:1.1rem;color:var(--muted);margin-bottom:1.1em}
+  a{color:var(--accent)}
+  strong{font-weight:600}
+  ul,ol{padding-left:1.35em;margin:.7em 0}
+  li{margin:.32em 0}
+  /* ---------- cards & callouts ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin:22px 0}
+  .simple{border-left:4px solid var(--good);background:#f1f7f2;border-radius:0 12px 12px 0;padding:14px 20px;margin:20px 0}
+  .simple .tag{font-family:var(--sans);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--good);display:block;margin-bottom:4px}
+  .note{border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 12px 12px 0;padding:14px 20px;margin:20px 0;font-size:.97rem}
+  .note .tag{font-family:var(--sans);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:16px;margin:22px 0}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .tile h4{font-family:var(--sans);margin:0 0 6px;font-size:.98rem}
+  .tile p{margin:0;font-size:.95rem;color:var(--muted)}
+  .term{font-family:var(--sans);font-size:.8rem;font-weight:700;background:#fff;border:1px solid var(--line);
+    border-radius:6px;padding:1px 7px;white-space:nowrap}
+  /* ---------- figures ---------- */
+  figure{margin:28px 0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center}
+  figure img{max-width:100%;height:auto;border-radius:6px;background:#fff}
+  figcaption{font-family:var(--sans);font-size:.86rem;color:var(--muted);margin-top:12px;text-align:left;line-height:1.5}
+  figcaption b{color:var(--accent)}
+  /* ---------- code ---------- */
+  .code{margin:20px 0;border-radius:12px;overflow:hidden;border:1px solid #14161a;background:var(--code-bg);
+    box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .code .bar{display:flex;justify-content:space-between;align-items:center;gap:12px;
+    font-family:var(--sans);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+    padding:8px 14px;background:#191c21;color:#9aa1ab;border-bottom:1px solid #2a2e35}
+  .code .bar .k{color:#7fd1b9;text-transform:none;letter-spacing:0}
+  .copy{font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9aa1ab;
+    background:#22262c;border:1px solid #31363e;border-radius:6px;padding:3px 9px;cursor:pointer}
+  .copy:hover{color:#fff;border-color:#4a5058}
+  .code pre{margin:0;padding:15px 18px;overflow-x:auto}
+  .code code{font-family:var(--mono);font-size:13.6px;line-height:1.62;color:var(--code-ink);white-space:pre}
+  .kw{color:#8fc4f4;font-weight:600}.str{color:#c5e28f}.num{color:#f0b072}.cmt{color:#7c848f;font-style:italic}
+  .out code{color:#b9c0c9}
+  .inline{font-family:var(--mono);font-size:.85em;background:#efece5;border:1px solid #e2ddd2;border-radius:4px;padding:.5px 5px}
+  /* ---------- tables ---------- */
+  table{width:100%;border-collapse:collapse;margin:22px 0;font-size:.95rem;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th{font-family:var(--sans);text-align:left;font-size:.76rem;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--muted);background:#f4f1ea;padding:11px 16px;border-bottom:1px solid var(--line)}
+  td{padding:11px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  td:first-child{font-family:var(--mono);font-size:.86rem;white-space:nowrap}
+  /* ---------- timeline ---------- */
+  .tl{list-style:none;margin:24px 0;padding:0;font-family:var(--sans);font-size:.93rem}
+  .tl li{position:relative;padding:0 0 16px 30px;border-left:2px solid var(--line);margin-left:7px}
+  .tl li:last-child{border-left-color:transparent;padding-bottom:0}
+  .tl li::before{content:"";position:absolute;left:-7px;top:7px;width:12px;height:12px;border-radius:50%;
+    background:var(--accent);box-shadow:0 0 0 3px var(--paper)}
+  .tl .yr{display:block;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .tl .t{font-weight:600}
+  /* ---------- footer ---------- */
+  footer{grid-column:1/-1;border-top:1px solid var(--line);margin-top:44px;padding:26px 0 0;
+    font-family:var(--sans);font-size:13px;color:var(--muted);line-height:1.6}
+  @media(max-width:900px){
+    .layout{grid-template-columns:1fr;gap:0;padding:0 20px 64px}
+    nav.toc{position:static;padding:0 0 8px;border-bottom:1px solid var(--line);margin-bottom:8px}
+    nav.toc ol{display:flex;flex-wrap:wrap;border-left:0;gap:2px}
+    nav.toc a{border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin:0}
+    nav.toc a.active{background:var(--accent-soft);border-left-color:var(--line)}
+    nav.toc .brand{display:none}
+    header.hero{padding-top:36px}
+    body{font-size:17px}
+  }
+  @media print{
+    nav.toc,#progress,.copy{display:none}
+    .layout{grid-template-columns:1fr}
+    body{background:#fff;font-size:11.5pt}
+    .code{background:#f6f4f0;border-color:#ddd}
+    .code pre code,.code .bar{color:#222;background:transparent;border:0}
+    .kw{color:#0b4ea2}.str{color:#1c6b3c}.num{color:#a3520b}.cmt{color:#666}
+    main section{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="layout">
+
+<header class="hero">
+  <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
+  <h1>Chapter 1 — A Little Background</h1>
+  <p class="sub">Why relational databases exist, where SQL came from, and what the language
+  actually does — explained in plain English, with the book's own figures and example code.</p>
+  <div class="meta">
+    <span><b>Book pages:</b> 1–15 (PDF pp. 19–34)</span>
+    <span><b>Sections:</b> 5</span>
+    <span><b>Figures:</b> 1-1, 1-2, 1-3</span>
+    <span><b>Reading time:</b> ~12 min</span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Table of contents">
+  <div class="brand">Contents</div>
+  <ol>
+    <li><a href="#tldr">The one-paragraph version</a></li>
+    <li><a href="#before">Databases before computers</a></li>
+    <li><a href="#nonrelational">The messy early systems</a></li>
+    <li><a href="#relational">The relational idea</a></li>
+    <li><a href="#terms">Words you need</a></li>
+    <li><a href="#sql">What SQL is</a></li>
+    <li><a href="#classes">Three families of statements</a></li>
+    <li><a href="#nonproc">Not a programming language</a></li>
+    <li><a href="#examples">The example queries</a></li>
+    <li><a href="#mysql">MySQL &amp; the big vendors</a></li>
+    <li><a href="#unplugged">SQL unplugged</a></li>
+    <li><a href="#next">What's in store</a></li>
+  </ol>
+</nav>
+
+<main>
+<section id="tldr">
+  <h2><span class="num">01</span>The one-paragraph version</h2>
+  <p class="lede">Before it teaches you any syntax, the chapter explains the <em>problem</em> that
+    relational databases solved — and that makes the syntax make sense later.</p>
+
+  <p>People have always needed to keep lists of related facts. A phone book is a database: names,
+    numbers, addresses. But paper (and later magnetic tape) is slow, it can only be looked up one way,
+    and it goes stale the moment it's printed. Early computer databases fixed the speed problem but
+    made the <em>shape</em> problem worse: data was stored as trees and chains of pointers, so to find
+    anything you had to know the physical route to it and follow it step by step.</p>
+  <p>In 1970, E.&nbsp;F. Codd proposed a radical alternative: forget pointers, just use <strong>flat
+    tables of rows and columns</strong>, and link tables to each other by repeating a small identifier
+    value. You stop describing <em>how</em> to walk to the data and only describe <em>what</em> you want.
+    The language for saying that is <strong>SQL</strong>, and the database program that carries out your
+    request (deciding the walking route itself) is what you buy from Oracle, Microsoft, IBM or MySQL.</p>
+
+  <div class="simple">
+    <span class="tag">In one sentence</span>
+    A relational database stores facts in tables that reference each other by ID, and SQL is the
+    text you send it to say <em>what</em> you want — never <em>how</em> to go get it.
+  </div>
+
+  <div class="grid">
+    <div class="tile"><h4>Tables, not trees</h4><p>Every fact lives in a row of a table. Nothing "contains" anything else.</p></div>
+    <div class="tile"><h4>IDs are the glue</h4><p>A foreign key value does the job that a pointer did in the old systems.</p></div>
+    <div class="tile"><h4>Declarative</h4><p>You describe the answer; the database's optimizer picks the path.</p></div>
+    <div class="tile"><h4>One language, many servers</h4><p>SQL was standardised, so the same query mostly runs anywhere.</p></div>
+  </div>
+</section>
+
+<section id="before">
+  <h2><span class="num">02</span>Databases before computers</h2>
+  <p class="lede">"A database is nothing more than a set of related information."</p>
+
+  <p>The book starts deliberately low-tech. A phone book is a database, and it has three problems that
+    every bad data system shares:</p>
+  <ul>
+    <li><strong>Slow to search</strong> — you flip pages until you find the entry.</li>
+    <li><strong>Indexed one way only</strong> — it's sorted by last name, so "who lives at this address?"
+      is theoretically possible and practically hopeless.</li>
+    <li><strong>Instantly out of date</strong> — from the day it's printed, it gets less true.</li>
+  </ul>
+  <p>A filing cabinet of patient records has the same flaws. Computerising data fixes all three at once:
+    you can retrieve faster, index the same data in several ways, and update it live.</p>
+  <p>The very first computer databases ran on <strong>magnetic tape</strong>. There were always more tapes
+    than tape drives, so humans physically mounted and dismounted reels on request, and because machines
+    had tiny memory, asking for the same data twice often meant reading the same tape twice. Much better
+    than paper — and still nothing like what's possible today, where a single system can manage petabytes
+    with clusters of servers caching gigabytes in RAM.</p>
+
+  <div class="note">
+    <span class="tag">Why this matters</span>
+    The "indexed one way only" complaint is the whole reason relational databases let you ask
+    questions in <em>any</em> combination. Keep it in mind when you meet <span class="inline">WHERE</span>
+    in Chapter 3.
+  </div>
+</section>
+
+<section id="nonrelational">
+  <h2><span class="num">03</span>The messy early systems: hierarchical &amp; network</h2>
+  <p class="lede">Data as trees, then as webs — both fast to traverse, painful to query.</p>
+
+  <p>The running example through the whole chapter is a tiny bank: two customers
+    (<strong>George Blake</strong> and <strong>Sue Smith</strong>), four account products
+    (checking, savings, money market, line of credit), their accounts, and the transactions on
+    those accounts. The same four entities are drawn three different ways, and watching the drawings
+    change is the point.</p>
+
+  <h3>Hierarchical: data as a family tree</h3>
+  <p>In a <span class="term">hierarchical</span> database, information is stored as one or more
+    <strong>trees</strong>. Each customer owns a tree; under them hang their accounts, and under each
+    account hang its transactions. Every node has <strong>at most one parent</strong> — this is called a
+    single-parent hierarchy. The system gives you tools to find one customer's tree and then walk down it.</p>
+
+  <figure>
+    <img src="images/fig1-1-hierarchical.png" width="1401" height="735"
+         alt="Figure 1-1: hierarchical view of account data — George Blake and Sue Smith each root a tree of accounts and transactions.">
+    <figcaption><b>Figure 1-1 — Hierarchical view of account data.</b> Two trees, one per customer.
+      Accounts and transactions are children nested underneath. To find a transaction you must know which
+      tree it hangs from. (Learning SQL, Ch. 1)</figcaption>
+  </figure>
+
+  <h3>Network: the same data as a web</h3>
+  <p>A <span class="term">network</span> database stores sets of records plus sets of <strong>links</strong>
+    between them. Records can now be reached from several directions, because the product records also
+    point back at the accounts of that type. That makes it a <em>multi-parent</em> hierarchy.</p>
+
+  <figure>
+    <img src="images/fig1-2-network.png" width="1428" height="1174"
+         alt="Figure 1-2: network view of account data — customer, account, product and transaction records joined by chains of links.">
+    <figcaption><b>Figure 1-2 — Network view of account data.</b> Same data, now a web of links. Note the
+      product records on the right pointing back into the account chains — one account, two ways in.
+      (Learning SQL, Ch. 1)</figcaption>
+  </figure>
+
+  <p>The catch shows up the moment you ask a real question. To get the transactions on
+    <em>Sue's money market account</em> you must hand the database a route:</p>
+  <ol>
+    <li>Find Sue Smith's customer record.</li>
+    <li>Follow the link from her record to her list of accounts.</li>
+    <li>Walk the chain of accounts until you reach the money market one.</li>
+    <li>Follow that record's link to its list of transactions.</li>
+  </ol>
+  <p>Four steps of navigation for one question — and you, the query writer, had to know the structure
+    of the storage to write them.</p>
+
+  <div class="simple">
+    <span class="tag">The takeaway</span>
+    Hierarchical and network systems are fast at <em>following a path you already know</em>. They are
+    awful for <em>asking a question you haven't planned</em>. Both still exist today (mainframes, and
+    directory services such as Microsoft Active Directory and Apache Directory Server, which are
+    hierarchical trees).
+  </div>
+</section>
+
+<section id="relational">
+  <h2><span class="num">04</span>The relational idea: tables instead of pointers</h2>
+  <p class="lede">Codd, 1970: represent data as sets of tables, and let repeated ID values do the linking.</p>
+
+  <p>Dr. E.&nbsp;F. Codd of IBM Research published <em>"A Relational Model of Data for Large Shared Data
+    Banks"</em>, proposing that data be represented as <strong>tables</strong>. No pointers to navigate.
+    Instead, <strong>redundant data</strong> — the same ID value appearing in two tables — connects a
+    row in one table to a row in another. Sounds wasteful; turns out to be the whole trick.</p>
+
+  <figure>
+    <img src="images/fig1-3-relational.png" width="1410" height="1364"
+         alt="Figure 1-3: relational view of account data — Customer, Product, Account and Transaction tables of rows and columns.">
+    <figcaption><b>Figure 1-3 — Relational view of account data.</b> Four tables, no lines between them.
+      The links are now <em>values</em>: <span class="inline">account.cust_id</span> holds a
+      <span class="inline">customer.cust_id</span>, and
+      <span class="inline">transaction.account_id</span> holds an
+      <span class="inline">account.account_id</span>. (Learning SQL, Ch. 1)</figcaption>
+  </figure>
+
+  <h3>Reading the tables</h3>
+  <p>Across the top of the <span class="inline">customer</span> table are its three
+    <strong>columns</strong> — <span class="inline">cust_id</span>,
+    <span class="inline">fname</span>, <span class="inline">lname</span>. Down the side are two
+    <strong>rows</strong>, one per customer. How many columns a table may hold varies by server
+    (SQL Server allows 1,024) and is rarely the constraint; how many <em>rows</em> it may hold is limited
+    by disk space and by how big a table you can stand to maintain — not really by the database itself.</p>
+
+  <h3>Primary keys: a row's name tag</h3>
+  <p>Each table carries something that uniquely identifies a row: the
+    <span class="term">primary key</span>. George Blake is <span class="inline">cust_id = 1</span>;
+    nobody else ever gets that number, so it alone is enough to find him. Servers generate these number
+    sets for you, so you don't hand out IDs yourself.</p>
+  <p>You <em>could</em> key the customer table on <span class="inline">fname</span> +
+    <span class="inline">lname</span> — a key built from several columns is a
+    <strong>compound key</strong>. Two problems: plenty of people share a name, and names change when
+    people marry. A primary key must never change once assigned, so a made-up number wins here.</p>
+  <ul>
+    <li><strong>Natural key</strong> — the identifier is real data about the thing (a name, an SSN, an ISBN).</li>
+    <li><strong>Surrogate key</strong> — a meaningless number invented purely to be unique
+      (<span class="inline">cust_id</span>). Safer when real-world facts can change.</li>
+  </ul>
+
+  <h3>Foreign keys: the redundant data that replaced pointers</h3>
+  <p>The <span class="inline">account</span> table stores <span class="inline">cust_id</span> (who opened
+    it) and <span class="inline">product_cd</span> (which product it is). Those are
+    <span class="term">foreign key</span> columns — they identify a single row <em>in another table</em>.
+    They do exactly the job the link lines did in Figures 1-1 and 1-2, but as plain values you can query
+    directly. Taking a value from one table to find its matching row in another is a
+    <strong>join</strong> (Chapter 3, then in depth in Chapters 5 and 10).</p>
+
+  <h3>What the model does <em>not</em> allow</h3>
+  <p>Redundancy is allowed only in a tight, deliberate form:</p>
+  <ul>
+    <li><span class="inline">account.cust_id</span>? Proper — it's the pointer-by-value.</li>
+    <li>George's first and last name repeated inside the <span class="inline">account</span> table?
+      Improper — a name change would update one place and not the other, and now your database lies.</li>
+    <li>One column holding "street, city, state, zip" or a full name? Improper — one column, one fact.</li>
+  </ul>
+  <p>Tidying a design so each independent fact lives in exactly one place (foreign keys excepted) is
+    called <span class="term">normalization</span>.</p>
+
+  <div class="simple">
+    <span class="tag">Now answer the hard question</span>
+    "Which transactions did George Blake post to his checking account?" Without pointers: find George's
+    <span class="inline">cust_id</span> in <span class="inline">customer</span> → find the
+    <span class="inline">account</span> row with that <span class="inline">cust_id</span> whose
+    <span class="inline">product_cd</span> matches the product row named "Checking" → find the
+    <span class="inline">transaction</span> rows for that <span class="inline">account_id</span>. Three
+    hops, one SQL statement — see <a href="#examples">§09</a>.
+  </div>
+</section>
+
+<section id="terms">
+  <h2><span class="num">05</span>Words you need (Table 1-1)</h2>
+  <p class="lede">The seven terms the rest of the book assumes.</p>
+  <table>
+    <thead><tr><th>Term</th><th>What it means in this book</th></tr></thead>
+    <tbody>
+      <tr><td>Entity</td><td>Anything the users care about enough to track — customers, parts, geographic locations.</td></tr>
+      <tr><td>Column</td><td>One individual piece of data stored in a table.</td></tr>
+      <tr><td>Row</td><td>A set of columns that together completely describe an entity (or an action on it). Also called a <em>record</em>.</td></tr>
+      <tr><td>Table</td><td>A set of rows, held in memory (nonpersistent) or on disk (persistent).</td></tr>
+      <tr><td>Result set</td><td>A nonpersistent table — usually what a query hands back.</td></tr>
+      <tr><td>Primary key</td><td>One or more columns that uniquely identify each row of a table.</td></tr>
+      <tr><td>Foreign key</td><td>One or more columns that together identify a single row in <em>another</em> table.</td></tr>
+    </tbody>
+  </table>
+</section>
+<section id="sql">
+  <h2><span class="num">06</span>What SQL is (and why it has that name)</h2>
+  <p class="lede">A research prototype that got renamed four times and then became a standard.</p>
+
+  <p>Codd didn't only describe tables — he also proposed a language for manipulating them,
+    <strong>DSL/Alpha</strong>. IBM built a prototype from his ideas, simplified DSL/Alpha and called it
+    <strong>SQUARE</strong>; refining SQUARE produced <strong>SEQUEL</strong>, which was finally shortened
+    to <strong>SQL</strong>. It began as a relational data language and has since grown into a language
+    used across many database technologies.</p>
+
+  <ul class="tl">
+    <li><span class="yr">1970</span><span class="t">Codd's relational model paper</span> — data as sets of tables, plus DSL/Alpha.</li>
+    <li><span class="yr">Early 1970s</span><span class="t">SQUARE → SEQUEL → SQL</span> — IBM's prototype language, simplified and renamed.</li>
+    <li><span class="yr">mid-1980s → 1986</span><span class="t">First ANSI standard</span> — work starts in the mid-80s, published 1986.</li>
+    <li><span class="yr">1989 · 1992 · 1999 · 2003 · 2006 · 2008 · 2011 · 2016</span><span class="t">Revisions</span> — object-oriented features added; later editions focus on integrating XML and JSON.</li>
+  </ul>
+
+  <p>SQL and the relational model fit together hand in glove because <strong>the result of an SQL query is
+    itself a table</strong> (a "result set"). That one property does a lot of work: store a query's result
+    set and you've created a new table; feed a query's result set into another query and you've built a
+    subquery (Chapter 9).</p>
+
+  <div class="note">
+    <span class="tag">Pedant corner</span>
+    SQL isn't officially an acronym. People insist it means "Structured Query Language," and you'll be
+    understood either way — but saying <em>ess-que-ell</em> and <em>sequel</em> are both fine.
+  </div>
+</section>
+
+<section id="classes">
+  <h2><span class="num">07</span>Three families of statements</h2>
+  <p class="lede">Build the structure, move the data, control the trust.</p>
+
+  <div class="grid">
+    <div class="tile"><h4>Schema</h4><p>Define the structures that hold data: <span class="inline">CREATE TABLE</span> and friends.</p></div>
+    <div class="tile"><h4>Data</h4><p>Manipulate the data inside them: <span class="inline">SELECT · INSERT · UPDATE · DELETE</span>.</p></div>
+    <div class="tile"><h4>Transaction</h4><p>Begin, end, and roll back work — the safety net of Chapter 12.</p></div>
+  </div>
+  <p>Create a table with a <em>schema</em> statement, put rows in it with a <em>data</em> statement. Here
+    is the book's taste-test trio, in that order:</p>
+
+  <div class="code">
+    <div class="bar"><span class="k">schema · make the structure</span></div>
+    <pre><code class="sql">CREATE TABLE corporation
+ (corp_id SMALLINT,
+  name VARCHAR(30),
+  CONSTRAINT pk_corporation PRIMARY KEY (corp_id)
+ );</code></pre>
+  </div>
+  <p>Two columns — <span class="inline">corp_id</span> and <span class="inline">name</span> — with
+    <span class="inline">corp_id</span> declared the primary key. (The data types behind
+    <span class="inline">SMALLINT</span> and <span class="inline">VARCHAR(30)</span> are Chapter 2's job.)</p>
+
+  <div class="code">
+    <div class="bar"><span class="k">data · put a row in</span></div>
+    <pre><code class="sql">INSERT INTO corporation (corp_id, name)
+VALUES (27, 'Acme Paper Corporation');</code></pre>
+  </div>
+
+  <div class="code">
+    <div class="bar"><span class="k">data · read it back (mysql client)</span></div>
+    <pre><code class="sql">mysql&lt; SELECT name
+    -&gt; FROM corporation
+    -&gt; WHERE corp_id = 27;</code></pre>
+  </div>
+  <div class="code">
+    <div class="bar"><span class="k">result</span></div>
+    <pre><code class="out">+------------------------+
+| name                   |
++------------------------+
+| Acme Paper Corporation |
++------------------------+
+1 row in set (0.00 sec)</code></pre>
+  </div>
+
+  <p>Notice the <span class="inline">mysql&lt;</span> and <span class="inline">-&gt;</span> prompts: that's
+    the command-line tool that ships with MySQL, and it's how every example in the book is run and
+    formatted. The <span class="inline">-&gt;</span> just means "still reading your statement."</p>
+
+  <h3>Metadata: the data dictionary</h3>
+  <p>Everything you create with schema statements is itself recorded in a special set of tables called
+    the <span class="term">data dictionary</span> — "data about the database," collectively
+    <strong>metadata</strong>. And because those are just tables, you can <span class="inline">SELECT</span>
+    from them at runtime. Asked to write a report on last month's new accounts? Either hardcode the column
+    names you happen to know today, or query the dictionary and generate the report dynamically so it
+    survives the next schema change. (Chapter 15 goes deep here.)</p>
+  <p>The book's division of labour follows from this: <em>schema</em> statements mostly need syntax
+    explanation and are covered in Chapter 2; <em>data</em> statements are few in number but rich in
+    subtlety, so most chapters are about them.</p>
+</section>
+
+<section id="nonproc">
+  <h2><span class="num">08</span>SQL is not a programming language</h2>
+  <p class="lede">You say what you want. The optimizer decides how to get it.</p>
+
+  <p>If you've written Java or Python, you're used to declaring variables, branching with
+    if-then-else, looping, and splitting code into functions — and being in complete control of what the
+    program does.</p>
+  <div class="simple">
+    <span class="tag">Procedural vs nonprocedural</span>
+    A <strong>procedural</strong> language defines the desired result <em>and</em> the mechanism that
+    produces it. A <strong>nonprocedural</strong> language defines the desired result and hands the
+    mechanism to an outside agent.
+  </div>
+  <p>SQL is the second kind. Your statement specifies inputs and outputs; <strong>how</strong> it gets
+    executed is up to a component of the database engine called the <span class="term">optimizer</span>.
+    It reads your statement, considers how your tables are configured and which indexes exist, and picks
+    an execution path (the most efficient path in theory; not always in practice). You can nudge it with
+    <em>optimizer hints</em> — "use this index" — but most SQL users never do; that tuning is left to DBAs
+    and performance specialists.</p>
+
+  <h3>So SQL has to live inside something</h3>
+  <p>Because you can't write a whole application in SQL alone, you embed it in a language. Some databases
+    have their own procedural languages where SQL is part of the grammar — Oracle's PL/SQL, MySQL's stored
+    procedure language, Microsoft's Transact-SQL. From Java or Python you instead go through a toolkit/API,
+    provided by the vendor, a third party, or open source:</p>
+  <table>
+    <thead><tr><th>Language</th><th>Toolkit</th></tr></thead>
+    <tbody>
+      <tr><td>Java</td><td>JDBC (Java Database Connectivity)</td></tr>
+      <tr><td>C#</td><td>ADO.NET (Microsoft)</td></tr>
+      <tr><td>Ruby</td><td>Ruby DBI</td></tr>
+      <tr><td>Python</td><td>Python DB</td></tr>
+      <tr><td>Go</td><td>Package database/sql</td></tr>
+    </tbody>
+  </table>
+  <p>(Table 1-2 in the book.) For interactive poking around, every vendor ships at least a command-line
+    tool, most ship a GUI with a pane for your SQL and a pane for the results, and third-party tools such
+    as SQuirrel reach many servers over one JDBC connection.</p>
+</section>
+
+<section id="examples">
+  <h2><span class="num">09</span>The example queries — a first look at SELECT</h2>
+  <p class="lede">The promise from Figure 1-3, kept in one statement.</p>
+
+  <p>Remember the awkward question — all transactions on George Blake's checking account? In the relational
+    version it's a single command:</p>
+
+  <div class="code">
+    <div class="bar"><span class="k">join across four tables</span></div>
+    <pre><code class="sql">SELECT t.txn_id, t.txn_type_cd, t.txn_date, t.amount
+FROM individual i
+  INNER JOIN account a ON i.cust_id = a.cust_id
+  INNER JOIN product p ON p.product_cd = a.product_cd
+  INNER JOIN transaction t ON t.account_id = a.account_id
+WHERE i.fname = 'George' AND i.lname = 'Blake'
+  AND p.name = 'checking account';</code></pre>
+  </div>
+  <div class="code">
+    <div class="bar"><span class="k">result</span></div>
+    <pre><code class="out">+--------+-------------+---------------------+--------+
+| txn_id | txn_type_cd | txn_date            | amount |
++--------+-------------+---------------------+--------+
+|     11 | DBT         | 2008-01-05 00:00:00 | 100.00 |
++--------+-------------+---------------------+--------+
+1 row in set (0.00 sec)</code></pre>
+  </div>
+  <p>Read it as a sentence: take these four columns from <span class="inline">transaction</span>, for rows
+    reachable from George Blake's row in <span class="inline">individual</span> through the matching
+    <span class="inline">account</span> and the "checking" <span class="inline">product</span> row. No
+    traversing, no chain-walking — the linking values did it. (Note the table is called
+    <span class="inline">individual</span> here; that's the book's sample schema, built in Chapter 2.)</p>
+  <p>If you already happen to know George's customer ID is 8 and checking accounts use code
+    <span class="inline">'CHK'</span>, the whole thing collapses to two tables:</p>
+
+  <div class="code">
+    <div class="bar"><span class="k">same answer, keys known up front</span></div>
+    <pre><code class="sql">SELECT t.txn_id, t.txn_type_cd, t.txn_date, t.amount
+FROM account a
+  INNER JOIN transaction t ON t.account_id = a.account_id
+WHERE a.cust_id = 8 AND a.product_cd = 'CHK';</code></pre>
+  </div>
+
+  <h3>Three clauses, every query</h3>
+  <p>Both queries above use three clauses, and almost every query you ever write will too:</p>
+  <div class="code">
+    <div class="bar"><span class="k">the skeleton</span></div>
+    <pre><code class="sql">SELECT /* one or more things */ ...
+FROM /* one or more places */ ...
+WHERE /* one or more conditions apply */ ...</code></pre>
+  </div>
+  <p>Anything between <span class="inline">/*</span> and <span class="inline">*/</span> is a comment in
+    most implementations. And while you read the statement top-to-bottom, the book suggests you
+    <em>build</em> it in a different order: decide which tables you need (<span class="inline">FROM</span>),
+    then filter out what you don't want (<span class="inline">WHERE</span>), then choose which columns to
+    display (<span class="inline">SELECT</span>).</p>
+
+  <div class="code">
+    <div class="bar"><span class="k">a simple lookup</span></div>
+    <pre><code class="sql">SELECT cust_id, fname
+FROM individual
+WHERE lname = 'Smith';</code></pre>
+  </div>
+  <p>Search <span class="inline">individual</span> for rows whose <span class="inline">lname</span> is
+    'Smith'; hand back their <span class="inline">cust_id</span> and <span class="inline">fname</span>.</p>
+
+  <h3>Changing data — and a typo</h3>
+  <div class="code">
+    <div class="bar"><span class="k">insert</span></div>
+    <pre><code class="sql">INSERT INTO product (product_cd, name)
+VALUES ('CD', 'Certificate of Depysit')</code></pre>
+  </div>
+  <p>Whoops — "Depysit". Fix it with an <span class="inline">UPDATE</span>:</p>
+  <div class="code">
+    <div class="bar"><span class="k">update</span></div>
+    <pre><code class="sql">UPDATE product
+SET name = 'Certificate of Deposit'
+WHERE product_cd = 'CD';</code></pre>
+  </div>
+  <p>The <span class="inline">WHERE</span> here is doing the same filtering job as in a query, because an
+    update must first decide <em>which rows</em> to touch. Since
+    <span class="inline">product_cd</span> is that table's primary key, you expect exactly one row to
+    change — or zero, if the value isn't there.</p>
+
+  <div class="note">
+    <span class="tag">Habit worth forming on day one</span>
+    Every data statement tells you how many rows it affected: returned by <span class="inline">SELECT</span>,
+    created by <span class="inline">INSERT</span>, modified by <span class="inline">UPDATE</span>, removed
+    by <span class="inline">DELETE</span>. The mysql tool prints it; a language toolkit exposes a call to
+    ask for it. <strong>Always check that number</strong> — it's how you notice you forgot a
+    <span class="inline">WHERE</span> on a <span class="inline">DELETE</span> and just emptied the table.
+  </div>
+</section>
+
+<section id="mysql">
+  <h2><span class="num">10</span>MySQL and the other servers</h2>
+  <p class="lede">They do roughly the same thing; the book deliberately sticks to common ground.</p>
+
+  <p>Relational databases have been commercial products for over three decades. The mature big three:</p>
+  <ul>
+    <li><strong>Oracle Database</strong> — Oracle Corporation</li>
+    <li><strong>SQL Server</strong> — Microsoft</li>
+    <li><strong>DB2 Universal Database</strong> — IBM</li>
+  </ul>
+  <p>All three do approximately the same job; some are better at extreme scale or throughput, others at
+    objects, large files, or XML documents. All track the ANSI standard fairly well, which is exactly why
+    the author keeps showing you statements that run on any of them with little or no change.</p>
+  <p>In open source, the two most commonly used servers are <strong>PostgreSQL</strong> and
+    <strong>MySQL</strong>. MySQL is free and painless to download and install, so it's what every example
+    in the book runs on (version 8.0), with the <span class="inline">mysql</span> command-line tool
+    formatting results. Even if you'll never use MySQL in production, the advice is to install it, load the
+    sample schema, and follow along.</p>
+  <div class="note">
+    <span class="tag">The caveat, verbatim in spirit</span>
+    This is <em>not</em> a book about MySQL's dialect. It teaches SQL that runs on MySQL unmodified and on
+    recent Oracle, DB2 and SQL Server with few or no changes. Dialect-specific corners get called out when
+    they matter.
+  </div>
+</section>
+
+<section id="unplugged">
+  <h2><span class="num">11</span>SQL unplugged</h2>
+  <p class="lede">New technologies, same query language.</p>
+  <p>A lot changed between the book's second and third editions. Relational databases remain heavily used,
+    but systems built for the scale of Amazon and Google emerged alongside them:
+    <strong>Hadoop</strong>, <strong>Spark</strong>, <strong>NoSQL</strong>, <strong>NewSQL</strong> —
+    distributed, scalable, usually deployed on clusters of commodity servers. The book won't explore them
+    in depth, but points out what they share with your old relational database: <strong>SQL</strong>.</p>
+  <p>That creates a new need. Real organisations keep data in several technologies at once, so a report
+    might have to combine Oracle, Hadoop, JSON files, CSV files and Unix log files in one answer. You have
+    to <em>unplug</em> SQL from any single server and offer it as a service that spans many sources.
+    <strong>Apache Drill</strong>, an open source query engine for exactly this, gets its own chapter
+    (Chapter 18).</p>
+</section>
+
+<section id="next">
+  <h2><span class="num">12</span>What's in store, and the chapter in one screen</h2>
+  <p class="lede">Where the book goes next — plus a cheat sheet worth keeping open.</p>
+
+  <p>The next four chapters introduce SQL <em>data</em> statements, with heavy emphasis on the main clauses
+    of <span class="inline">SELECT</span>. You'll work with the <strong>Sakila</strong> sample schema,
+    created in Chapter 2 and used for the rest of the book, so that you stop having to study unfamiliar
+    tables every time you meet a new example. If one dataset gets tedious, add your own tables. Once the
+    basics are solid, the remaining chapters branch into mostly independent deep topics — so when you're
+    confused, you're allowed to skip ahead and come back.</p>
+  <p>For more on relational theory and database history, the book recommends three C.&nbsp;J. Date titles
+    (<i>Database in Depth: Relational Theory for Practitioners</i>; <i>An Introduction to Database
+    Systems</i>, 8th ed.; <i>The Database Relational Model: A Retrospective Review and Analysis</i>) and
+    Wikipedia's article on the database management system.</p>
+
+  <h3>Cheat sheet</h3>
+  <table>
+    <thead><tr><th>Idea</th><th>In one line</th></tr></thead>
+    <tbody>
+      <tr><td>Database</td><td>A set of related information, stored so it can be found many ways and updated live.</td></tr>
+      <tr><td>Hierarchical</td><td>Trees. One parent per node. You must walk the path.</td></tr>
+      <tr><td>Network</td><td>Records + links. Multi-parent. Still path-walking.</td></tr>
+      <tr><td>Relational</td><td>Tables + repeated ID values. No paths to memorise.</td></tr>
+      <tr><td>Primary key</td><td>Unique per row, never changes. Surrogate beats natural when real facts can change.</td></tr>
+      <tr><td>Foreign key</td><td>A value pointing at one row in another table — a join's raw material.</td></tr>
+      <tr><td>Normalization</td><td>Each independent fact in exactly one place, foreign keys excepted.</td></tr>
+      <tr><td>Schema vs data</td><td><span class="inline">CREATE TABLE</span> builds the shelf; <span class="inline">INSERT</span>/<span class="inline">SELECT</span> move the books.</td></tr>
+      <tr><td>Metadata</td><td>The data dictionary: tables describing your tables, queryable like any other.</td></tr>
+      <tr><td>Nonprocedural</td><td>Declare the result; the optimizer chooses the route.</td></tr>
+      <tr><td>SELECT/FROM/WHERE</td><td>Things / places / conditions — the bones of nearly every query.</td></tr>
+      <tr><td>Rows affected</td><td>Read the feedback line. It catches your typos and your disasters.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Questions to test yourself</h3>
+  <ol>
+    <li>Why is a phone book a database, and which three flaws does it share with a filing cabinet?</li>
+    <li>What did hierarchical and network systems use to connect related data, and why is that a problem
+      for ad-hoc questions?</li>
+    <li>What replaced pointers in the relational model?</li>
+    <li>Why is <span class="inline">cust_id</span> a better primary key for a customer than
+      <span class="inline">fname</span>+<span class="inline">lname</span>? Which is the surrogate, which
+      the natural?</li>
+    <li>Why is storing a customer's name inside the <span class="inline">account</span> table improper,
+      while storing their <span class="inline">cust_id</span> is fine?</li>
+    <li>Match each to schema, data, or transaction: <span class="inline">CREATE TABLE</span>,
+      <span class="inline">INSERT</span>, <span class="inline">SELECT</span>, rollback.</li>
+    <li>What does the optimizer do, and what is a hint?</li>
+    <li>You ran a <span class="inline">DELETE</span> and the client said <em>847 rows affected</em>. What
+      probably happened?</li>
+  </ol>
+</section>
+
+</main>
+
+<footer>
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapter 1 of <i>Learning SQL: Generate,
+  Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
+  ISBN 9781492057611). Figures are reproduced from the copy in this repository for personal study;
+  please buy the book if you like it. SQL snippets are the book's teaching examples.</p>
+</footer>
+</div>
+
+<script>
+// --- reading progress + active TOC entry + copy buttons + light SQL highlighting ---
+const bar=document.getElementById('progress');
+addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  bar.style.width=(100*h.scrollTop/(h.scrollHeight-h.clientHeight||1))+'%';
+},{passive:true});
+
+const links=[...document.querySelectorAll('nav.toc a')];
+const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){
+    links.forEach(l=>l.classList.remove('active'));
+    map.get(e.target.id)?.classList.add('active');
+  }});
+},{rootMargin:'-15% 0px -75% 0px'});
+document.querySelectorAll('main section').forEach(s=>io.observe(s));
+
+const KW=/\b(create|table|insert|into|values|select|from|where|inner|join|on|and|or|not|null|update|set|delete|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|is|desc|asc|count|sum|avg|min|max)\b/gi;
+function hl(src){
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const toks=[];
+  let out=esc(src)
+    .replace(/(\/\*[\s\S]*?\*\/|--[^\n]*)/g,m=>`\u0000C${toks.push(m)-1}\u0000`)
+    .replace(/('[^'\n]*')/g,m=>`\u0000S${toks.push(m)-1}\u0000`)
+    .replace(/(^|\s)(\d+\.?\d*)/g,(m,a,b)=>`${a}\u0000N${toks.push(b)-1}\u0000`)
+    .replace(KW,m=>`<span class="kw">${m}</span>`)
+    .replace(/\u0000([CSN])(\d+)\u0000/g,(_,t,i)=>{
+      const v=esc(toks[+i]);
+      return `<span class="${t==='C'?'cmt':t==='S'?'str':'num'}">${v}</span>`;});
+  return out;
+}
+document.querySelectorAll('.code .sql').forEach(el=>{ el.innerHTML=hl(el.textContent); });
+document.querySelectorAll('.code .bar').forEach(bar=>{
+  const pre=bar.parentElement.querySelector('pre'); if(!pre) return;
+  const b=document.createElement('button'); b.className='copy'; b.type='button'; b.textContent='Copy';
+  b.onclick=()=>{navigator.clipboard.writeText(pre.textContent).then(()=>{b.textContent='Copied';
+    setTimeout(()=>b.textContent='Copy',1400);});};
+  bar.appendChild(b);
+});
+</script>
+</body>
+</html>
