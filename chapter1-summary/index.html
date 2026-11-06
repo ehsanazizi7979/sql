@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapters 1–6 · SQL Fundamentals, Joins and Sets — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Chapters 1–7 · SQL Fundamentals, Joins, Sets and Functions — Simple Summary (Learning SQL, 3rd Ed.)</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -211,7 +211,7 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapters 1–6, in plain English</h1>
+  <h1>Chapters 1–7, in plain English</h1>
   <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
   and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
   data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
@@ -219,12 +219,13 @@
   is for, and the order the server actually runs them in. <b>Ch. 4 — Filtering:</b> how conditions are
   evaluated, the five ways to write one, and the <span class="inline">NULL</span> trap that silently drops
   rows. <b>Ch. 5 — Querying Multiple Tables:</b> joining related tables to bring scattered facts together.
-  <b>Ch. 6 — Working with Sets:</b> combining, comparing and subtracting query results.</p>
+  <b>Ch. 6 — Working with Sets:</b> combining, comparing and subtracting query results.
+  <b>Ch. 7 — Data Generation, Manipulation, and Conversion:</b> working with strings, numbers and dates.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–114 (PDF pp. 19–132)</span>
-    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10</span>
+    <span><b>Book pages:</b> 1–146 (PDF pp. 19–164)</span>
+    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13</span>
     <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8, Figures 6-1…6-4</span>
-    <span><b>Reading time:</b> ~77 min</span>
+    <span><b>Reading time:</b> ~94 min</span>
   </div>
   <div class="jump">
     <a href="#tldr">↓ Chapter 1 · A Little Background</a>
@@ -233,6 +234,7 @@
     <a href="#ch4">↓ Chapter 4 · Filtering</a>
     <a href="#ch5">↓ Chapter 5 · Querying Multiple Tables</a>
     <a href="#ch6">↓ Chapter 6 · Working with Sets</a>
+    <a href="#ch7">↓ Chapter 7 · Data and Functions</a>
   </div>
 </header>
 
@@ -316,6 +318,21 @@
     <li><a href="#ch6-sort">Sorting results</a></li>
     <li><a href="#ch6-precedence">Operator order</a></li>
     <li><a href="#ch6-exercises">Exercises &amp; recap</a></li>
+  </ol>
+  <div class="brand" style="margin-top:18px">Chapter 7 · Data &amp; functions</div>
+  <ol>
+    <li><a href="#ch7-intro">The chapter in one paragraph</a></li>
+    <li><a href="#ch7-strings">Building strings</a></li>
+    <li><a href="#ch7-inspect">Measuring &amp; comparing strings</a></li>
+    <li><a href="#ch7-transform">Changing strings</a></li>
+    <li><a href="#ch7-numbers">Arithmetic functions</a></li>
+    <li><a href="#ch7-precision">Rounding &amp; truncation</a></li>
+    <li><a href="#ch7-sign">Signs &amp; absolute values</a></li>
+    <li><a href="#ch7-timezones">Time zones</a></li>
+    <li><a href="#ch7-dates">Creating date and time values</a></li>
+    <li><a href="#ch7-date-math">Date arithmetic &amp; extraction</a></li>
+    <li><a href="#ch7-cast">Type conversions</a></li>
+    <li><a href="#ch7-exercises">Exercises &amp; recap</a></li>
   </ol>
 </nav>
 
@@ -3874,17 +3891,279 @@ ORDER BY last_name, first_name;</code></pre></div>
     <tr><td>INTERSECT</td><td>Distinct rows in both inputs.</td></tr>
     <tr><td>EXCEPT</td><td>Distinct rows in the first input but not the second.</td></tr>
   </tbody></table>
-  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 7, <em>Data Generation,
-  Manipulation, and Conversion</em>, explores working with data values and functions.</p></div>
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p><a href="#ch7">Chapter 7, <em>Data Generation,
+  Manipulation, and Conversion</em></a>, explores working with data values and functions.</p></div>
+</section>
+<div class="chap" id="ch7">
+  <div class="kicker">Chapter 7 · book pages 115–146 (PDF pp. 133–164)</div>
+  <h2><span class="num">7.0</span>Data Generation, Manipulation, and Conversion</h2>
+  <p>Build values, change them, and convert between types with built-in functions.</p>
+</div>
+<section id="ch7-intro">
+  <h2><span class="num">7.1</span>The chapter in one paragraph</h2>
+  <p class="lede">A function takes input values and returns a value you can use in a query or update.</p>
+  <p>Strings can be measured, searched, joined, and cut apart. Numbers can be calculated, rounded,
+  and inspected for their sign. Dates can be parsed, shifted by intervals, and compared. Finally,
+  <span class="inline">CAST</span> explicitly changes a value's type. Function names, type limits,
+  encodings, and error behavior differ across database engines and versions; most examples below use
+  the book's MySQL syntax.</p>
+  <div class="note"><span class="tag">Before running examples</span>Some book examples create, delete,
+  or update data. Use a disposable practice database, read the statement first, and check your server's
+  documentation. Do not run unrestricted updates or deletes on real data.</div>
+</section>
+<section id="ch7-strings">
+  <h2><span class="num">7.2</span>Building strings</h2>
+  <p><span class="inline">CHAR</span> is fixed-width; <span class="inline">VARCHAR</span> is variable-width;
+  <span class="inline">TEXT</span> handles larger text. Exact limits and padding depend on the database,
+  character set, and version. The book uses this practice table:</p>
+  <div class="code"><div class="bar"><span>Book example · practice table</span><button class="copy">Copy</button></div><pre><code class="sql">CREATE TABLE string_tbl
+ (char_fld CHAR(30),
+  vchar_fld VARCHAR(30),
+  text_fld TEXT
+ );
+INSERT INTO string_tbl (char_fld, vchar_fld, text_fld)
+VALUES ('This is char data',
+  'This is varchar data',
+  'This is text data');</code></pre></div>
+  <p>Attempting to store a 46-character value in <span class="inline">VARCHAR(30)</span> raises an error
+  in the book's strict MySQL session. Other modes can truncate and issue a warning; don't rely on silent
+  truncation. Check session settings and warnings before changing them.</p>
+  <div class="code"><div class="bar"><span>Book example · length and mode</span><button class="copy">Copy</button></div><pre><code class="sql">UPDATE string_tbl
+SET vchar_fld = 'This is a piece of extremely long varchar data';
+SELECT @@session.sql_mode;
+SHOW WARNINGS;</code></pre></div>
+  <p>Double a quote inside a SQL string: <span class="inline">''</span> represents one apostrophe.
+  For application data, use parameterized queries rather than building SQL by concatenating user input.</p>
+  <div class="code"><div class="bar"><span>Book example · embedded quote</span><button class="copy">Copy</button></div><pre><code class="sql">UPDATE string_tbl
+SET text_fld = 'This string didn''t work, but it does now';
+SELECT quote(text_fld) FROM string_tbl;</code></pre></div>
+  <p>The book demonstrates <span class="inline">CHAR()</span>, <span class="inline">ASCII()</span> and
+  <span class="inline">CONCAT()</span> for character codes and concatenation. Its printed non-ASCII
+  character-code results are encoding-dependent; do not assume that the number 148 is Unicode “ö” or
+  that those outputs reproduce in a UTF-8 session. Prefer actual Unicode text and a matching connection
+  character set.</p>
+  <div class="code"><div class="bar"><span>Book example · basic character codes</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT 'abcdefg', CHAR(97,98,99,100,101,102,103);
+SELECT CONCAT('danke sch', CHAR(148), 'n');</code></pre></div>
+</section>
+<section id="ch7-inspect">
+  <h2><span class="num">7.3</span>Measuring and comparing strings</h2>
+  <p>In the book's ASCII sample, the string <span class="inline">This string is 28 characters</span>
+  has length 28; <span class="inline">characters</span> starts at position 19, and searching for
+  <span class="inline">is</span> from position 5 finds position 13. Positions are one-based;
+  a result of zero means not found.</p>
+  <div class="code"><div class="bar"><span>Book examples · length and position</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT LENGTH(char_fld) char_length,
+  LENGTH(vchar_fld) varchar_length,
+  LENGTH(text_fld) text_length
+FROM string_tbl;
+SELECT POSITION('characters' IN vchar_fld) FROM string_tbl;
+SELECT LOCATE('is', vchar_fld, 5) FROM string_tbl;</code></pre></div>
+  <div class="note"><span class="tag">Bytes versus characters</span>MySQL's LENGTH counts bytes,
+  not characters; use <span class="inline">CHAR_LENGTH()</span> for character counts. They agree
+  for the ASCII example, but may differ for multibyte text. MySQL commonly strips trailing CHAR padding
+  on retrieval; settings and other databases can differ.</div>
+  <p>In MySQL, <span class="inline">STRCMP</span> returns a negative value, zero, or a positive value
+  according to the comparison. Whether upper and lower case compare equally depends on the collation,
+  not on a universal case-insensitive rule. A pattern expression can also be selected as a value:</p>
+  <div class="code"><div class="bar"><span>Book examples · comparison and patterns</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT STRCMP('abcd','xyz') abcd_xyz,
+  STRCMP('qrstuv','QRSTUV') qrstuv_QRSTUV;
+SELECT name, name LIKE '%y' ends_in_y FROM category;
+SELECT name, name REGEXP 'y$' ends_in_y FROM category;</code></pre></div>
+  <p>The category example marks Comedy, Documentary and Family with 1. Comparisons involving NULL may
+  instead yield NULL, so 0 and 1 are not the only possible results.</p>
+</section>
+<section id="ch7-transform">
+  <h2><span class="num">7.4</span>Changing strings</h2>
+  <p><span class="inline">CONCAT</span> joins pieces; MySQL <span class="inline">INSERT</span> can
+  insert or replace characters at a position; <span class="inline">SUBSTRING</span> extracts a part.
+  These are functions inside expressions, not the <span class="inline">INSERT INTO</span> statement.</p>
+  <div class="code"><div class="bar"><span>Book examples · build, replace, extract</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT concat(first_name, ' ', last_name,
+  ' has been a customer since ', date(create_date)) cust_narrative
+FROM customer;
+SELECT INSERT('goodbye world', 9, 0, 'cruel ') string;
+SELECT INSERT('goodbye world', 1, 7, 'hello') string;
+SELECT SUBSTRING('goodbye cruel world', 9, 5);</code></pre></div>
+  <p>The last three results are “goodbye cruel world”, “hello world” and “cruel”. In MySQL,
+  <span class="inline">CONCAT</span> returns NULL if any argument is NULL; handling differs between
+  engines. Oracle's <span class="inline">REPLACE</span> replaces occurrences of a substring, and SQL
+  Server's <span class="inline">STUFF</span> performs a position-based replacement.</p>
+  <div class="code"><div class="bar"><span>Book examples · other engines</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT REPLACE('goodbye world', 'goodbye', 'hello')
+FROM dual;
+SELECT STUFF('hello world', 1, 5, 'goodbye cruel');</code></pre></div>
+  <p>The first is Oracle-style; the second is SQL Server. SQL Server also supports CONCAT in modern
+  versions, despite the book's older claim to the contrary.</p>
+</section>
+<section id="ch7-numbers">
+  <h2><span class="num">7.5</span>Arithmetic functions</h2>
+  <p>Numbers can be literals, column values, or calculations. Parentheses control the order of arithmetic.</p>
+  <div class="code"><div class="bar"><span>Book examples · arithmetic</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT (37 * 59) / (78 - (8 * 6));
+SELECT MOD(10,4);
+SELECT MOD(22.75, 5);
+SELECT POW(2,8);
+SELECT POW(2,10) kilobyte, POW(2,20) megabyte,
+  POW(2,30) gigabyte, POW(2,40) terabyte;</code></pre></div>
+  <p>The book shows 72.77, 2, 2.75 and 256 for the first four results. Its powers of two are
+  binary quantities (for example, 2<sup>30</sup> bytes is one gibibyte); decimal gigabytes use 10<sup>9</sup> bytes.</p>
+  <h3>Book Table 7-1 · single-argument numeric functions</h3>
+  <table><thead><tr><th>Function</th><th>Purpose</th></tr></thead><tbody>
+  <tr><td>ACOS(x)</td><td>Arc cosine</td></tr><tr><td>ASIN(x)</td><td>Arc sine</td></tr>
+  <tr><td>ATAN(x)</td><td>Arc tangent</td></tr><tr><td>COS(x)</td><td>Cosine</td></tr>
+  <tr><td>COT(x)</td><td>Cotangent</td></tr><tr><td>EXP(x)</td><td>e raised to x</td></tr>
+  <tr><td>LN(x)</td><td>Natural logarithm</td></tr><tr><td>SIN(x)</td><td>Sine</td></tr>
+  <tr><td>SQRT(x)</td><td>Square root</td></tr><tr><td>TAN(x)</td><td>Tangent</td></tr>
+  </tbody></table>
+</section>
+<section id="ch7-precision">
+  <h2><span class="num">7.6</span>Rounding is not truncation</h2>
+  <p><span class="inline">CEIL</span> goes toward positive infinity; <span class="inline">FLOOR</span>
+  goes toward negative infinity. <span class="inline">ROUND</span> rounds at the requested precision;
+  <span class="inline">TRUNCATE</span> discards digits instead.</p>
+  <div class="code"><div class="bar"><span>Book examples · precision in MySQL</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT CEIL(72.445), FLOOR(72.445);
+SELECT CEIL(72.000000001), FLOOR(72.999999999);
+SELECT ROUND(72.49999), ROUND(72.5), ROUND(72.50001);
+SELECT ROUND(72.0909, 1), ROUND(72.0909, 2), ROUND(72.0909, 3);
+SELECT TRUNCATE(72.0909, 1), TRUNCATE(72.0909, 2),
+  TRUNCATE(72.0909, 3);
+SELECT ROUND(17, -1), TRUNCATE(17, -1);</code></pre></div>
+  <p>For 72.0909, rounding to one, two, and three places gives 72.1, 72.09, 72.091; truncating
+  gives 72.0, 72.09, 72.090. A precision of −1 affects tens: 17 rounds to 20 and truncates to 10.
+  Rounding tie rules and approximate-number behavior can differ by engine and type; use exact
+  decimal types for money and check your engine's rules.</p>
+</section>
+<section id="ch7-sign">
+  <h2><span class="num">7.7</span>Signs and absolute values</h2>
+  <p><span class="inline">SIGN</span> returns −1, 0, or 1 for a negative, zero, or positive number;
+  <span class="inline">ABS</span> returns its magnitude.</p>
+  <div class="code"><div class="bar"><span>Book example · account balances</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT account_id, SIGN(balance), ABS(balance)
+FROM account;</code></pre></div>
+  <p>For the book's balances 785.22, 0.00 and −324.22, the sign/magnitude pairs are
+  (1, 785.22), (0, 0.00), and (−1, 324.22). The account table is illustrative.</p>
+</section>
+<section id="ch7-timezones">
+  <h2><span class="num">7.8</span>Time zones are part of the problem</h2>
+  <p>A timestamp's meaning depends on its type and time-zone context. A local clock time may be ambiguous
+  or nonexistent during a daylight-saving change; offsets are not always whole hours and can change.
+  UTC is a common reference for instants, but preserve the relevant time zone when local rules matter.</p>
+  <div class="code"><div class="bar"><span>Book examples · MySQL time zones</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT @@global.time_zone, @@session.time_zone;
+SET time_zone = 'Europe/Zurich';
+SELECT @@global.time_zone, @@session.time_zone;</code></pre></div>
+  <p><span class="inline">SYSTEM</span> delegates to the server's system setting. Named MySQL time zones
+  require populated time-zone tables. Changing a session zone affects time-zone-sensitive values and
+  functions, not every stored date: in MySQL <span class="inline">TIMESTAMP</span> is converted between
+  session time and UTC, while <span class="inline">DATETIME</span> is not automatically converted.</p>
+</section>
+<section id="ch7-dates">
+  <h2><span class="num">7.9</span>Creating dates and times</h2>
+  <p>MySQL can interpret strings in its standard date and time formats. Be explicit about type and format
+  when possible; ambiguous or invalid inputs may be rejected, converted, or warned about depending on
+  the engine, version, and settings.</p>
+  <h3>Book Tables 7-2 and 7-3 · components and common formats</h3>
+  <table><thead><tr><th>Component</th><th>Meaning and range</th></tr></thead><tbody>
+  <tr><td>YYYY</td><td>Year, including century: 1000–9999</td></tr>
+  <tr><td>MM</td><td>Month: 01–12</td></tr><tr><td>DD</td><td>Day: 01–31 (subject to month and year)</td></tr>
+  <tr><td>HH</td><td>Hour of day: 00–23</td></tr><tr><td>HHH</td><td>Elapsed hours: −838 to 838</td></tr>
+  <tr><td>MI</td><td>Minutes: 00–59</td></tr><tr><td>SS</td><td>Seconds: 00–59</td></tr>
+  </tbody></table>
+  <table><thead><tr><th>Type</th><th>Default format in the book</th></tr></thead><tbody>
+  <tr><td>DATE</td><td>YYYY-MM-DD</td></tr><tr><td>DATETIME</td><td>YYYY-MM-DD HH:MI:SS</td></tr>
+  <tr><td>TIMESTAMP</td><td>YYYY-MM-DD HH:MI:SS</td></tr><tr><td>TIME</td><td>HHH:MI:SS</td></tr>
+  </tbody></table>
+  <p>MySQL TIME can represent elapsed time, so <span class="inline">108:17:57</span> is possible.
+  The book's format placeholders are explanatory, not the literal tokens used in STR_TO_DATE.</p>
+  <div class="code"><div class="bar"><span>Book examples · CAST and current values</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT CAST('2019-09-17 15:30:00' AS DATETIME);
+SELECT CAST('2019-09-17' AS DATE) date_field,
+  CAST('108:17:57' AS TIME) time_field;
+SELECT CURRENT_DATE(), CURRENT_TIME(), CURRENT_TIMESTAMP();</code></pre></div>
+  <p>For a nondefault format, MySQL's <span class="inline">STR_TO_DATE</span> takes a format string:</p>
+  <div class="code"><div class="bar"><span>Book example · parse a date in an update</span><button class="copy">Copy</button></div><pre><code class="sql">UPDATE rental
+SET return_date = STR_TO_DATE('September 17, 2019', '%M %d, %Y')
+WHERE rental_id = 99999;</code></pre></div>
+  <h3>Book Table 7-4 · common MySQL format tokens</h3>
+  <table><thead><tr><th>Token</th><th>Meaning</th></tr></thead><tbody>
+  <tr><td>%M</td><td>Month name</td></tr><tr><td>%m</td><td>Numeric month (01–12)</td></tr>
+  <tr><td>%d</td><td>Day of month (01–31)</td></tr><tr><td>%j</td><td>Day of year (001–366)</td></tr>
+  <tr><td>%W</td><td>Weekday name</td></tr><tr><td>%Y</td><td>Four-digit year</td></tr>
+  <tr><td>%y</td><td>Two-digit year</td></tr><tr><td>%H</td><td>Hour (00–23)</td></tr>
+  <tr><td>%h</td><td>Hour (01–12)</td></tr><tr><td>%i</td><td>Minutes (00–59)</td></tr>
+  <tr><td>%s</td><td>Seconds (00–59)</td></tr><tr><td>%f</td><td>Microseconds</td></tr>
+  <tr><td>%p</td><td>AM or PM</td></tr></tbody></table>
+</section>
+<section id="ch7-date-math">
+  <h2><span class="num">7.10</span>Date arithmetic and extraction</h2>
+  <p>MySQL <span class="inline">DATE_ADD</span> adds an interval to a date or datetime. The book's
+  current date was 2019-06-05, so adding five days returned 2019-06-10; your result will depend on today.</p>
+  <div class="code"><div class="bar"><span>Book examples · date arithmetic</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT DATE_ADD(CURRENT_DATE(), INTERVAL 5 DAY);
+UPDATE rental
+SET return_date = DATE_ADD(return_date, INTERVAL '3:27:11' HOUR_SECOND)
+WHERE rental_id = 99999;
+UPDATE employee
+SET birth_date = DATE_ADD(birth_date, INTERVAL '9-11' YEAR_MONTH)
+WHERE emp_id = 4789;
+SELECT LAST_DAY('2019-09-17');</code></pre></div>
+  <p>The final result is 2019-09-30. The employee table and rental ID are illustrative; updates change
+  data. SQL Server uses <span class="inline">DATEADD</span> and provides <span class="inline">EOMONTH</span>
+  for month end. Oracle has <span class="inline">ADD_MONTHS</span> and <span class="inline">LAST_DAY</span>.</p>
+  <h3>Book Table 7-5 · common MySQL interval types</h3>
+  <table><thead><tr><th>Interval</th><th>Meaning</th></tr></thead><tbody>
+  <tr><td>SECOND</td><td>Seconds</td></tr><tr><td>MINUTE</td><td>Minutes</td></tr>
+  <tr><td>HOUR</td><td>Hours</td></tr><tr><td>DAY</td><td>Days</td></tr>
+  <tr><td>MONTH</td><td>Months</td></tr><tr><td>YEAR</td><td>Years</td></tr>
+  <tr><td>MINUTE_SECOND</td><td>Minutes:seconds</td></tr><tr><td>HOUR_SECOND</td><td>Hours:minutes:seconds</td></tr>
+  <tr><td>YEAR_MONTH</td><td>Years-months</td></tr></tbody></table>
+  <p>Extract a date part or compare calendar dates. MySQL's <span class="inline">DATEDIFF</span>
+  ignores time-of-day and subtracts its second argument from its first.</p>
+  <div class="code"><div class="bar"><span>Book examples · extract and compare</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT DAYNAME('2019-09-18');
+SELECT EXTRACT(YEAR FROM '2019-09-18 22:19:05');
+SELECT DATEDIFF('2019-09-03', '2019-06-21');
+SELECT DATEDIFF('2019-09-03 23:59:59', '2019-06-21 00:00:01');
+SELECT DATEDIFF('2019-06-21', '2019-09-03');</code></pre></div>
+  <p>The results are Wednesday, 2019, 74, 74, and −74. SQL Server's DATEDIFF has a different signature
+  and counts specified datepart boundaries, so do not copy MySQL argument order into it.</p>
+</section>
+<section id="ch7-cast">
+  <h2><span class="num">7.11</span>Convert deliberately</h2>
+  <p><span class="inline">CAST(value AS type)</span> states the intended conversion. The syntax is
+  widely supported, but available target types and handling of invalid input depend on the engine.</p>
+  <div class="code"><div class="bar"><span>Book examples · CAST and warnings</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT CAST('1456328' AS SIGNED INTEGER);
+SELECT CAST('999ABC111' AS UNSIGNED INTEGER);
+SHOW WARNINGS;</code></pre></div>
+  <p>The book's MySQL session returns 1456328 and then 999, with a truncation warning for the second
+  value. Another server or context may raise an error instead. A returned value alone doesn't prove a
+  complete, valid conversion: validate inputs and inspect warnings.</p>
+</section>
+<section id="ch7-exercises">
+  <h2><span class="num">7.12</span>Exercises &amp; recap</h2>
+  <p class="lede">Try the three book exercises before opening these independently worked answers.</p>
+  <h3>7-1 · Extract characters 17 through 25</h3>
+  <details><summary>Show answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · MySQL</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT SUBSTRING('Please find the substring in this string', 17, 9);</code></pre></div>
+  <p>The result is <span class="inline">substring</span>: both endpoints are included, so the length is 9.</p></details>
+  <h3>7-2 · Absolute value, sign and hundredth</h3>
+  <details><summary>Show answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · MySQL</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT ABS(-25.76823), SIGN(-25.76823), ROUND(-25.76823, 2);</code></pre></div>
+  <p>Results: 25.76823, −1, and −25.77.</p></details>
+  <h3>7-3 · Month of the current date</h3>
+  <details><summary>Show answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · MySQL</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT EXTRACT(MONTH FROM CURRENT_DATE());</code></pre></div>
+  <p>The numeric month depends on the session's current date.</p></details>
+  <h3>Quick reference</h3>
+  <table><thead><tr><th>Need</th><th>Examples and caveats</th></tr></thead><tbody>
+  <tr><td>Inspect text</td><td>CHAR_LENGTH, POSITION, LOCATE; MySQL LENGTH counts bytes.</td></tr>
+  <tr><td>Change text</td><td>CONCAT, INSERT, SUBSTRING; functions vary by engine.</td></tr>
+  <tr><td>Shape numbers</td><td>ROUND, TRUNCATE, CEIL, FLOOR; type and tie rules matter.</td></tr>
+  <tr><td>Work with dates</td><td>STR_TO_DATE, DATE_ADD, EXTRACT, DATEDIFF; mind session time zone.</td></tr>
+  <tr><td>Convert types</td><td>CAST; validate values and check for warnings or errors.</td></tr>
+  </tbody></table>
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 8, <em>Grouping and Aggregates</em>,
+  summarizes sets of rows with aggregate functions and groups.</p></div>
 </section>
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–6 of <i>Learning SQL: Generate,
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–7 of <i>Learning SQL: Generate,
   Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
   ISBN 9781492057611). Figures 1-1…1-3 and 6-1…6-4 and the Table 2-6…2-8 crops are reproduced from
   the PDF in this repository for personal study; please buy the book if you like it. SQL snippets include
-  the book's teaching examples. Exercise answers for Chapters 3–6 are worked here, not copied from the book —
+  the book's teaching examples. Exercise answers for Chapters 3–7 are worked here, not copied from the book —
   its own solutions live in Appendix B. Diagrams marked <i>original</i> are drawn for this page.</p>
 </footer>
 </div>
