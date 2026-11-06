@@ -8,7 +8,7 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
 One self-contained HTML file covering **Chapters 1 through 5** — 50 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 31 syntax-highlighted,
+base64 images (works offline, no server, no external assets) and 36 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -17,7 +17,7 @@ copyable T-SQL listings.
 | 2 | SQL Server Execution Model and Wait Statistics | 27–44 | 2-1 … 2-6 | 2-1 … 2-4 |
 | 3 | Disk Subsystem Performance | 45–67 | 3-1 … 3-8 | 3-1 … 3-3 |
 | 4 | Inefficient Queries | 69–103 | 4-1 … 4-9 | 4-1 … 4-10 |
-| 5 | Data Storage and Query Tuning | 105–158 | 5-1 … 5-22 | 5-1 … 5-9 |
+| 5 | Data Storage and Query Tuning | 105–158 | 5-1 … 5-22 | 5-1 … 5-14 |
 
 ### Chapter 1 — Setup and Configuration
 
