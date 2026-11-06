@@ -230,9 +230,9 @@
       figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">10 chapters covered</span>
-      <span class="badge">144 book listings</span>
-      <span class="badge">240 figures</span>
+      <span class="badge">11 chapters covered</span>
+      <span class="badge">150 book listings</span>
+      <span class="badge">251 figures</span>
       <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
@@ -339,6 +339,13 @@
     <a class="mini" href="#ch10-expand">EXPAND VIEWS</a>
     <a class="mini" href="#ch10-table-hints">Join &amp; table hints</a>
     <a class="mini" href="#ch10-cheatsheet">Cheat sheet</a>
+
+    <div class="grp">Chapter 11 · Parallelism</div>
+    <a class="mini" href="#ch11-settings">MAXDOP &amp; cost threshold</a>
+    <a class="mini" href="#ch11-blockers">Blockers of parallelism</a>
+    <a class="mini" href="#ch11-reading">Reading a parallel plan</a>
+    <a class="mini" href="#ch11-good-or-bad">Good or bad?</a>
+    <a class="mini" href="#ch11-cheatsheet">Cheat sheet</a>
   </nav>
 
   <main>
@@ -7417,6 +7424,383 @@ N'@id int',
         query, join and table hints can take control — but the data is always changing, so anything you
         force today can become tomorrow's problem. Test before you apply, document why, re-test after every
         upgrade, and treat hints as a last resort rather than standard practice.
+      </div>
+    </section>
+
+    <div class="chapterbar" id="chapter11">
+      <span class="cnum">Chapter 11</span>
+      <div>
+        <h2>Parallelism in Execution Plans</h2>
+        <p>One query, several processors. The chapter that teaches you to read the yellow double-arrow
+        operators — and, just as importantly, what a parallel plan costs you when the query didn't
+        deserve one. Plus the two settings that decide when it happens at all.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch11-settings">
+      <h2><span class="num">1</span> The two dials: MAXDOP and cost threshold</h2>
+      <p class="lede">Parallelism isn't a plan property you choose; it's the result of two server settings and one estimated cost.</p>
+
+      <p>
+        There are two different kinds of parallelism on a SQL Server. Many small queries each running on
+        their own thread, all at once — those have ordinary plans. And <b>one query running across
+        several threads</b> — that produces a different kind of plan, and it's what this chapter is about.
+      </p>
+
+      <div class="plain">
+        <div><span>max degree of parallelism (MAXDOP)</span>The <b>maximum number of processors</b> the engine may use for one query. Default <b>0</b> = use every processor available. <b>1</b> = no parallelism at all.</div>
+        <div><span>cost threshold for parallelism</span>The <b>estimated plan cost</b> a serial plan must exceed before the optimizer even considers a parallel version. Default <b>5</b> — a number chosen in 1998.</div>
+      </div>
+
+      <p>
+        The sequence is worth internalising, because it explains why the same query behaves differently on
+        two servers:
+      </p>
+      <ol class="biglist">
+        <li><b>Compile time:</b> if only one processor is available, or MAXDOP is 1, no parallel plan is produced at all.</li>
+        <li>Otherwise the optimizer picks a plan as usual, and if its <b>estimated cost exceeds cost threshold for parallelism</b>, it produces a parallel version.</li>
+        <li><b>Runtime:</b> the engine decides how many processors to actually use, up to MAXDOP (instance setting or the <code class="inl">MAXDOP</code> query hint from Chapter 10).</li>
+        <li>It also checks with the OS that enough <b>threads</b> exist. If not, it strips the parallelism out and runs a serial version — a plan eligible for parallelism that simply doesn't go parallel. <b>Query Store is the only place you'll see both versions.</b></li>
+      </ol>
+
+      <div class="code">
+        <header><span>Listing 11-1 · read and change MAXDOP</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> sys.sp_configure @configname = 'show advanced options',
+                      @configvalue = 1;
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>;
+<span class="kw">GO</span>
+<span class="cm">--show the current value</span>
+<span class="kw">EXEC</span> sys.sp_configure @configname = 'max degree of parallelism'
+<span class="cm">--change value</span>
+<span class="kw">EXEC</span> sys.sp_configure @configname = 'max degree of parallelism',
+                      @configvalue = 4;
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>;
+<span class="kw">GO</span>
+<span class="kw">EXEC</span> sys.sp_configure @configname = 'show advanced options',
+                      @configvalue = 0;
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>;
+<span class="kw">GO</span></code></pre>
+        <div class="cap">Pass <b>one</b> parameter to read a setting, <b>two</b> to change it. Advanced options must be on to see these, and <code>RECONFIGURE</code> is what actually activates the change.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter11/fig-11-1-maxdop-default-zero.png"
+             alt="sp_configure output showing max degree of parallelism with run_value 0.">
+        <figcaption><b>Figure 11-1</b> — <code class="inl">run_value = 0</code>: the default, meaning <i>use every processor you've got</i>. One query can therefore take the whole machine.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>The book's two settings recommendations</b>
+        <b>MAXDOP:</b> don't leave it at <b>0</b> — set it above 1 but below the core count, so one expensive
+        query can't hog every processor. A very general starting point is <b>half the physical cores</b>,
+        but the honest answer depends on hardware, virtualization and workload.<br>
+        <b>Cost threshold:</b> don't leave it at <b>5</b>. A rough recommendation is <b>25+</b> for a
+        reporting system and <b>50</b> for OLTP — because OLTP should be spending its processors on lots
+        of queries, not one.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 11-2 · raise the cost threshold</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> sys.sp_configure @configname = 'show advanced options',
+                      @configvalue = 1;
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>;
+<span class="kw">GO</span>
+<span class="kw">EXEC</span> sys.sp_configure @configname = 'cost threshold for parallelism',
+                      @configvalue = 50;
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>;
+<span class="kw">GO</span>
+<span class="kw">EXEC</span> sys.sp_configure @configname = 'show advanced options',
+                      @configvalue = 0;
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>;
+<span class="kw">GO</span></code></pre>
+        <div class="cap">Remember what "cost" means here: accumulated <b>estimated</b> cost units, not seconds. At one point in SQL Server's history they approximated seconds — today, think of them as units and nothing more.</div>
+      </div>
+    </section>
+
+    <section class="card" id="ch11-blockers">
+      <h2><span class="num">2</span> What silently kills parallelism</h2>
+      <p class="lede">Before you tune settings, check whether your query can go parallel at all. Some constructs force serial execution outright.</p>
+
+      <p>
+        A few statements force the <b>entire plan</b> serial, whatever your settings:
+      </p>
+      <ul>
+        <li><b>Scalar functions using T-SQL</b> (see Chapter 7 — and now you have third reason to avoid them)</li>
+        <li><b>CLR</b> multi-statement, table-valued or user-defined functions <b>that access data</b></li>
+        <li>Some internal functions: <code class="inl">ERROR_NUMBER()</code>, <code class="inl">IDENT_CURRENT()</code>, <code class="inl">@@TRANCOUNT</code> and others</li>
+        <li>Accessing <b>system tables</b></li>
+        <li><b>Dynamic cursors</b></li>
+      </ul>
+      <p>
+        And these make the <b>parts of the plan</b> that use them run serially (the list varies by version):
+      </p>
+      <ul>
+        <li><b>Recursive CTEs</b> (Chapter 7's <code class="inl">EMP_cte</code>)</li>
+        <li><code class="inl">TOP</code></li>
+        <li>Paging functions such as <code class="inl">ROW_NUMBER()</code></li>
+        <li><b>Backward scans</b></li>
+        <li><b>Multi-statement table-valued functions</b></li>
+        <li><b>Global scalar aggregates</b></li>
+      </ul>
+
+      <div class="note tip">
+        <b>Connect the chapters</b>
+        Notice how many of these are the same constructs Chapter 7 warned you about for <i>estimate</i>
+        reasons. A multi-statement TVF both gets the flat 100-row estimate <b>and</b> blocks parallelism.
+        A scalar UDF runs once per row <b>and</b> makes the plan serial. These aren't separate problems;
+        they're the same design decisions showing up in different places.
+      </div>
+    </section>
+
+    <section class="card" id="ch11-reading">
+      <h2><span class="num">3</span> Reading a parallel plan</h2>
+      <p class="lede">Eight operators, one story: split the work, aggregate what you can locally, move rows so equal keys meet, then merge the streams back into one.</p>
+
+      <div class="code">
+        <header><span>Listing 11-3 · the warehouse-style aggregation query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  so.ProductID,
+        <span class="fn">COUNT</span>(*) <span class="kw">AS</span> Order_Count
+<span class="kw">FROM</span>    Sales.SalesOrderDetail so
+<span class="kw">WHERE</span>   so.ModifiedDate &gt;= '20140301'
+        <span class="kw">AND</span> so.ModifiedDate &lt; <span class="fn">DATEADD</span>(mm, 3, '20140301')
+<span class="kw">GROUP BY</span> so.ProductID
+<span class="kw">ORDER BY</span> so.ProductID;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter11/fig-11-3-serial-plan.png"
+             alt="Serial plan: Clustered Index Scan, Hash Match (Aggregate), Sort, SELECT.">
+        <figcaption><b>Figure 11-3</b> — The serial version, at estimated cost <b>1.3</b>. Nothing new — but note the choice: Hash Match then Sort the <b>178</b> aggregated rows, rather than Sort the ~24 K rows first and use a cheaper Stream Aggregate. Sorting 178 rows wins.</figcaption>
+      </figure>
+
+      <p>
+        Because the whole plan costs only 1.3, it will never go parallel at the default threshold. To see
+        one, the book lowers <code class="inl">cost threshold for parallelism</code> to <b>1</b>:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 11-4 · force the issue temporarily</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> sys.sp_configure @configname = 'show advanced options',
+                      @configvalue = 1;
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>;
+<span class="kw">GO</span>
+<span class="kw">EXEC</span> sys.sp_configure @configname = 'cost threshold for parallelism',
+                      @configvalue = 1;
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>;
+<span class="kw">GO</span>
+<span class="kw">SET STATISTICS XML ON</span>;
+<span class="kw">SELECT</span> so.ProductID,
+       <span class="fn">COUNT</span>(*) <span class="kw">AS</span> Order_Count
+<span class="kw">FROM</span> Sales.SalesOrderDetail <span class="kw">AS</span> so
+<span class="kw">WHERE</span> so.ModifiedDate &gt;= 'March 3, 2014'
+      <span class="kw">AND</span> so.ModifiedDate &lt; <span class="fn">DATEADD</span>(mm,
+                                    3,
+                                    'March 1, 2014')
+<span class="kw">GROUP BY</span> so.ProductID
+<span class="kw">ORDER BY</span> so.ProductID;
+<span class="kw">SET STATISTICS XML OFF</span>;
+<span class="kw">GO</span>
+<span class="kw">EXEC</span> sys.sp_configure @configname = 'cost threshold for parallelism',
+                      @configvalue = 5; <span class="cm">--your value goes here</span>
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>;
+<span class="kw">GO</span>
+<span class="kw">EXEC</span> sys.sp_configure @configname = 'show advanced options',
+                      @configvalue = 0;
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>;
+<span class="kw">GO</span></code></pre>
+        <div class="cap">The book's date literals here are 'March 3, 2014' and 'March 1, 2014' where Listing 11-3 used '20140301'. Mind the difference if you're reproducing it.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter11/fig-11-4-parallel-plan.png"
+             alt="Parallel plan: Clustered Index Scan, Hash Match (Partial Aggregate), Parallelism (Repartition Streams), Sort, Stream Aggregate (Aggregate), Parallelism (Gather Streams), Compute Scalar, SELECT.">
+        <figcaption><b>Figure 11-4</b> — The parallel plan. Read right to left: <b>Clustered Index Scan</b> → <b>Hash Match (Partial Aggregate)</b> → <b>Parallelism (Repartition Streams)</b> → <b>Sort</b> → <b>Stream Aggregate (Aggregate)</b> → <b>Parallelism (Gather Streams)</b> → Compute Scalar → SELECT. Note the yellow double arrows on every parallel operator.</figcaption>
+      </figure>
+
+      <div class="plain">
+        <div><span>The double arrow</span>An operator with the yellow "two-headed arrow" icon does its work <b>split across processor threads</b>. Same operator, less data each.</div>
+        <div><span>Parallelism a.k.a. Exchange</span>The extra operators that move rows between threads. Three flavours matter here: <b>Repartition Streams</b>, <b>Gather Streams</b>, and (elsewhere) Distribute Streams.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter11/fig-11-2-parallel-operators.png"
+             alt="Icons and names of parallel operators: Parallelism (Repartition Streams), Parallelism (Gather Streams), and a parallel Hash Match.">
+        <figcaption><b>Figure 11-2</b> — The new icons, side by side: two <b>Parallelism</b> operators (Repartition Streams and Gather Streams) plus a parallel Hash Match — all carrying the yellow double arrow that says "this work is spread across threads".</figcaption>
+      </figure>
+
+      <h3 class="step">Step 1 — the scan splits the work</h3>
+      <figure>
+        <img src="images/chapter11/fig-11-5-degree-of-parallelism.png"
+             alt="SELECT properties showing Degree of Parallelism 4.">
+        <figcaption><b>Figure 11-5</b> — <b>Degree of Parallelism = 4</b> on the SELECT. It's a runtime metric, so it appears in <i>actual</i> plans and reflects what really happened — not what was asked for.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter11/fig-11-6-scan-parallel-properties.png"
+             alt="Clustered Index Scan properties: Parallel True, Number of Executions 4, Actual Number of Rows 23883 with per-thread counts 0, 0, 455, 13484, 9944.">
+        <figcaption><b>Figure 11-6</b> — The scan: <b>Parallel = True</b>, <b>Number of Executions = 4</b> (once per thread), <b>23,883</b> rows total — and look how unevenly they landed: 0, 0, 455, 13,484, 9,944.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>Why the scan behaves differently</b>
+        Scans — and seeks returning ranges — are among the very few operators whose behaviour actually
+        changes between serial and parallel. Rows are handed out <b>on demand</b>: each worker asks the
+        <b>Parallel Page Supplier</b> for more work and gets a batch. That component lives in the storage
+        engine, not the query processor, so <b>it never appears in the plan</b>. Uneven thread counts like
+        the ones above are entirely normal.
+      </div>
+
+      <h3 class="step">Step 2 — aggregate locally</h3>
+
+      <figure>
+        <img src="images/chapter11/fig-11-7-hash-match-parallel-properties.png"
+             alt="Hash Match properties: Logical Operation Partial Aggregate, Parallel True, Number of Executions 4, Actual Number of Rows 470 with per-thread 0, 0, 126, 173, 171.">
+        <figcaption><b>Figure 11-7</b> — The aggregation is a <b>Partial Aggregate</b>: each thread counts its own rows per ProductID and emits one row per value it saw. 4 executions, <b>470</b> rows out.</figcaption>
+      </figure>
+
+      <p>
+        Those counts are <b>not final</b> — the same ProductID can exist on several threads. That's why the
+        logical operation is renamed Partial Aggregate even though the operator is the same Hash Match. The
+        arithmetic in the book is a nice sanity check: there are <b>178</b> distinct ProductIDs, so the
+        theoretical minimum output is <b>178</b> rows (every ProductID landed on one thread) and the
+        theoretical maximum is <b>4 × 178 = 712</b> (every ProductID on every thread). The book sees
+        <b>470</b> — comfortably in between.
+      </p>
+
+      <h3 class="step">Step 3 — move rows so equal keys meet</h3>
+
+      <figure>
+        <img src="images/chapter11/fig-11-8-partition-column-hash.png"
+             alt="Parallelism operator properties showing Partition Columns hash on ProductID.">
+        <figcaption><b>Figure 11-8</b> — The <b>Repartition Streams</b> operator: partitioning type <b>Hash</b>, partition column <b>ProductID</b>. All rows with the same ProductID are routed to the same thread so the final aggregation can be global.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter11/fig-11-9-rows-rearranged-threads.png"
+             alt="Properties showing rows redistributed across threads with roughly even counts.">
+        <figcaption><b>Figure 11-9</b> — After repartitioning: roughly even distribution across threads. A happy side effect of hashing on ProductID — and, the book warns, it could just as easily have <b>added</b> skew if the hash hadn't spread the values well.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>Partitioning types you'll meet</b>
+        <b>Hash</b> (what's used here) — same key value to the same thread. <b>Round Robin</b> — deal rows
+        out evenly, good for balancing work when nothing needs co-locating. <b>Broadcast</b> — send every
+        row to every thread, used for the small build side of a join.
+      </div>
+
+      <figure>
+        <img src="images/chapter11/fig-11-10-conceptual-parallel-flow.png"
+             alt="Diagram: Parallel Page Supplier feeding four Clustered Index Scans with 0, 455, 13484 and 9944 rows, four Partial Aggregates, then Repartition Streams redistributing to 123, 98, 121 and 128 rows.">
+        <figcaption><b>Figure 11-10</b> — The book's conceptual picture of everything so far: the <b>Parallel Page Supplier</b> on the right feeding four scans (0, 455, 13,484, 9,944 rows), four Partial Aggregates, then a <b>Repartition Streams</b> redistributing into 123, 98, 121 and 128 rows.</figcaption>
+      </figure>
+
+      <h3 class="step">Step 4 — finish the aggregation, then put it back together</h3>
+
+      <p>
+        Now every ProductID sits on exactly one thread, so a second aggregation completes the job — the
+        <b>local-global</b> pattern. Because the partial aggregate already cut the row count to almost
+        nothing, the optimizer decides it's cheaper to <b>Sort</b> the data and use a <b>Stream Aggregate</b>
+        than to hash again. Sorts are one of the biggest beneficiaries of parallelism, so a parallel Sort
+        often shows a dramatic cost reduction against its serial equivalent.
+      </p>
+
+      <figure>
+        <img src="images/chapter11/fig-11-11-gather-streams-order-by.png"
+             alt="Gather Streams properties showing Order By present.">
+        <figcaption><b>Figure 11-11</b> — <b>Gather Streams</b> brings the threads back into a single stream. Its <b>Order By</b> property is the tell: this exchange <b>preserves order</b> — it waits for all inputs and merges them in sequence.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>The Order By property, and why it's worth the wait</b>
+        On the Repartition Streams operator there is <b>no</b> Order By property: it just forwards packets
+        as they arrive, so <b>order is not preserved</b>. An order-preserving exchange is slightly slower in
+        its own right — but because parallel sorting is so efficient, the optimizer usually prefers
+        <i>parallel Sort + order-preserving exchange</i> over <i>non-order-preserving exchange + serial
+        Sort of everything</i>. That trade is the reason the Sort sits before the Gather Streams here.
+      </div>
+
+      <p>
+        From that point on it's an ordinary serial plan again: one stream, a <b>Compute Scalar</b> that
+        converts the count to an <code class="inl">int</code> (implying the running value was a
+        <code class="inl">bigint</code> during aggregation), then the SELECT.
+      </p>
+    </section>
+
+    <section class="card" id="ch11-good-or-bad">
+      <h2><span class="num">4</span> Good or bad?</h2>
+      <p class="lede">It depends on the plan's estimated cost, the number of rows, and what everyone else on the server is trying to do.</p>
+
+      <p>
+        Parallelism has a fixed overhead: dividing work into threads, coordinating them, and gathering the
+        results back together. For a few rows that overhead <b>far outweighs</b> any benefit — you pay four
+        threads' worth of coordination to move forty rows.
+      </p>
+
+      <div class="plain">
+        <div><span>Where it pays</span>Long-running, processor-intensive, large-volume queries; reporting, warehouse and BI systems; almost anything using a columnstore index. Sort-heavy work especially.</div>
+        <div><span>Where it hurts</span>Small OLTP queries — sometimes slower than serial, and even when individually faster, the resources it consumes slow every <b>other</b> connection. That is the real cost.</div>
+      </div>
+
+      <p>
+        There's no rule that tells you in advance. The book's procedure is to observe <b>execution times and
+        wait states</b> for parallel queries alongside whole-system metrics like requests per second. If a
+        system gets very high concurrency, letting one user's query grab every CPU is going to cause
+        blocking.
+      </p>
+
+      <div class="note warn">
+        <b>The diagnostic that matters</b>
+        If a query's execution time <b>goes down when you force MAXDOP 1</b>, the parallel plan is hurting
+        that query. That is <i>not</i> an argument for turning parallelism off globally — it's an argument
+        for setting cost threshold and MAXDOP properly, and using the
+        <code class="inl">MAXDOP</code> query hint (Chapter 10) for the individual outlier. Disabling
+        parallelism server-wide throws away the wins to avoid the losses.
+      </div>
+    </section>
+
+    <section class="card" id="ch11-cheatsheet">
+      <h2><span class="num">★</span> Chapter 11 cheat sheet</h2>
+
+      <table>
+        <thead><tr><th>Operator / setting</th><th>What it means</th><th>What to look for</th></tr></thead>
+        <tbody>
+          <tr><td><b>Yellow double arrow</b></td><td>This operator's work is split across threads</td><td>Work per thread, not total work. <code class="inl">Number of Executions</code> = number of threads.</td></tr>
+          <tr><td><b>Parallelism (Repartition Streams)</b></td><td>Hash-routes rows so matching keys land on one thread</td><td><b>Partition Columns</b> — should be the grouping/join key. No <code class="inl">Order By</code> = order lost.</td></tr>
+          <tr><td><b>Parallelism (Gather Streams)</b></td><td>Merges threads back into one stream</td><td><b>Order By</b> present = order-preserving exchange. Everything after it is serial.</td></tr>
+          <tr><td><b>Hash Match (Partial Aggregate)</b></td><td>Per-thread aggregation — counts are <b>not final</b></td><td>Row count sits between <i>distinct values</i> and <i>threads × distinct values</i> (here 178 → 712, actual 470).</td></tr>
+          <tr><td><b>Stream Aggregate (Aggregate)</b></td><td>The final, global aggregation after repartitioning</td><td>Follows a Sort. The whole point of the local-global pattern.</td></tr>
+          <tr><td><b>Degree of Parallelism</b></td><td>Threads actually used at runtime</td><td>Actual plans only. Could be lower than MAXDOP — or the plan could have gone serial entirely.</td></tr>
+          <tr><td><b>Parallel Page Supplier</b></td><td>Hands out row batches to threads on demand</td><td>Never visible in the plan. Explains the uneven per-thread row counts.</td></tr>
+          <tr><td><code class="inl">max degree of parallelism</code></td><td>Max processors per query (default 0 = all)</td><td>0 lets one query take the machine. Don't leave it there.</td></tr>
+          <tr><td><code class="inl">cost threshold for parallelism</code></td><td>Estimated cost before a parallel plan is considered (default 5)</td><td>Don't leave it at 5. ~25 reporting, ~50 OLTP.</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>Eligible ≠ parallel.</b> Runtime thread availability can turn a parallel plan serial — and only Query Store shows you both versions.</li>
+        <li><b>Check the blockers first.</b> A scalar T-SQL UDF, a multi-statement TVF, a recursive CTE, <code class="inl">TOP</code>, <code class="inl">ROW_NUMBER</code>, a dynamic cursor — any of these can make your tuning irrelevant.</li>
+        <li><b>Partial aggregates don't add up the way you expect.</b> Per-thread counts between the minimum and maximum is correct behaviour, not a bug.</li>
+        <li><b>Two exchange properties tell you the story</b> — partition column (what moved) and Order By (whether order survived).</li>
+        <li><b>MAXDOP 1 as a test, never as a policy.</b> If it gets faster, that query needs a hint or better settings, not a server-wide switch.</li>
+        <li><b>Parallelism spends other people's CPU.</b> A query that's individually faster can still make the system slower.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        Reading a parallel plan isn't a new skill — it's the same skill with a handful of extra operators
+        to understand, plus the effect those operators have on the ones around them. Set MAXDOP and cost
+        threshold correctly and you get the benefit of parallelism for the queries that need it, without
+        paying for it on the queries that don't.
       </div>
     </section>
 
