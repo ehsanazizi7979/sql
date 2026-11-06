@@ -230,9 +230,9 @@
       figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">5 chapters covered</span>
-      <span class="badge">37 book listings</span>
-      <span class="badge">98 figures</span>
+      <span class="badge">6 chapters covered</span>
+      <span class="badge">46 book listings</span>
+      <span class="badge">128 figures</span>
       <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
@@ -292,6 +292,14 @@
     <a class="mini" href="#ch5-spools">Spools</a>
     <a class="mini" href="#ch5-window">Window functions</a>
     <a class="mini" href="#ch5-cheatsheet">Cheat sheet</a>
+
+    <div class="grp">Chapter 6 · Data Modifications</div>
+    <a class="mini" href="#ch6-insert">INSERT plans</a>
+    <a class="mini" href="#ch6-insert-operators">Insert operators &amp; Assert</a>
+    <a class="mini" href="#ch6-update">UPDATE &amp; the Halloween Problem</a>
+    <a class="mini" href="#ch6-delete">DELETE plans</a>
+    <a class="mini" href="#ch6-merge">MERGE plans</a>
+    <a class="mini" href="#ch6-cheatsheet">Cheat sheet</a>
   </nav>
 
   <main>
@@ -3145,6 +3153,547 @@ Table <span class="str">'SalesOrderDetail'</span>. Scan count 1, logical reads 2
         fundamental skill of plan reading. And the recurring warning: <b>no operator is inherently
         problematic</b>. Don't set out to eliminate a Sort or a Hash Match; set out to understand why the
         query needs one.
+      </div>
+    </section>
+
+
+    <div class="chapterbar" id="chapter6">
+      <span class="cnum">Chapter 6</span>
+      <div>
+        <h2>Execution Plans for Data Modifications</h2>
+        <p>INSERT, UPDATE, DELETE and MERGE generate plans just like SELECT — and reveal things
+        you never see otherwise: where IDENTITY values are generated, how foreign keys are checked,
+        how nonclustered indexes get maintained, and the Halloween Problem.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch6-insert">
+      <h2><span class="num">1</span> INSERT plans</h2>
+      <p class="lede">An INSERT hits one table — but it still has to invent an IDENTITY value, evaluate every expression, maintain every index, and check every constraint.</p>
+
+      <div class="code">
+        <header><span>Listing 6-1 · a simple INSERT</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">INSERT INTO</span> Person.Address
+(
+    AddressLine1,
+    AddressLine2,
+    City,
+    StateProvinceID,
+    PostalCode,
+    rowguid,
+    ModifiedDate
+)
+<span class="kw">VALUES</span>
+(   <span class="fn">N</span><span class="str">'1313 Mockingbird Lane'</span>, <span class="cm">-- AddressLine1 - nvarchar(60)</span>
+    <span class="fn">N</span><span class="str">'Basement'</span>,              <span class="cm">-- AddressLine2 - nvarchar(60)</span>
+    <span class="fn">N</span><span class="str">'Springfield'</span>,           <span class="cm">-- City - nvarchar(30)</span>
+    79,                       <span class="cm">-- StateProvinceID - int</span>
+    <span class="fn">N</span><span class="str">'02134'</span>,                 <span class="cm">-- PostalCode - nvarchar(15)</span>
+    <span class="kw">NEWID</span>(),                  <span class="cm">-- rowguid - uniqueidentifier</span>
+    <span class="kw">GETDATE</span>()                 <span class="cm">-- ModifiedDate - datetime</span>
+    );</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter6/fig-6-1-insert-plan.png"
+             alt="Insert plan: Constant Scan, Compute Scalar, Compute Scalar, Clustered Index Insert 92%, Nested Loops (Left Semi Join), Assert, INSERT, plus Clustered Index Seek on StateProvince at 8%.">
+        <figcaption><b>Figure 6-1</b> — Seven operators for one row. Read it right to left: <b>Constant Scan</b> → Compute Scalar ×2 → <b>Clustered Index Insert (92%)</b>, while a Nested Loops (Left Semi Join) → <b>Assert</b> verifies the foreign key against StateProvince.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>Getting an actual plan without changing data</b>
+        The book captures the <i>estimated</i> plan here. To see runtime information safely, wrap the
+        statement in <code class="inl">BEGIN TRAN … ROLLBACK</code> — you'll meet that trick in Listings 6-5 and 6-6.
+      </div>
+
+      <p>
+        Despite the size of the plan it is still <b>trivial</b>, and the optimizer applied
+        <b>simple parameterization</b>, replacing every literal with a parameter. The
+        <code class="inl">ParameterizedText</code> property shows exactly how:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 6-2 · the parameterized form</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>(@1 nvarchar(4000),@2 nvarchar(4000),@3 nvarchar(4000),@4 int,@5 nvarchar(4000))
+<span class="kw">INSERT  INTO</span> [Person].[Address]
+        ([AddressLine1],
+         [AddressLine2],
+         [City],
+         [StateProvinceID],
+         [PostalCode],
+         [rowguid],
+         [ModifiedDate]
+        )
+<span class="kw">VALUES</span>  (@1,
+         @2,
+         @3,
+         @4,
+         @5,
+         newid(),
+         getdate()
+        )</code></pre>
+        <div class="cap">Note the types: four <code class="inl">nvarchar(4000)</code> parameters and one <code class="inl">int</code>. The literal types the optimizer infers are deliberately generous.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter6/fig-6-2-insert-operator-props.png"
+             alt="INSERT operator properties showing Optimization Level TRIVIAL, Parameter List and ParameterizedText.">
+        <figcaption><b>Figure 6-2</b> — The INSERT operator's properties: <b>Optimization Level = TRIVIAL</b>, plus the Parameter List and ParameterizedText.</figcaption>
+      </figure>
+
+      <h3 class="step">Constant Scan — inventing a row from nothing</h3>
+      <p>
+        A <b>Constant Scan</b> creates rows out of the operator's own <b>Values</b> property, not from a
+        table. It's how a plan gets a row to work with when the query supplies no data source.
+      </p>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter6/fig-6-3-constant-scan-defined-values.png"
+               alt="Constant Scan properties: Output List Union1006 and Union1007, Values (1),(2) / (3),(4) / (5),(6).">
+          <figcaption><b>Figure 6-3</b> — A Constant Scan for <code class="inl">SELECT * FROM (VALUES (1,2),(3,4),(5,6))</code>: two columns, three rows.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter6/fig-6-4-constant-scan-empty-row.png"
+               alt="Tooltip of the Constant Scan output pipe showing a row size of 9 B and no columns.">
+          <figcaption><b>Figure 6-4</b> — In our INSERT plan the Output List is <b>blank</b> and there's no Values property: it emits a single <b>empty row</b> — a placeholder. Row Size 9 B is column header only.</figcaption>
+        </figure>
+      </div>
+
+      <h3 class="step">Where IDENTITY values come from</h3>
+      <p>The first Compute Scalar calls <code class="inl">getidentity</code>:</p>
+      <div class="code">
+        <header><span>Defined Values of the first Compute Scalar</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>[Expr1002] = Scalar Operator(getidentity((373576369),(11),NULL))</code></pre>
+        <div class="cap">First two arguments are <code class="inl">object_id</code> and <code class="inl">database_id</code>. The author admits he doesn't know what the third is; here it's NULL.</div>
+      </div>
+
+      <div class="note warn">
+        <b>Why IDENTITY values have gaps</b>
+        The <code class="inl">getidentity</code> call happens <b>before</b> the INSERT and before any
+        integrity checks. So a failed INSERT still consumes a value — which is exactly why IDENTITY
+        columns have gaps even with no rolled-back transactions.
+      </div>
+
+      <p>The second Compute Scalar populates the remaining columns:</p>
+      <figure>
+        <img src="images/chapter6/fig-6-5-compute-scalar-identity.png"
+             alt="Compute Scalar Defined Values: Expr1003 to Expr1006 are conversions of @1, @2, @3, @5 to nvarchar, Expr1007 newid(), Expr1008 getdate().">
+        <figcaption><b>Figure 6-5</b> — Each parameter is converted from its inferred <code class="inl">nvarchar(4000)</code> type down to the column's real type, plus <code class="inl">newid()</code> and <code class="inl">getdate()</code>.</figcaption>
+      </figure>
+      <p>
+        Seven columns to insert, six defined values — because <code class="inl">StateProvinceID</code> is
+        already an <b>INT</b>, so no conversion is needed.
+      </p>
+    </section>
+
+    <section class="card" id="ch6-insert-operators">
+      <h2><span class="num">2</span> Clustered Index Insert, Nested Loops and Assert</h2>
+      <p class="lede">The insert itself is 92% of the plan — but the foreign-key check is where the interesting operators live.</p>
+
+      <figure>
+        <img src="images/chapter6/fig-6-6-clustered-index-insert-objects.png"
+             alt="Object property of Clustered Index Insert expanded, listing the clustered index plus three nonclustered indexes.">
+        <figcaption><b>Figure 6-6</b> — The <b>Object</b> property lists <b>four</b> indexes: the clustered index and three nonclustered indexes. One operator maintains them all — a "narrow" plan.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>Narrow vs wide plans</b> The alternative is one operator per index (a <b>per-index</b> or
+        <b>wide</b> plan, shown later). <b>Filtered indexes</b> and <b>indexed views</b> are <i>always</i>
+        maintained in their own operators — they can never be folded into the clustered index operator.
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter6/fig-6-7-scalar-operator-params.png"
+               alt="Scalar Operator showing parameter values including @4 for StateProvinceID.">
+          <figcaption><b>Figure 6-7</b> — The parameter values in the ScalarOperator. Note <code class="inl">@4</code> is read <b>directly</b>, since it needed no conversion.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter6/fig-6-8-output-list-stateprovinceid.png"
+               alt="Output List showing Person.Address.StateProvinceID.">
+          <figcaption><b>Figure 6-8</b> — The <b>Output List</b> includes <code class="inl">StateProvinceID</code> because it's a <b>FOREIGN KEY</b> — it has to be checked.</figcaption>
+        </figure>
+      </div>
+
+      <h3 class="step">The referential-integrity branch</h3>
+      <figure>
+        <img src="images/chapter6/fig-6-9-nested-loops-semi-join.png"
+             alt="Section of plan showing Clustered Index Insert, Nested Loops (Left Semi Join) and Clustered Index Seek on StateProvince.">
+        <figcaption><b>Figure 6-9</b> — Nested Loops marked <b>Left Semi Join</b>: it only needs <i>one</i> match, not all of them. The seek reads the parent table's primary key to confirm the value exists.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter6/fig-6-10-assert-predicate.png"
+             alt="Assert operator properties: Physical Operation Assert, Predicate CASE WHEN [Expr1012] IS NULL THEN (0) ELSE NULL END.">
+        <figcaption><b>Figure 6-10</b> — The <b>Assert</b>. Its Predicate returns <b>NULL when the condition is satisfied</b>; any non-NULL result triggers a rollback, and the value determines the error message. Here: "Expr1012 must not be NULL", i.e. the FK match must exist.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>How to read an Assert</b>
+        Invert your intuition: <b>NULL = pass, non-NULL = fail</b>. The expression is written as a
+        <code class="inl">CASE</code> that returns NULL only when everything is fine. That's how a single
+        operator implements CHECK constraints, foreign keys and NOT NULL validation.
+      </div>
+    </section>
+
+    <section class="card" id="ch6-update">
+      <h2><span class="num">3</span> UPDATE plans and the Halloween Problem</h2>
+      <p class="lede">An UPDATE that changes the column it filters on could read its own output — so the optimizer inserts a blocking spool.</p>
+
+      <div class="code">
+        <header><span>Listing 6-3 · UPDATE affecting an indexed column</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">UPDATE</span> Person.Address
+<span class="kw">SET</span> City = <span class="str">'Munro'</span>,
+    ModifiedDate = <span class="kw">GETDATE</span>()
+<span class="kw">WHERE</span> City = <span class="str">'Monroe'</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter6/fig-6-11-update-plan.png"
+             alt="UPDATE plan: Index Scan, Table Spool (Eager Spool), Compute Scalar x3, Clustered Index Update, UPDATE.">
+        <figcaption><b>Figure 6-11</b> — Index Scan → <b>Table Spool (Eager Spool)</b> → Compute Scalar ×3 → Clustered Index Update → UPDATE. FULL optimization, "Good Enough Plan Found".</figcaption>
+      </figure>
+
+      <p>
+        The plan is <b>not</b> trivial this time, because <code class="inl">City</code> is a key column of a
+        nonclustered index, and it's the column being changed. The scan estimates only <b>4.6 rows</b> —
+        which is why a missing-index hint on <code class="inl">City</code> appears (whether to act on it
+        depends on how important and frequent this query is).
+      </p>
+
+      <h3 class="step">The Eager Spool and Halloween protection</h3>
+      <div class="note warn">
+        <b>What the Halloween Problem is</b>
+        Classic scenario: you update a column and filter on that same column. As rows are updated they can
+        move <i>within the index</i>, so the scan might encounter them <b>again</b> and update them twice —
+        producing wrong results. The <b>Eager (blocking) Spool</b> prevents it: it reads <b>all</b> the rows
+        to be updated first, stores them in a worktable, and the rest of the plan is driven <b>only</b> from
+        that worktable. Already-updated rows can never be seen again.
+      </div>
+      <p>
+        This is the one situation where a blocking operator is unambiguously <i>wanted</i> — the optimizer
+        normally avoids Eager Spools, but here blocking is the whole point.
+      </p>
+
+      <p>The three Compute Scalars evaluate the <code class="inl">GETDATE()</code> and the new values.
+        The plan also contains expressions building <code class="inl">Expr1012</code> from
+        <code class="inl">Expr1006</code> that the author can't fully explain — possibly needed for
+        correctness, possibly just an artefact, because Compute Scalar is so cheap the optimizer doesn't
+        bother removing dead calculations.</p>
+
+      <figure>
+        <img src="images/chapter6/fig-6-12-simple-update-plan.png"
+             alt="Tiny plan where the Clustered Index Update operator does all the work.">
+        <figcaption><b>Figure 6-12</b> — The other extreme (Listing 6-4): a Clustered Index Update that does <b>everything</b> itself — finds rows via a <b>Seek Predicate</b> and updates in place. No scan, no spool.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 6-4 · an UPDATE that needs no helper operators</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE TABLE</span> dbo.Mytable (id <span class="kw">INT IDENTITY</span>(1, 1) <span class="kw">PRIMARY KEY CLUSTERED</span>,
+                          val <span class="kw">VARCHAR</span>(50));
+<span class="kw">INSERT</span> dbo.Mytable (val)
+<span class="kw">VALUES</span> (<span class="str">'whoop'</span>);
+
+<span class="kw">UPDATE</span> dbo.Mytable
+<span class="kw">SET</span> val = <span class="str">'WHOOP'</span>
+<span class="kw">WHERE</span> id = 1;</code></pre>
+        <div class="cap">Updating a non-keyed column, filtering on the primary key ⇒ the update operator can seek and update in place.</div>
+      </div>
+    </section>
+
+    <section class="card" id="ch6-delete">
+      <h2><span class="num">4</span> DELETE plans</h2>
+      <p class="lede">A DELETE plan can be a single operator — or a Sequence of two branches that must run in a precise order.</p>
+
+      <h3 class="step">The simple case</h3>
+      <div class="code">
+        <header><span>Listing 6-5 · a simple DELETE</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">BEGIN TRAN</span>;
+<span class="kw">DELETE FROM</span> Person.EmailAddress
+<span class="kw">WHERE</span> BusinessEntityID = 42;
+<span class="kw">GO</span>
+<span class="kw">ROLLBACK TRAN</span>;</code></pre>
+        <div class="cap">The <code class="inl">ROLLBACK</code> lets you capture an <b>actual</b> plan without destroying data.</div>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter6/fig-6-13-simple-delete-plan.png"
+               alt="Plan with just a Clustered Index Delete operator and the DELETE language element.">
+          <figcaption><b>Figure 6-13</b> — One operator. Not every plan is hard.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter6/fig-6-14-clustered-index-delete-props.png"
+               alt="Clustered Index Delete properties: Object listing two indexes, Seek Predicate with CONVERT_IMPLICIT(int,[@1],0).">
+          <figcaption><b>Figure 6-14</b> — <b>Object</b> lists the clustered index <i>and</i> the nonclustered index. The <b>Seek Predicate</b> uses <code class="inl">@1</code>, not 42 — parameterization again.</figcaption>
+        </figure>
+      </div>
+
+      <h3 class="step">The per-index (wide) DELETE plan</h3>
+      <p>
+        Add an <b>indexed (materialized) view</b> to the mix, and the optimizer splits the work.
+        Listing 6-6 creates a view with <code class="inl">SCHEMABINDING</code> and a unique clustered
+        index, then deletes from the underlying table.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 6-6 · materialized view + DELETE</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE OR ALTER VIEW</span> dbo.TransactionHistoryView
+<span class="kw">WITH SCHEMABINDING</span>
+<span class="kw">AS</span>
+<span class="kw">SELECT</span> <span class="kw">COUNT_BIG</span>(*) <span class="kw">AS</span> ProductCount,
+       th.ProductID
+<span class="kw">FROM</span> Production.TransactionHistory <span class="kw">AS</span> th
+<span class="kw">GROUP BY</span> th.ProductID
+<span class="kw">GO</span>
+<span class="kw">CREATE UNIQUE CLUSTERED INDEX</span> TransactionHistoryCount
+<span class="kw">ON</span> dbo.TransactionHistoryView(ProductID)
+<span class="kw">GO</span>
+<span class="kw">BEGIN TRAN</span>;
+<span class="kw">DELETE FROM</span> Production.TransactionHistory
+<span class="kw">WHERE</span> ProductID = 711;
+<span class="kw">ROLLBACK TRAN</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter6/fig-6-15-per-index-delete-plan.png"
+             alt="Wide DELETE plan: Sequence with a top input (Index Seek, Clustered Index Delete 86%, Table Spool Eager Spool) and a bottom input (Clustered Index Update of the view, Table Spool, Compute Scalar, Nested Loops, Stream Aggregate, Clustered Index Seek on the view, Table Spool).">
+        <figcaption><b>Figure 6-15</b> — A <b>Sequence</b> operator, two inputs: the table's indexes on top, the materialized view's maintenance below. Two indexes plus a view simply cannot be done in one operator.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter6/fig-6-16-sequence-operator.png"
+             alt="Close-up: DELETE operator receiving rows from the Sequence operator.">
+        <figcaption><b>Figure 6-16</b> — DELETE ← Sequence. Everything to the right of the Sequence is its inputs.</figcaption>
+      </figure>
+
+      <p>The <b>Sequence</b> operator is the key to reading this plan:</p>
+      <ul>
+        <li>Takes multiple inputs and processes them in <b>strict top-to-bottom order</b>.</li>
+        <li>In modification plans, <b>each input is a different object</b> in the database.</li>
+        <li>Only the <b>bottom and final input</b> passes rows onward — which makes Sequence
+          <b>partially blocking</b>: an input must finish before the next begins.</li>
+      </ul>
+
+      <figure>
+        <img src="images/chapter6/fig-6-17-top-input-of-sequence.png"
+             alt="Top input: Index Seek on IX_TransactionHistory_ProductID, Clustered Index Delete 86%, Table Spool (Eager Spool).">
+        <figcaption><b>Figure 6-17</b> — Top input: Index Seek finds the TransactionIDs for ProductID 711 → <b>Clustered Index Delete</b> removes them → the output is saved in a <b>Table Spool</b>.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter6/fig-6-18-delete-output-list.png"
+             alt="Output List of the Clustered Index Delete showing ProductID.">
+        <figcaption><b>Figure 6-18</b> — The delete's Output List carries <b>ProductID</b> forward — the view needs to know which product's count changed. <b>Always note a spool's Node ID</b> when you see one.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter6/fig-6-19-bottom-input-of-sequence.png"
+               alt="Bottom input: Clustered Index Update of TransactionHistoryView, Table Spool (Eager Spool), Compute Scalar, Nested Loops (Left Outer Join), Stream Aggregate, sealed Table Spool at 45%, Clustered Index Seek on the view.">
+          <figcaption><b>Figure 6-19</b> — Bottom input: maintain the view. Stream Aggregate re-counts, Compute Scalar subtracts, Clustered Index Update writes the new count.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter6/fig-6-20-materialized-view-matching.png"
+               alt="Far right of the lower branch: Table Spool, Stream Aggregate, Nested Loops, Clustered Index Seek on the view.">
+          <figcaption><b>Figure 6-20</b> — Enlarged: matching deleted rows against the view's current contents.</figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="images/chapter6/fig-6-21-table-spool-primary-node-id.png"
+             alt="Table Spool properties showing a Node ID and a Primary Node ID.">
+        <figcaption><b>Figure 6-21</b> — This spool has a <b>Primary Node ID</b>: it <i>reuses</i> the worktable from the top input's spool. The data was collected once and read twice. (The spool that has no Primary Node ID exists for Halloween protection instead.)</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter6/fig-6-22-materialized-view-delete.png"
+             alt="Compute Scalar and Clustered Index Update maintaining the materialized view.">
+        <figcaption><b>Figure 6-22</b> — The Compute Scalar subtracts the count of deleted rows from the stored count, then the view's clustered index is updated.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 6-7 · clean up the view</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DROP INDEX</span> TransactionHistoryCount <span class="kw">ON</span> dbo.TransactionHistoryView;
+<span class="kw">GO</span>
+<span class="kw">DROP VIEW</span> dbo.TransactionHistoryView;
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <div class="note">
+        <b>Narrow or wide? The optimizer decides</b>
+        It weighs maintaining the nonclustered indexes in <b>random order</b> (narrow, inside one operator)
+        against saving rows in a spool, sorting them, and maintaining the indexes with
+        <b>pre-ordered data</b> (wide, one operator per index). The same choice applies to INSERT, UPDATE
+        and MERGE, not just DELETE — and the optimizer can even mix the two.
+      </div>
+    </section>
+
+    <section class="card" id="ch6-merge">
+      <h2><span class="num">5</span> MERGE plans — the "upsert"</h2>
+      <p class="lede">One plan, one cached execution, that can INSERT, UPDATE or DELETE depending on what it finds.</p>
+
+      <div class="code">
+        <header><span>Listing 6-8 · a MERGE statement</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> @BusinessEntityId <span class="kw">INT</span> = 42,
+        @AccountNumber <span class="kw">NVARCHAR</span>(15) = <span class="fn">N</span><span class="str">'SSHI'</span>,
+        @Name <span class="kw">NVARCHAR</span>(50) = <span class="fn">N</span><span class="str">'Shotz Beer'</span>,
+        @CreditRating <span class="kw">TINYINT</span> = 2,
+        @PreferredVendorStatus <span class="kw">BIT</span> = 0,
+        @ActiveFlag <span class="kw">BIT</span> = 1,
+        @PurchasingWebServiceURL <span class="kw">NVARCHAR</span>(1024) = <span class="fn">N</span><span class="str">'http://shotzbeer.com'</span>,
+        @ModifiedDate <span class="kw">DATETIME</span> = <span class="kw">GETDATE</span>();
+
+<span class="kw">BEGIN TRANSACTION</span>;
+<span class="kw">MERGE</span> Purchasing.Vendor <span class="kw">AS</span> v
+<span class="kw">USING</span>
+(   <span class="kw">SELECT</span> @BusinessEntityId,
+           @AccountNumber,
+           @Name,
+           @CreditRating,
+           @PreferredVendorStatus,
+           @ActiveFlag,
+           @PurchasingWebServiceURL,
+           @ModifiedDate) <span class="kw">AS</span> vn (BusinessEntityId, AccountNumber,
+           NAME, CreditRating, PreferredVendorStatus, ActiveFlag,
+           PurchasingWebServiceURL, ModifiedDate)
+<span class="kw">ON</span> (v.AccountNumber = vn.AccountNumber)
+<span class="kw">WHEN MATCHED THEN</span>
+    <span class="kw">UPDATE SET</span> v.Name = vn.NAME,
+               v.CreditRating = vn.CreditRating,
+               v.PreferredVendorStatus = vn.PreferredVendorStatus,
+               v.ActiveFlag = vn.ActiveFlag,
+               v.PurchasingWebServiceURL = vn.PurchasingWebServiceURL,
+               v.ModifiedDate = vn.ModifiedDate
+<span class="kw">WHEN NOT MATCHED THEN</span>
+    <span class="kw">INSERT</span> (BusinessEntityID, AccountNumber, Name, CreditRating,
+            PreferredVendorStatus, ActiveFlag, PurchasingWebServiceURL, ModifiedDate)
+    <span class="kw">VALUES</span> (vn.BusinessEntityId, vn.AccountNumber, vn.NAME, vn.CreditRating,
+            vn.PreferredVendorStatus, vn.ActiveFlag, vn.PurchasingWebServiceURL,
+            vn.ModifiedDate);
+<span class="kw">ROLLBACK TRANSACTION</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter6/fig-6-23-merge-full-plan.png"
+             alt="MERGE plan: Constant Scan, Nested Loops (Left Outer Join), Compute Scalar, Index Seek on AK_Vendor_AccountNumber, then four Compute Scalars, Clustered Index Merge 75%, Assert, Nested Loops (Left Semi Join), Assert, MERGE.">
+        <figcaption><b>Figure 6-23</b> — The whole plan. Nine Compute Scalars, two Asserts and two Nested Loops to make one decision.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter6/fig-6-24-merge-constant-scan.png"
+             alt="Right end of plan: Constant Scan producing an empty row, Nested Loops Left Outer Join, Compute Scalar, Index Seek on AK_Vendor_AccountNumber.">
+        <figcaption><b>Figure 6-24</b> — The Constant Scan's empty row drives <b>exactly one</b> execution of the Index Seek on <code class="inl">AK_Vendor_AccountNumber</code>. Here it returns zero rows — so this statement will INSERT.</figcaption>
+      </figure>
+
+      <h3 class="step">The TrgPrb / Action pattern</h3>
+      <p>
+        This is the part worth learning, because the same pattern appears in triggers and any
+        "does this row exist?" logic:
+      </p>
+      <ul>
+        <li>A Compute Scalar sets <code class="inl">TrgPrb1001 = 1</code> <b>for each row it receives</b>.</li>
+        <li>A Nested Loops (<b>Left Outer Join</b>) combines the empty Constant Scan row with that data.
+          If the seek found nothing, the join <b>still returns a row</b>, with NULLs.</li>
+        <li>Result: <b>TrgPrb1001 = 1 if the row exists, NULL if it doesn't.</b> That single value now
+          drives every branch below.</li>
+      </ul>
+
+      <div class="code">
+        <header><span>The action decision</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>[Action1003] = Scalar Operator(ForceOrder(
+    <span class="kw">CASE WHEN</span> [TrgPrb1001] <span class="kw">IS NOT NULL THEN</span> (1) <span class="kw">ELSE</span> (4) <span class="kw">END</span>))</code></pre>
+        <div class="cap">1 = the row exists (UPDATE), 4 = it doesn't (INSERT). <code class="inl">Action1003</code> then feeds a series of <code class="inl">CASE</code> expressions choosing either the incoming variable or the existing table value.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter6/fig-6-25-merge-compute-scalar-props.png"
+             alt="Compute Scalar properties showing Defined Values creating TrgPrb1001 with value 1.">
+        <figcaption><b>Figure 6-25</b> — Where <code class="inl">TrgPrb1001</code> gets its value of 1.</figcaption>
+      </figure>
+
+      <p>
+        The next Compute Scalar loads all the variables and picks, per column, whether to use the
+        parameter or the stored value — e.g.
+        <code class="inl">Expr1011 = CASE WHEN [Action1003]=(4) THEN [@AccountNumber] ELSE [v].[AccountNumber] END</code>.
+        Generated value names like <code class="inl">Action1003</code> or <code class="inl">Expr1005</code>
+        vary between SQL Server versions and patches on an otherwise identical plan — don't read meaning
+        into the numbers.
+      </p>
+
+      <figure>
+        <img src="images/chapter6/fig-6-26-merge-compute-scalars.png"
+             alt="Row of four Compute Scalar operators feeding the Clustered Index Merge.">
+        <figcaption><b>Figure 6-26</b> — The chain of Compute Scalars: one decides, the rest fill in correct values per column.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter6/fig-6-27-clustered-index-merge.png"
+             alt="Clustered Index Merge operator at 75% plus following Assert and Nested Loops.">
+        <figcaption><b>Figure 6-27</b> — <b>Clustered Index Merge (75%)</b> performs the action; then an Assert validates a constraint, and a Nested Loops checks the BusinessEntityID foreign key.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter6/fig-6-28-merge-action-column.png"
+               alt="Action Column property of Clustered Index Merge showing Action1003.">
+          <figcaption><b>Figure 6-28</b> — The <b>Action Column</b> property names the column that decides INSERT/UPDATE/DELETE.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter6/fig-6-29-merge-predicate.png"
+               alt="Predicate property of Clustered Index Merge with the action branching logic.">
+          <figcaption><b>Figure 6-29</b> — The Predicate spells out the branching logic.</figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="images/chapter6/fig-6-30-pass-through-evaluation.png"
+             alt="Pass Through evaluation in the Nested Loops properties.">
+        <figcaption><b>Figure 6-30</b> — The Nested Loops has a <b>Pass Through</b> evaluation: when the action isn't an INSERT, it <b>skips</b> the inner input entirely — so the FK lookup only runs when it's needed.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>The real payoff: one plan, not three</b>
+        Before MERGE, this logic needed separate procedures or <code class="inl">IF</code> branches — and
+        therefore <b>multiple plans in cache</b>. Change one value (Listing 6-9 uses
+        <code class="inl">'SPEEDCO0001'</code>) and the <b>same cached plan</b> now performs an UPDATE instead.
+      </div>
+    </section>
+
+    <section class="card" id="ch6-cheatsheet">
+      <h2><span class="num">★</span> Chapter 6 cheat sheet</h2>
+
+      <table>
+        <thead><tr><th>Operator</th><th>Appears when…</th><th>What it tells you</th></tr></thead>
+        <tbody>
+          <tr><td><b>Constant Scan</b></td><td>The query supplies no data source (INSERT … VALUES, MERGE, VALUES)</td><td>Its <b>Values</b> property is the data; empty Output List = one placeholder row.</td></tr>
+          <tr><td><b>Clustered Index Insert / Update / Delete / Merge</b></td><td>Always — the actual modification</td><td><b>Object</b> lists every index maintained; <b>Seek Predicate</b> shows how rows were found.</td></tr>
+          <tr><td><b>Table Spool (Eager)</b></td><td>The modified column is also filtered on</td><td><b>Halloween protection</b> — read all rows first, then drive the plan from the worktable.</td></tr>
+          <tr><td><b>Table Spool (with Primary Node ID)</b></td><td>Multiple branches need the same data</td><td>Worktable is <b>shared</b> — data collected once, read twice.</td></tr>
+          <tr><td><b>Sequence</b></td><td>More than one object must be modified (e.g. a per-index plan)</td><td>Inputs run <b>top to bottom, strictly ordered</b>; only the last input passes rows on. Partially blocking.</td></tr>
+          <tr><td><b>Assert</b></td><td>Constraints and foreign keys</td><td>Predicate returns <b>NULL = pass</b>, non-NULL = rollback.</td></tr>
+          <tr><td><b>Nested Loops (Left Semi Join)</b></td><td>Foreign-key existence check, MERGE row-exists test</td><td>Only needs <b>one</b> match. Look for <b>Pass Through</b> to see if the inner side can be skipped.</td></tr>
+          <tr><td><b>Compute Scalar</b></td><td><code class="inl">getidentity</code>, conversions, <code class="inl">newid()</code>, action logic</td><td>Where IDENTITY values are generated — before the insert, hence gaps.</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>Modification plans are read exactly like SELECT plans.</b> Same direction, same properties, same cost logic.</li>
+        <li>A simple INSERT can still be a <b>trivial</b> plan with <b>simple parameterization</b> — check <code class="inl">ParameterizedText</code>.</li>
+        <li><b>IDENTITY values are assigned before the insert</b> — that's the source of gaps.</li>
+        <li><b>Narrow vs wide:</b> one operator for all indexes, or one operator per index via <b>Sequence</b>. Filtered indexes and indexed views <b>always</b> get their own operator.</li>
+        <li><b>Eager Spool = Halloween protection.</b> Don't try to "fix" it.</li>
+        <li><b>Assert: NULL means pass.</b> Counter-intuitive, and everywhere in modification plans.</li>
+        <li><b>MERGE gives you one reusable plan</b> for insert-or-update, instead of two.</li>
+        <li>To inspect a modification's <b>actual</b> plan safely: <code class="inl">BEGIN TRAN</code> … <code class="inl">ROLLBACK</code>.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        Read modification plans exactly as you read SELECT plans — with the same tools, the same
+        properties and the same questions about estimated cost. A lot happens inside them, but with
+        careful review most of it is identifiable.
       </div>
     </section>
 
