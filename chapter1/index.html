@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>T-SQL Fundamentals — Chapters 1–4 | Plain-English Study Companion</title>
-<meta name="description" content="Plain-English summaries of Chapters 1–4 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, and code samples.">
+<title>T-SQL Fundamentals — Chapters 1–5 | Plain-English Study Companion</title>
+<meta name="description" content="Plain-English summaries of Chapters 1–5 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, and code samples.">
 <style>
   :root{
     --paper:#f7f4ed;
@@ -236,28 +236,28 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="#top"><span class="brand-mark">1–4</span> T-SQL Fundamentals · Chapters 1–4</a>
+    <a class="brand" href="#top"><span class="brand-mark">1–5</span> T-SQL Fundamentals · Chapters 1–5</a>
     <div class="topbar-meta">
-      <span>Plain-English summaries</span><span class="dot"></span><span>9 figures + 3 tables</span><span class="dot"></span><span>80+ code samples</span>
+      <span>Plain-English summaries</span><span class="dot"></span><span>9 figures + 3 tables</span><span class="dot"></span><span>100+ code samples</span>
     </div>
-    <a class="pill" href="#ch4-selfcontained">Jump to Chapter 4 ↓</a>
+    <a class="pill" href="#ch5-derived">Jump to Chapter 5 ↓</a>
   </div>
 </header>
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <span class="eyebrow">📘 Chapters 1–4 · T-SQL Fundamentals, 4th Edition</span>
+    <span class="eyebrow">📘 Chapters 1–5 · T-SQL Fundamentals, 4th Edition</span>
     <h1>The ideas behind the queries</h1>
-    <p class="lede">A plain-English study companion for Chapters 1–4 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
+    <p class="lede">A plain-English study companion for Chapters 1–5 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
     <div class="chips">
-      <span class="chip">4 chapters · 175 book pages</span>
+      <span class="chip">5 chapters · 210 book pages</span>
       <span class="chip">9 figures + 3 tables from the book</span>
-      <span class="chip">80+ code samples</span>
-      <span class="chip">~60 min read</span>
+      <span class="chip">100+ code samples</span>
+      <span class="chip">~75 min read</span>
     </div>
     <div class="hero-quote">
-      <span>The four-chapter version</span>
-      <p>Chapter 1 gives you the mental model — sets, logic, keys, and how SQL Server is organized. Chapter 2 turns that model into a single-table query. Chapter 3 combines tables with joins. Chapter 4 nests queries: self-contained and correlated subqueries, EXISTS, and the NULL traps that make NOT IN misbehave.</p>
+      <span>The five-chapter version</span>
+      <p>Chapter 1 gives you the mental model — sets, logic, keys, and how SQL Server is organized. Chapter 2 turns that model into a single-table query. Chapter 3 combines tables with joins. Chapter 4 nests queries with subqueries. Chapter 5 names and reuses query results: derived tables, CTEs, views, inline TVFs, and the APPLY operator.</p>
     </div>
   </div>
 </section>
@@ -306,9 +306,18 @@
       <a href="#ch4-practice"><span class="n">4.7</span> Practice: 10 exercises</a>
       <a href="#ch4-recap"><span class="n">4.8</span> Recap &amp; key terms</a>
       <a href="#ch4-quiz"><span class="n">4.9</span> Check yourself</a>
+      <div class="toc-group">Chapter 5 · Table expressions</div>
+      <a href="#ch5-derived"><span class="n">5.1</span> Derived tables</a>
+      <a href="#ch5-ctes"><span class="n">5.2</span> Common table expressions</a>
+      <a href="#ch5-views"><span class="n">5.3</span> Views</a>
+      <a href="#ch5-tvfs"><span class="n">5.4</span> Inline table-valued functions</a>
+      <a href="#ch5-apply"><span class="n">5.5</span> The APPLY operator</a>
+      <a href="#ch5-practice"><span class="n">5.6</span> Practice: 10 exercises</a>
+      <a href="#ch5-recap"><span class="n">5.7</span> Recap &amp; key terms</a>
+      <a href="#ch5-quiz"><span class="n">5.8</span> Check yourself</a>
     </nav>
     <div class="toc-foot">
-      <strong>Reading tip:</strong> Chapter 1 is theory, Chapter 2 is the single-table query, Chapter 3 is joins, Chapter 4 is nesting queries. If you only have five minutes, read the four recaps.
+      <strong>Reading tip:</strong> Chapter 1 is theory, Chapter 2 is the single-table query, Chapter 3 is joins, Chapter 4 is subqueries, Chapter 5 is naming and reusing query results. If you only have five minutes, read the five recaps.
     </div>
   </aside>
 
@@ -3100,6 +3109,826 @@ ORDER BY custid, orderdate, orderid;</code></pre>
       </details>
     </section>
 
+    <!-- ================= CHAPTER 5 ================= -->
+    <div class="part-divider" id="chapter-5">
+      <span class="part-eyebrow">Chapter 5 · Table expressions</span>
+      <h2>Name it, then reuse it</h2>
+      <p>A table expression is a query that returns a table and can be nested inside another query. T-SQL supports four named forms — derived tables, CTEs, views, and inline table-valued functions — plus the <code>APPLY</code> operator for applying a table expression to each row of another table.</p>
+      <div class="part-chips">
+        <span>Book pages 177–210</span>
+        <span>3 listings + many examples</span>
+        <span>10 practice exercises</span>
+      </div>
+    </div>
+
+    <!-- 5.1 -->
+    <section class="section" id="ch5-derived">
+      <div class="section-head">
+        <div class="sec-num">5.1</div>
+        <div>
+          <div class="kicker">Derived tables</div>
+          <h2>A query inside the FROM clause</h2>
+        </div>
+      </div>
+      <p class="lead">A derived table is a query defined in the <code>FROM</code> clause, followed by <code>AS</code> and a name. Its scope is the outer query: as soon as the outer query finishes, the derived table is gone.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">TABLE EXPRESSIONS</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 240" role="img" aria-label="Diagram comparing derived tables, common table expressions, views, and inline table-valued functions by scope and reuse">
+                <defs>
+                  <marker id="arrow3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                </defs>
+                <g transform="translate(0,0)">
+                  <text x="112" y="18" text-anchor="middle" class="jtitle">DERIVED TABLE</text>
+                  <rect x="15" y="42" width="195" height="120" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5" stroke-dasharray="5 4"/>
+                  <text x="112" y="62" text-anchor="middle" class="jlabel">OUTER QUERY</text>
+                  <rect x="45" y="82" width="135" height="55" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="112" y="105" text-anchor="middle" class="jlabel">derived table</text>
+                  <text x="112" y="123" text-anchor="middle" class="jcap">defined in FROM</text>
+                  <text x="112" y="190" text-anchor="middle" class="jcap">scope: one statement</text>
+                  <text x="112" y="212" text-anchor="middle" class="jcap">not reusable</text>
+                </g>
+                <g transform="translate(225,0)">
+                  <text x="112" y="18" text-anchor="middle" class="jtitle">CTE</text>
+                  <rect x="25" y="42" width="175" height="55" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="112" y="65" text-anchor="middle" class="jlabel">CTE</text>
+                  <text x="112" y="83" text-anchor="middle" class="jcap">WITH ... AS (...)</text>
+                  <rect x="25" y="120" width="175" height="55" rx="6" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="112" y="143" text-anchor="middle" class="jlabel">outer query</text>
+                  <text x="112" y="161" text-anchor="middle" class="jcap">can reference it twice</text>
+                  <line x1="75" y1="97" x2="75" y2="120" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow3)"/>
+                  <line x1="150" y1="97" x2="150" y2="120" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow3)"/>
+                  <text x="112" y="200" text-anchor="middle" class="jcap">scope: one statement</text>
+                  <text x="112" y="220" text-anchor="middle" class="jcap">reusable within it</text>
+                </g>
+                <g transform="translate(450,0)">
+                  <text x="112" y="18" text-anchor="middle" class="jtitle">VIEW</text>
+                  <rect x="55" y="42" width="115" height="50" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="112" y="65" text-anchor="middle" class="jlabel">stored view</text>
+                  <text x="112" y="82" text-anchor="middle" class="jcap">no parameters</text>
+                  <rect x="20" y="120" width="80" height="45" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="60" y="147" text-anchor="middle" class="jcap">query 1</text>
+                  <rect x="125" y="120" width="80" height="45" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="165" y="147" text-anchor="middle" class="jcap">query 2</text>
+                  <line x1="85" y1="92" x2="60" y2="120" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow3)"/>
+                  <line x1="140" y1="92" x2="165" y2="120" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow3)"/>
+                  <text x="112" y="195" text-anchor="middle" class="jcap">stored; reusable</text>
+                  <text x="112" y="215" text-anchor="middle" class="jcap">permanent object</text>
+                </g>
+                <g transform="translate(675,0)">
+                  <text x="112" y="18" text-anchor="middle" class="jtitle">INLINE TVF</text>
+                  <rect x="45" y="42" width="135" height="50" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="112" y="65" text-anchor="middle" class="jlabel">function(@param)</text>
+                  <text x="112" y="82" text-anchor="middle" class="jcap">RETURNS TABLE</text>
+                  <rect x="20" y="120" width="80" height="45" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="60" y="147" text-anchor="middle" class="jcap">query 1</text>
+                  <rect x="125" y="120" width="80" height="45" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="165" y="147" text-anchor="middle" class="jcap">query 2</text>
+                  <line x1="85" y1="92" x2="60" y2="120" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow3)"/>
+                  <line x1="140" y1="92" x2="165" y2="120" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow3)"/>
+                  <text x="112" y="195" text-anchor="middle" class="jcap">stored; reusable</text>
+                  <text x="112" y="215" text-anchor="middle" class="jcap">parameterized</text>
+                </g>
+              </svg>
+            </div>
+            <p class="fig-cap">Four named table expressions</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> an original study diagram (the book has no figures for this chapter). Derived tables and CTEs exist only for one statement; views and inline TVFs are stored objects that can be reused. Inline TVFs are like views with input parameters.</p>
+          </div>
+        </div>
+      </figure>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · basic derived table</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+SELECT *
+FROM (SELECT custid, companyname
+      FROM Sales.Customers
+      WHERE country = N'USA') AS USACusts;</code></pre>
+      </div>
+
+      <h3 class="subhead">Three requirements for the inner query</h3>
+      <ul>
+        <li><strong>No guaranteed order.</strong> A table expression represents a table, so <code>ORDER BY</code> is not allowed unless it serves a purpose such as <code>TOP</code> or <code>OFFSET-FETCH</code>.</li>
+        <li><strong>All columns must have names.</strong> Assign aliases to every expression in the inner <code>SELECT</code> list.</li>
+        <li><strong>All column names must be unique.</strong> If two columns would have the same name, give them different aliases.</li>
+      </ul>
+
+      <h3 class="subhead">Why use one? Alias reuse</h3>
+      <p>The outer query can refer to column aliases created inside the derived table. This solves the classic restriction that <code>GROUP BY</code> cannot see a <code>SELECT</code> alias.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · invalid: alias in GROUP BY</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT
+  YEAR(orderdate) AS orderyear,
+  COUNT(DISTINCT custid) AS numcusts
+FROM Sales.Orders
+GROUP BY orderyear;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · Listing 5-1, derived table</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderyear, COUNT(DISTINCT custid) AS numcusts
+FROM (SELECT YEAR(orderdate) AS orderyear, custid
+      FROM Sales.Orders) AS D
+GROUP BY orderyear;</code></pre>
+      </div>
+      <p>After SQL Server expands the derived table, the query becomes a simple <code>GROUP BY YEAR(orderdate)</code>. Table expressions are usually about logical clarity, not performance.</p>
+
+      <h3 class="subhead">Inline vs. external aliasing</h3>
+      <p>Inline aliasing writes <code>expression AS alias</code> inside the inner query. External aliasing lists all target column names after the derived table name: <code>AS D(orderyear, custid)</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · external aliasing</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderyear, COUNT(DISTINCT custid) AS numcusts
+FROM (SELECT YEAR(orderdate), custid
+      FROM Sales.Orders) AS D(orderyear, custid)
+GROUP BY orderyear;</code></pre>
+      </div>
+      <p>Inline aliasing is easier to debug and read; external aliasing treats the inner query as a “black box” with a clear column contract.</p>
+
+      <h3 class="subhead">Using arguments</h3>
+      <p>The inner query can refer to local variables and parameters.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · parameter in a derived table</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @empid AS INT = 3;
+SELECT orderyear, COUNT(DISTINCT custid) AS numcusts
+FROM (SELECT YEAR(orderdate) AS orderyear, custid
+      FROM Sales.Orders
+      WHERE empid = @empid) AS D
+GROUP BY orderyear;</code></pre>
+      </div>
+
+      <h3 class="subhead">Nesting and multiple references</h3>
+      <p>Derived tables can be nested, but the code quickly becomes hard to read. Also, you cannot refer to the same derived table twice in a join; you must maintain two copies of the query.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · Listing 5-2, nested derived tables</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderyear, numcusts
+FROM (SELECT orderyear, COUNT(DISTINCT custid) AS numcusts
+      FROM (SELECT YEAR(orderdate) AS orderyear, custid
+            FROM Sales.Orders) AS D1
+      GROUP BY orderyear) AS D2
+WHERE numcusts &gt; 70;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · Listing 5-3, two copies of the same query</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT Cur.orderyear,
+  Cur.numcusts AS curnumcusts, Prv.numcusts AS prvnumcusts,
+  Cur.numcusts - Prv.numcusts AS growth
+FROM (SELECT YEAR(orderdate) AS orderyear,
+      COUNT(DISTINCT custid) AS numcusts
+      FROM Sales.Orders
+      GROUP BY YEAR(orderdate)) AS Cur
+LEFT OUTER JOIN
+  (SELECT YEAR(orderdate) AS orderyear,
+   COUNT(DISTINCT custid) AS numcusts
+   FROM Sales.Orders
+   GROUP BY YEAR(orderdate)) AS Prv
+  ON Cur.orderyear = Prv.orderyear + 1;</code></pre>
+      </div>
+      <p>CTEs solve both problems: they are modular and can be referenced multiple times.</p>
+    </section>
+
+    <!-- 5.2 -->
+    <section class="section" id="ch5-ctes">
+      <div class="section-head">
+        <div class="sec-num">5.2</div>
+        <div>
+          <div class="kicker">Common table expressions</div>
+          <h2>A named, reusable query</h2>
+        </div>
+      </div>
+      <p class="lead">A CTE is defined with <code>WITH</code> and exists for the duration of one statement. It is like a derived table, but you name and define it first, then use it — which makes it modular and reusable.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · simple CTE</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH USACusts AS
+(
+  SELECT custid, companyname
+  FROM Sales.Customers
+  WHERE country = N'USA'
+)
+SELECT * FROM USACusts;</code></pre>
+      </div>
+      <div class="warn">
+        <strong>Mind the semicolon</strong>
+        When a <code>WITH</code> clause defines a CTE, the statement before it in the same batch must be terminated with a semicolon. The book recommends terminating every statement with a semicolon anyway.
+      </div>
+
+      <h3 class="subhead">Inline and external aliasing</h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · inline aliasing</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH C AS
+(
+  SELECT YEAR(orderdate) AS orderyear, custid
+  FROM Sales.Orders
+)
+SELECT orderyear, COUNT(DISTINCT custid) AS numcusts
+FROM C
+GROUP BY orderyear;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · external aliasing</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH C(orderyear, custid) AS
+(
+  SELECT YEAR(orderdate), custid
+  FROM Sales.Orders
+)
+SELECT orderyear, COUNT(DISTINCT custid) AS numcusts
+FROM C
+GROUP BY orderyear;</code></pre>
+      </div>
+
+      <h3 class="subhead">Arguments and multiple CTEs</h3>
+      <p>A CTE can use variables and parameters. You can also define several CTEs separated by commas; each can refer to the ones defined before it.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · argument in a CTE</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @empid AS INT = 3;
+WITH C AS
+(
+  SELECT YEAR(orderdate) AS orderyear, custid
+  FROM Sales.Orders
+  WHERE empid = @empid
+)
+SELECT orderyear, COUNT(DISTINCT custid) AS numcusts
+FROM C
+GROUP BY orderyear;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · multiple CTEs</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH C1 AS
+(
+  SELECT YEAR(orderdate) AS orderyear, custid
+  FROM Sales.Orders
+),
+C2 AS
+(
+  SELECT orderyear, COUNT(DISTINCT custid) AS numcusts
+  FROM C1
+  GROUP BY orderyear
+)
+SELECT orderyear, numcusts
+FROM C2
+WHERE numcusts &gt; 70;</code></pre>
+      </div>
+
+      <h3 class="subhead">Multiple references to the same CTE</h3>
+      <p>Because the CTE is defined before the outer query, you can reference it twice — once as the current year and once as the previous year.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · CTE referenced twice</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH YearlyCount AS
+(
+  SELECT YEAR(orderdate) AS orderyear,
+    COUNT(DISTINCT custid) AS numcusts
+  FROM Sales.Orders
+  GROUP BY YEAR(orderdate)
+)
+SELECT Cur.orderyear,
+  Cur.numcusts AS curnumcusts, Prv.numcusts AS prvnumcusts,
+  Cur.numcusts - Prv.numcusts AS growth
+FROM YearlyCount AS Cur
+  LEFT OUTER JOIN YearlyCount AS Prv
+    ON Cur.orderyear = Prv.orderyear + 1;</code></pre>
+      </div>
+
+      <h3 class="subhead">Recursive CTEs</h3>
+      <p>A recursive CTE has at least an <strong>anchor member</strong> (invoked once) and a <strong>recursive member</strong> (invoked repeatedly until it returns an empty set), joined with <code>UNION ALL</code>. The reference to the CTE name inside the recursive member represents the previous result set.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · recursive CTE: employee and all subordinates</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH EmpsCTE AS
+(
+  SELECT empid, mgrid, firstname, lastname
+  FROM HR.Employees
+  WHERE empid = 2
+  UNION ALL
+  SELECT C.empid, C.mgrid, C.firstname, C.lastname
+  FROM EmpsCTE AS P
+    INNER JOIN HR.Employees AS C
+      ON C.mgrid = P.empid
+)
+SELECT empid, mgrid, firstname, lastname
+FROM EmpsCTE;</code></pre>
+      </div>
+      <p>The anchor returns employee 2. The first recursive invocation returns direct subordinates (3 and 5); the next returns their subordinates (4, 6, 7, 8, 9); the next returns nothing, and recursion stops.</p>
+      <div class="warn">
+        <strong>Guard against runaway recursion</strong>
+        SQL Server limits recursion to 100 invocations by default. Use <code>OPTION (MAXRECURSION n)</code> to change the limit (0–32,767), or <code>MAXRECURSION 0</code> to remove it. Removing the limit can fill <code>tempdb</code> and never finish.
+      </div>
+    </section>
+
+    <!-- 5.3 -->
+    <section class="section" id="ch5-views">
+      <div class="section-head">
+        <div class="sec-num">5.3</div>
+        <div>
+          <div class="kicker">Views</div>
+          <h2>A stored, reusable query</h2>
+        </div>
+      </div>
+      <p class="lead">A view is a named table expression stored as a permanent object in the database. It is reusable and can have permissions, but it is still virtual: when you query it, SQL Server expands its definition and queries the underlying objects.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · create a view</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE OR ALTER VIEW Sales.USACusts
+AS
+SELECT
+  custid, companyname, contactname, contacttitle, address,
+  city, region, postalcode, country, phone, fax
+FROM Sales.Customers
+WHERE country = N'USA';
+GO</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · query the view</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, companyname
+FROM Sales.USACusts;</code></pre>
+      </div>
+      <p><code>CREATE OR ALTER VIEW</code> creates the view or replaces its definition. Views can have permissions, and you can deny access to the underlying tables while granting access through the view.</p>
+
+      <h3 class="subhead">Views and the ORDER BY clause</h3>
+      <p>A view must not guarantee row order. <code>ORDER BY</code> is not allowed in the view definition unless it serves a purpose such as <code>TOP</code>, <code>OFFSET-FETCH</code>, or <code>FOR XML</code>. To present rows sorted, put <code>ORDER BY</code> in the outer query.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · invalid: ORDER BY in a view</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE OR ALTER VIEW Sales.USACusts
+AS
+SELECT
+  custid, companyname, contactname, contacttitle, address,
+  city, region, postalcode, country, phone, fax
+FROM Sales.Customers
+WHERE country = N'USA'
+ORDER BY region;
+GO</code></pre>
+      </div>
+      <p>SQL Server rejects this with: “The ORDER BY clause is invalid in views, inline functions, derived tables, subqueries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified.”</p>
+      <div class="warn">
+        <strong>The TOP (100) PERCENT trick is not a guarantee</strong>
+        You can technically create a view with <code>TOP (100) PERCENT</code> and <code>ORDER BY</code>, but if the outer query has no <code>ORDER BY</code>, presentation order is not guaranteed. The only guarantee comes from an <code>ORDER BY</code> in the outer query.
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the unguaranteed TOP (100) PERCENT view</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE OR ALTER VIEW Sales.USACusts
+AS
+SELECT TOP (100) PERCENT
+  custid, companyname, contactname, contacttitle, address,
+  city, region, postalcode, country, phone, fax
+FROM Sales.Customers
+WHERE country = N'USA'
+ORDER BY region;
+GO</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · ORDER BY in the outer query</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, companyname, region
+FROM Sales.USACusts
+ORDER BY region;</code></pre>
+      </div>
+
+      <h3 class="subhead">View options</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>ENCRYPTION</code></td><td>Stores the view definition in obfuscated form. <code>OBJECT_DEFINITION</code> and <code>sp_helptext</code> no longer return the text.</td></tr>
+            <tr><td><code>SCHEMABINDING</code></td><td>Binds the view to the referenced objects and columns. They cannot be dropped or altered while the view exists. Requires explicit column names and two-part object names.</td></tr>
+            <tr><td><code>WITH CHECK OPTION</code></td><td>Prevents inserts/updates through the view that would not satisfy the view’s filter.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · ENCRYPTION</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE OR ALTER VIEW Sales.USACusts WITH ENCRYPTION
+AS
+SELECT
+  custid, companyname, contactname, contacttitle, address,
+  city, region, postalcode, country, phone, fax
+FROM Sales.Customers
+WHERE country = N'USA';
+GO
+
+SELECT OBJECT_DEFINITION(OBJECT_ID('Sales.USACusts'));</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · SCHEMABINDING</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE OR ALTER VIEW Sales.USACusts WITH SCHEMABINDING
+AS
+SELECT
+  custid, companyname, contactname, contacttitle, address,
+  city, region, postalcode, country, phone, fax
+FROM Sales.Customers
+WHERE country = N'USA';
+GO</code></pre>
+      </div>
+      <p>With <code>SCHEMABINDING</code>, trying to drop or alter a referenced column fails with a dependency error. This prevents runtime failures, though it can make structural upgrades more involved.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · CHECK OPTION</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE OR ALTER VIEW Sales.USACusts WITH SCHEMABINDING
+AS
+SELECT
+  custid, companyname, contactname, contacttitle, address,
+  city, region, postalcode, country, phone, fax
+FROM Sales.Customers
+WHERE country = N'USA'
+WITH CHECK OPTION;
+GO</code></pre>
+      </div>
+      <p>Without <code>CHECK OPTION</code>, you can insert a customer from another country through the view; the row lands in the base table but disappears from the view. With <code>CHECK OPTION</code>, the insert is rejected.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · insert through the view</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>INSERT INTO Sales.USACusts(
+  companyname, contactname, contacttitle, address,
+  city, region, postalcode, country, phone, fax)
+VALUES(
+  N'Customer ABCDE', N'Contact ABCDE', N'Title ABCDE', N'Address ABCDE',
+  N'London', NULL, N'12345', N'UK', N'012-3456789', N'012-3456789');</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DELETE FROM Sales.Customers WHERE custid &gt; 91;
+DROP VIEW IF EXISTS Sales.USACusts;</code></pre>
+      </div>
+    </section>
+
+    <!-- 5.4 -->
+    <section class="section" id="ch5-tvfs">
+      <div class="section-head">
+        <div class="sec-num">5.4</div>
+        <div>
+          <div class="kicker">Inline table-valued functions</div>
+          <h2>A view with parameters</h2>
+        </div>
+      </div>
+      <p class="lead">An inline TVF is a reusable table expression that accepts input parameters. Think of it as a parameterized view. It must have a <code>RETURNS TABLE</code> clause and a <code>RETURN</code> clause before the inner query.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · create an inline TVF</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+GO
+CREATE OR ALTER FUNCTION dbo.GetCustOrders
+  (@cid AS INT) RETURNS TABLE
+AS
+RETURN
+  SELECT orderid, custid, empid, orderdate, requireddate,
+    shippeddate, shipperid, freight, shipname, shipaddress, shipcity,
+    shipregion, shippostalcode, shipcountry
+  FROM Sales.Orders
+  WHERE custid = @cid;
+GO</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · query the function</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, custid
+FROM dbo.GetCustOrders(1) AS O;</code></pre>
+      </div>
+      <p>You can join an inline TVF just like a table. Always provide an alias for readability.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · join the function</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT O.orderid, O.custid, OD.productid, OD.qty
+FROM dbo.GetCustOrders(1) AS O
+  INNER JOIN Sales.OrderDetails AS OD
+    ON O.orderid = OD.orderid;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP FUNCTION IF EXISTS dbo.GetCustOrders;</code></pre>
+      </div>
+    </section>
+
+    <!-- 5.5 -->
+    <section class="section" id="ch5-apply">
+      <div class="section-head">
+        <div class="sec-num">5.5</div>
+        <div>
+          <div class="kicker">The APPLY operator</div>
+          <h2>A correlated join</h2>
+        </div>
+      </div>
+      <p class="lead"><code>APPLY</code> is a table operator that applies a right-side table expression to each row of a left-side table. It is not standard (the standard counterpart is <code>LATERAL</code>, which SQL Server does not implement). There are two forms: <code>CROSS APPLY</code> and <code>OUTER APPLY</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Operator</th><th>Logical phases</th><th>Behavior</th></tr></thead>
+          <tbody>
+            <tr><td><code>CROSS APPLY</code></td><td>Apply the right side per left row</td><td>Returns only left rows that produce a non-empty right-side result.</td></tr>
+            <tr><td><code>OUTER APPLY</code></td><td>Apply + preserve left rows</td><td>Returns all left rows; unmatched rows get NULLs on the right side.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The right side can reference columns from the left side — that is the correlation. A common use is “top N rows per group.”</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · CROSS APPLY: three most recent orders per customer</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT C.custid, A.orderid, A.orderdate
+FROM Sales.Customers AS C
+  CROSS APPLY
+    (SELECT TOP (3) orderid, empid, orderdate, requireddate
+     FROM Sales.Orders AS O
+     WHERE O.custid = C.custid
+     ORDER BY orderdate DESC, orderid DESC) AS A;</code></pre>
+      </div>
+      <p><code>CROSS APPLY</code> drops customers with no orders (22 and 57). <code>OUTER APPLY</code> preserves them with NULLs.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · OUTER APPLY preserves customers with no orders</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT C.custid, A.orderid, A.orderdate
+FROM Sales.Customers AS C
+  OUTER APPLY
+    (SELECT TOP (3) orderid, empid, orderdate, requireddate
+     FROM Sales.Orders AS O
+     WHERE O.custid = C.custid
+     ORDER BY orderdate DESC, orderid DESC) AS A;</code></pre>
+      </div>
+      <p>You can use <code>OFFSET-FETCH</code> instead of <code>TOP</code> in the right-side query. You can also encapsulate the right-side query in an inline TVF and apply it with <code>CROSS APPLY</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · inline TVF + CROSS APPLY</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE OR ALTER FUNCTION dbo.TopOrders
+  (@custid AS INT, @n AS INT)
+  RETURNS TABLE
+AS
+RETURN
+  SELECT TOP (@n) orderid, empid, orderdate, requireddate
+  FROM Sales.Orders
+  WHERE custid = @custid
+  ORDER BY orderdate DESC, orderid DESC;
+GO
+
+SELECT
+  C.custid, C.companyname,
+  A.orderid, A.empid, A.orderdate, A.requireddate
+FROM Sales.Customers AS C
+  CROSS APPLY dbo.TopOrders(C.custid, 3) AS A;</code></pre>
+      </div>
+      <div class="note">
+        <strong>APPLY vs. JOIN</strong>
+        A join treats both inputs as sets and cannot correlate them. <code>APPLY</code> evaluates the left side first, then the right side per left row, so the right side can reference the left. <code>OUTER APPLY</code> is similar to a <code>LEFT OUTER JOIN</code>; there is no <code>RIGHT OUTER APPLY</code>.
+      </div>
+    </section>
+
+    <!-- 5.6 -->
+    <section class="section" id="ch5-practice">
+      <div class="section-head">
+        <div class="sec-num">5.6</div>
+        <div>
+          <div class="kicker">Practice</div>
+          <h2>Ten exercises, with the book’s solutions</h2>
+        </div>
+      </div>
+      <p class="lead">Try each one before opening the solution. The sample database is <code>TSQLV6</code>. The chapter asks you to practice table expressions, even though some tasks can also be solved with joins or subqueries.</p>
+
+      <details>
+        <summary>Exercise 1 · Fix the invalid alias in the WHERE clause</summary>
+        <div class="answer">
+          <p>The <code>SELECT</code> alias <code>endofyear</code> is not available to <code>WHERE</code>. Define it in a CTE, then filter in the outer query.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>WITH C AS
+(
+  SELECT *,
+    DATEFROMPARTS(YEAR(orderdate), 12, 31) AS endofyear
+  FROM Sales.Orders
+)
+SELECT orderid, orderdate, custid, empid, endofyear
+FROM C
+WHERE orderdate &lt;&gt; endofyear;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 2-1 · Maximum order date per employee</summary>
+        <div class="answer">
+          <p>Group by employee and use the <code>MAX</code> aggregate.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+SELECT empid, MAX(orderdate) AS maxorderdate
+FROM Sales.Orders
+GROUP BY empid;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 2-2 · Orders with the maximum order date per employee</summary>
+        <div class="answer">
+          <p>Put the aggregate query in a derived table and join it back to <code>Orders</code>.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT O.empid, O.orderdate, O.orderid, O.custid
+FROM Sales.Orders AS O
+  INNER JOIN (SELECT empid, MAX(orderdate) AS maxorderdate
+              FROM Sales.Orders
+              GROUP BY empid) AS D
+    ON O.empid = D.empid
+    AND O.orderdate = D.maxorderdate;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 3-1 · Row number for each order</summary>
+        <div class="answer">
+          <p>Use <code>ROW_NUMBER</code> with <code>orderdate</code> and <code>orderid</code> ordering.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT orderid, orderdate, custid, empid,
+  ROW_NUMBER() OVER(ORDER BY orderdate, orderid) AS rownum
+FROM Sales.Orders;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 3-2 · Rows with row numbers 11 through 20</summary>
+        <div class="answer">
+          <p>A window function cannot be used directly in <code>WHERE</code>. Put it in a CTE, then filter the outer query.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>WITH OrdersRN AS
+(
+  SELECT orderid, orderdate, custid, empid,
+    ROW_NUMBER() OVER(ORDER BY orderdate, orderid) AS rownum
+  FROM Sales.Orders
+)
+SELECT * FROM OrdersRN WHERE rownum BETWEEN 11 AND 20;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 4 · Management chain leading to Patricia Doyle</summary>
+        <div class="answer">
+          <p>Anchor on employee 9, then recursively join each manager to the previous level.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>WITH EmpsCTE AS
+(
+  SELECT empid, mgrid, firstname, lastname
+  FROM HR.Employees
+  WHERE empid = 9
+  UNION ALL
+  SELECT P.empid, P.mgrid, P.firstname, P.lastname
+  FROM EmpsCTE AS C
+    INNER JOIN HR.Employees AS P
+      ON C.mgrid = P.empid
+)
+SELECT empid, mgrid, firstname, lastname
+FROM EmpsCTE;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 5-1 · Create the VEmpOrders view</summary>
+        <div class="answer">
+          <p>Join <code>Orders</code> and <code>OrderDetails</code>, group by employee and year, and sum quantities.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+GO
+CREATE OR ALTER VIEW Sales.VEmpOrders
+AS
+SELECT
+  empid,
+  YEAR(orderdate) AS orderyear,
+  SUM(qty) AS qty
+FROM Sales.Orders AS O
+  INNER JOIN Sales.OrderDetails AS OD
+    ON O.orderid = OD.orderid
+GROUP BY
+  empid,
+  YEAR(orderdate);
+GO</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 5-2 · Running total quantity per employee and year</summary>
+        <div class="answer">
+          <p>Query the view twice: once as <code>V1</code> for the current row, and once as <code>V2</code> in a correlated subquery for the running total.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT empid, orderyear, qty,
+  (SELECT SUM(V2.qty)
+   FROM Sales.VEmpOrders AS V2
+   WHERE V2.empid = V1.empid
+     AND V2.orderyear &lt;= V1.orderyear) AS runqty
+FROM Sales.VEmpOrders AS V1
+ORDER BY empid, orderyear;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 6-1 · Create the TopProducts inline TVF</summary>
+        <div class="answer">
+          <p>Accept a supplier ID and a number, and return the top <code>@n</code> products by unit price.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+GO
+CREATE OR ALTER FUNCTION Production.TopProducts
+  (@supid AS INT, @n AS INT)
+  RETURNS TABLE
+AS
+RETURN
+  SELECT TOP (@n) productid, productname, unitprice
+  FROM Production.Products
+  WHERE supplierid = @supid
+  ORDER BY unitprice DESC;
+GO</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 6-2 · Two most expensive products per supplier</summary>
+        <div class="answer">
+          <p>Use <code>CROSS APPLY</code> to apply the function to each supplier.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT S.supplierid, S.companyname,
+  P.productid, P.productname, P.unitprice
+FROM Production.Suppliers AS S
+  CROSS APPLY Production.TopProducts(S.supplierid, 2) AS P;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Cleanup</summary>
+        <div class="answer">
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · cleanup</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>DROP VIEW IF EXISTS Sales.VEmpOrders;
+DROP FUNCTION IF EXISTS Production.TopProducts;</code></pre>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- 5.7 -->
+    <section class="section" id="ch5-recap">
+      <div class="section-head">
+        <div class="sec-num">5.7</div>
+        <div>
+          <div class="kicker">Takeaways</div>
+          <h2>Chapter 5 in ten bullets</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li><strong>A table expression is a query that returns a table</strong> and can be nested inside another query.</li>
+        <li><strong>Four named forms:</strong> derived tables, common table expressions, views, and inline table-valued functions.</li>
+        <li><strong>Derived tables</strong> are defined in <code>FROM</code>, exist for one statement, and cannot be reused.</li>
+        <li><strong>CTEs</strong> are defined with <code>WITH</code>, exist for one statement, and are modular and reusable within that statement.</li>
+        <li><strong>Views and inline TVFs</strong> are stored objects; inline TVFs also accept input parameters.</li>
+        <li><strong>Table expressions are virtual.</strong> They are expanded and unnested; they usually have no direct performance impact.</li>
+        <li><strong>The inner query must have no guaranteed order, named columns, and unique column names.</strong></li>
+        <li><strong>A view cannot have a presentation ORDER BY.</strong> Only the outer query’s <code>ORDER BY</code> guarantees presentation order.</li>
+        <li><strong>Recursive CTEs</strong> have an anchor member and a recursive member; SQL Server limits recursion to 100 by default (<code>MAXRECURSION</code>).</li>
+        <li><strong><code>APPLY</code> applies a correlated table expression per left row.</strong> <code>CROSS APPLY</code> keeps matches; <code>OUTER APPLY</code> preserves unmatched left rows.</li>
+      </ul>
+
+      <h3 class="subhead">Chapter 5 key terms</h3>
+      <dl class="terms">
+        <div class="term"><dt>Table expression</dt><dd>A query that conceptually returns a table and can be nested as an operand of another table expression.</dd></div>
+        <div class="term"><dt>Derived table</dt><dd>A table expression defined in the <code>FROM</code> clause, with scope limited to the outer query.</dd></div>
+        <div class="term"><dt>CTE</dt><dd>A named table expression defined with <code>WITH</code>, existing for one statement.</dd></div>
+        <div class="term"><dt>View</dt><dd>A stored, reusable table expression; a virtual table defined by a query.</dd></div>
+        <div class="term"><dt>Inline TVF</dt><dd>A stored, reusable table expression that accepts input parameters; a parameterized view.</dd></div>
+        <div class="term"><dt>APPLY</dt><dd>A table operator that applies a right-side table expression to each row of a left-side table.</dd></div>
+        <div class="term"><dt>CROSS APPLY</dt><dd>APPLY that returns only left rows with a non-empty right-side result.</dd></div>
+        <div class="term"><dt>OUTER APPLY</dt><dd>APPLY that preserves all left rows, using NULLs when the right side is empty.</dd></div>
+        <div class="term"><dt>Recursive CTE</dt><dd>A CTE with an anchor member and a recursive member, joined with <code>UNION ALL</code>.</dd></div>
+        <div class="term"><dt>Anchor member</dt><dd>The nonrecursive query in a recursive CTE; invoked once.</dd></div>
+        <div class="term"><dt>Recursive member</dt><dd>The query in a recursive CTE that references the CTE name; invoked repeatedly until it returns no rows.</dd></div>
+        <div class="term"><dt>SCHEMABINDING</dt><dd>A view option that binds the view to referenced objects and columns, preventing their drop/alter.</dd></div>
+        <div class="term"><dt>CHECK OPTION</dt><dd>A view option that rejects inserts/updates through the view that would violate the view’s filter.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 5.8 -->
+    <section class="section" id="ch5-quiz">
+      <div class="section-head">
+        <div class="sec-num">5.8</div>
+        <div>
+          <div class="kicker">Check yourself</div>
+          <h2>Six quick questions</h2>
+        </div>
+      </div>
+      <p class="lead">Try to answer before opening each one. If you can explain it in your own words, you’ve got the chapter.</p>
+
+      <details>
+        <summary>What are the four named table expression types?</summary>
+        <div class="answer"><strong>Derived tables</strong>, <strong>common table expressions (CTEs)</strong>, <strong>views</strong>, and <strong>inline table-valued functions</strong>. Derived tables and CTEs exist for one statement; views and inline TVFs are stored objects. Inline TVFs are like views with parameters.</div>
+      </details>
+      <details>
+        <summary>What three requirements must a table expression’s inner query meet?</summary>
+        <div class="answer">Rows must have no guaranteed order (<code>ORDER BY</code> only with <code>TOP</code>/<code>OFFSET-FETCH</code>), all columns must have names, and all column names must be unique.</div>
+      </details>
+      <details>
+        <summary>Why can’t a view have a presentation ORDER BY?</summary>
+        <div class="answer">A view represents a table, and a table has no guaranteed order. <code>ORDER BY</code> is allowed only when it serves another purpose, such as <code>TOP</code> or <code>OFFSET-FETCH</code>. To guarantee presentation order, put <code>ORDER BY</code> in the outer query against the view.</div>
+      </details>
+      <details>
+        <summary>What is the difference between CROSS APPLY and OUTER APPLY?</summary>
+        <div class="answer"><code>CROSS APPLY</code> applies the right-side table expression to each left row and returns only rows with a non-empty result. <code>OUTER APPLY</code> preserves all left rows, using NULLs on the right side when there is no match.</div>
+      </details>
+      <details>
+        <summary>What is a recursive CTE?</summary>
+        <div class="answer">A CTE with at least an <strong>anchor member</strong> (invoked once) and a <strong>recursive member</strong> (invoked repeatedly until it returns an empty set), joined with <code>UNION ALL</code>. The recursive member references the CTE name, which represents the previous result set.</div>
+      </details>
+      <details>
+        <summary>Why use a CTE instead of a derived table?</summary>
+        <div class="answer">A CTE is defined first and then referenced, so it avoids deeply nested derived tables. It can also be referenced multiple times in the outer query, which a derived table cannot. Both are virtual and usually have no direct performance difference.</div>
+      </details>
+    </section>
+
   </main>
 </div>
 
@@ -3107,12 +3936,12 @@ ORDER BY custid, orderdate, orderid;</code></pre>
   <div class="footer-inner">
     <div>
       <h3>About this summary</h3>
-      <p>A study companion for <strong>Chapters 1–4</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175.</p>
-      <p class="fine">All nine figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3 and 4 have no figures or tables; the join-types and subquery-types diagrams are original study aids, not from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
+      <p>A study companion for <strong>Chapters 1–5</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210.</p>
+      <p class="fine">All nine figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, and 5 have no figures or tables; the join-types, subquery-types, and table-expression diagrams are original study aids, not from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
     </div>
     <div>
       <h3>Navigate</h3>
-      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch4-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch4-quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch5-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch5-quiz" style="color:#9fe0d6">Quiz</a></p>
       <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
     </div>
   </div>
