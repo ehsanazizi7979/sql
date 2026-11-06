@@ -7,8 +7,8 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1 through 14** — 132 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 130 syntax-highlighted,
+One self-contained HTML file covering **Chapters 1 through 15** — 140 figures embedded as inline
+base64 images (works offline, no server, no external assets) and 131 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -27,6 +27,7 @@ copyable T-SQL listings.
 | 12 | AlwaysOn Availability Groups | 331–356 | 12-1 … 12-10 | 12-1 … 12-6 |
 | 13 | Other Notable Wait Types | 357–370 | 13-1 … 13-2 | 13-1 … 13-7 |
 | 14 | Database Schema and Index Analysis | 371–403 | 14-1 … 14-7 | 14-1 … 14-12 |
+| 15 | SQL Server in Virtualized Environments | 405–426 | 15-1 … 15-8 | 15-1 … 15-1 |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -372,6 +373,21 @@ which indexes are helping and which are pure write overhead.
 - Listing 14-10 — Using the `sys.dm_db_index_usage_stats` view
 - Listing 14-11 — Detecting queries that use the index
 - Listing 14-12 — Using the `sys.dm_db_index_operational_stats` view
+
+### Chapter 15 — SQL Server in Virtualized Environments
+
+Overcommitment, why more vCPUs can be slower, NUMA/scheduler alignment, ballooning,
+and the host-side metrics that are invisible from inside the VM.
+
+- Figure 15-1 — NUMA node and schedulers in an unbalanced configuration
+- Figure 15-2 — CPU load in an unbalanced configuration
+- Figure 15-3 — The status of schedulers
+- Figure 15-4 — VMware vSphere storage stack
+- Figure 15-5 — ESXTOP: CPU view
+- Figure 15-6 — ESXTOP: memory view
+- Figure 15-7 — ESXTOP: virtual disk view
+- Figure 15-8 — ESXTOP: disk adapter view
+- Listing 15-1 — Checking the distribution of schedulers in NUMA nodes
 
 ## Viewing it
 
