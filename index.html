@@ -230,9 +230,9 @@
       figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">11 chapters covered</span>
-      <span class="badge">150 book listings</span>
-      <span class="badge">251 figures</span>
+      <span class="badge">12 chapters covered</span>
+      <span class="badge">162 book listings</span>
+      <span class="badge">263 figures</span>
       <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
@@ -346,6 +346,15 @@
     <a class="mini" href="#ch11-reading">Reading a parallel plan</a>
     <a class="mini" href="#ch11-good-or-bad">Good or bad?</a>
     <a class="mini" href="#ch11-cheatsheet">Cheat sheet</a>
+
+    <div class="grp">Chapter 12 · Batch Mode Processing</div>
+    <a class="mini" href="#ch12-what">What batch mode saves</a>
+    <a class="mini" href="#ch12-setup">Spotting it in a plan</a>
+    <a class="mini" href="#ch12-before-2016">Before SQL Server 2016</a>
+    <a class="mini" href="#ch12-mixing">Columnstore + rowstore</a>
+    <a class="mini" href="#ch12-memory">Adaptive memory grants</a>
+    <a class="mini" href="#ch12-loss">Losing batch mode</a>
+    <a class="mini" href="#ch12-cheatsheet">Cheat sheet</a>
   </nav>
 
   <main>
@@ -7801,6 +7810,385 @@ N'@id int',
         to understand, plus the effect those operators have on the ones around them. Set MAXDOP and cost
         threshold correctly and you get the benefit of parallelism for the queries that need it, without
         paying for it on the queries that don't.
+      </div>
+    </section>
+
+    <div class="chapterbar" id="chapter12">
+      <span class="cnum">Chapter 12</span>
+      <div>
+        <h2>Batch Mode Processing</h2>
+        <p>Chapter 11's plans pass rows one at a time. Batch mode passes them roughly 900 at a time —
+        and the difference in overhead is the whole story. How to tell the two apart in a plan, when
+        batch mode simply isn't available, and why a query can quietly fix its own memory grant.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch12-what">
+      <h2><span class="num">1</span> What batch mode actually saves</h2>
+      <p class="lede">Not CPU per row. <i>Negotiation</i> — the back-and-forth by which one operator asks another for the next row.</p>
+
+      <p>
+        In <b>row mode</b> — how everything else in the book works — an operator asks the one below it for a
+        row, does its work, passes that one row on, and asks again. A blocking operator asks for every input
+        row one at a time, then hands out its results one at a time. That constant
+        <b>request negotiation is a costly operation</b>, and it gets worse the more rows you move.
+      </p>
+
+      <div class="plain">
+        <div><span>Row mode</span>9,000 rows between two operators = <b>9,000 negotiations</b>. Each one is cheap; there are just a lot of them.</div>
+        <div><span>Batch mode</span>9,000 rows in <b>900-row batches</b> = <b>10 negotiations</b>. Same data, three orders of magnitude less chatter.</div>
+      </div>
+
+      <div class="note">
+        <b>900 is guidance, not a constant</b>
+        Batch size depends largely on the <b>number and size of the columns</b> being passed through the
+        query, so you'll see batches smaller than 900. The book has never observed one <i>larger</i> than
+        900, but there's no evidence 900 is a hard ceiling either — and behaviour varies by version.
+      </div>
+
+      <p>
+        Two preconditions matter, and both are moving targets. Batch mode currently requires
+        <b>a table with a columnstore index</b> somewhere in the query, and — since SQL Server 2016 — it
+        works in <b>serial</b> plans as well as parallel ones (before that, it required parallelism; more
+        below). Microsoft has announced batch mode for rowstore tables too, so expect the rules to keep
+        loosening.
+      </p>
+    </section>
+
+    <section class="card" id="ch12-setup">
+      <h2><span class="num">2</span> Setting up, and spotting batch mode in a plan</h2>
+      <p class="lede">Two properties answer the whole question — and they're the same two you'll use to catch a plan that fell back from batch to row mid-flight.</p>
+
+      <div class="code">
+        <header><span>Listing 12-1 · a columnstore index on a genuinely large table</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE NONCLUSTERED COLUMNSTORE INDEX</span> TransactionHistoryCS
+<span class="kw">ON</span> dbo.bigTransactionHistory
+(
+    ProductID,
+    TransactionDate,
+    Quantity,
+    ActualCost,
+    TransactionID
+);</code></pre>
+        <div class="cap"><code>dbo.bigTransactionHistory</code> comes from a script by Adam Machanic that builds large test tables inside AdventureWorks — the book links to it, and you'll need something on that scale to see batch mode behave realistically.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 12-2 · the analysis query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> th.ProductID,
+       <span class="fn">AVG</span>(th.ActualCost),
+       <span class="fn">MAX</span>(th.ActualCost),
+       <span class="fn">MIN</span>(th.ActualCost)
+<span class="kw">FROM</span> dbo.bigTransactionHistory <span class="kw">AS</span> th
+<span class="kw">GROUP BY</span> th.ProductID;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter12/fig-12-1-columnstore-index-scan-plan.png"
+             alt="Plan: Columnstore Index Scan feeding a Hash Match (Aggregate) then SELECT.">
+        <figcaption><b>Figure 12-1</b> — A two-operator plan: <b>Columnstore Index Scan</b> → <b>Hash Match (Aggregate)</b> → SELECT. Estimated subtree cost just under <b>25</b>, so with compatibility level 140 and cost threshold at 50 it stays serial — and <i>nothing in the picture tells you which mode it's using</i>.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter12/fig-12-2-scan-batch-mode-properties.png"
+             alt="Columnstore Index Scan properties: Actual Execution Mode Batch, Estimated Execution Mode Batch, Actual Number of Batches 32990, Locally Aggregated Rows 1596982, Actual Number of Rows 29666619.">
+        <figcaption><b>Figure 12-2</b> — The answer is in the properties: <b>Actual Execution Mode = Batch</b> and <b>Estimated Execution Mode = Batch</b>. The scan also shows <b>32,990 batches</b>, <b>29,666,619</b> rows returned, and <b>1,596,982</b> rows aggregated locally by the scan itself.</figcaption>
+      </figure>
+
+      <p>
+        That last number is aggregate pushdown from Chapter 8 doing its work across 31+ million rows: the
+        scan compresses away some of the aggregation and <b>injects the results directly</b> into the Hash
+        Match's output rather than passing them through the arrow.
+      </p>
+
+      <figure>
+        <img src="images/chapter12/fig-12-3-hash-match-tooltip-batches.png"
+             alt="Hash Match tooltip showing 32990 input batches and 25200 rows in 28 output batches.">
+        <figcaption><b>Figure 12-3</b> — The Hash Match's tooltip confirms batch mode on the next operator too: <b>32,990 batches</b> in, and <b>25,200 rows in 28 batches</b> out. Do the arithmetic — about <b>899</b> rows per batch in, <b>846</b> out. Right around 900.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>The single most useful check</b>
+        Compare <b>Actual Execution Mode</b> with <b>Estimated Execution Mode</b> on the columnstore scan.
+        Batch/Batch is what you want. Batch estimated with <b>Row</b> actual means the plan was built for
+        batch mode and fell back at runtime — which, per Chapter 8, is a SQL Server 2012 problem when a
+        batch-mode hash operation spills to tempdb, and is catastrophic for performance.
+      </div>
+    </section>
+
+    <section class="card" id="ch12-before-2016">
+      <h2><span class="num">3</span> Batch mode before SQL Server 2016</h2>
+      <p class="lede">The rule that used to make batch mode hard to reach: it required a parallel plan. Drop the compatibility level and watch the plan change shape.</p>
+
+      <div class="code">
+        <header><span>Listing 12-3 · back to SQL Server 2014 behaviour</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">ALTER DATABASE</span> AdventureWorks2014
+<span class="kw">SET COMPATIBILITY_LEVEL</span> = 120;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter12/fig-12-4-parallel-columnstore-plan.png"
+             alt="Parallel plan against a columnstore index, with a Parallelism (Gather Streams) operator.">
+        <figcaption><b>Figure 12-4</b> — At compatibility level 120 the same query goes <b>parallel</b>. The visible difference from Figure 12-1 is the <b>Parallelism (Gather Streams)</b> operator pulling the threads back into one stream. (The book's prose points at "Figure 12-5" here — a typo; this is 12-4.)</figcaption>
+      </figure>
+
+      <p>
+        Why? Because before 2016 batch mode <b>required</b> a parallel plan, so the serial plan couldn't use
+        batch mode at all. Without batch mode the serial version cost too much — enough to cross the cost
+        threshold — so the optimizer went parallel to get at the faster processing model.
+      </p>
+
+      <div class="note">
+        <b>Prove it with a hint</b>
+        Add <code class="inl">OPTION (MAXDOP 1)</code> to Listing 12-2 and capture the actual plan: the
+        serial plan's cost comes out around <b>150</b>, and the optimizer <b>stops choosing the columnstore
+        index</b> entirely, because using it in a serial plan is estimated even higher (about
+        <b>200</b>). Force it back with an <code class="inl">INDEX()</code> hint (Chapter 10) to see that
+        for yourself. Same query, same data — a completely different decision, because a processing mode
+        wasn't available.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 12-4 · the undocumented escape hatch</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> th.ProductID,
+       <span class="fn">AVG</span>(th.ActualCost),
+       <span class="fn">MAX</span>(th.ActualCost),
+       <span class="fn">MIN</span>(th.ActualCost)
+<span class="kw">FROM</span> dbo.bigTransactionHistory <span class="kw">AS</span> th
+<span class="kw">GROUP BY</span> th.ProductID
+<span class="kw">OPTION</span>(<span class="kw">QUERYTRACEON</span> 8649);</code></pre>
+        <div class="cap">Trace flag 8649 artificially lowers the cost threshold for parallelism to zero, so everything runs parallel — and therefore gets batch mode on 2012/2014. <b>Undocumented.</b> The supported alternative is to lower the cost threshold; the sensible alternative is to be on a newer version.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 12-5 · back to 140</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">ALTER DATABASE</span> AdventureWorks2014
+<span class="kw">SET COMPATIBILITY_LEVEL</span> = 140;</code></pre>
+        <div class="cap">Remember that changing compatibility level can change costs as well as features — both the optimizer's available options and the cardinality estimation engine differ between levels.</div>
+      </div>
+    </section>
+
+    <section class="card" id="ch12-mixing">
+      <h2><span class="num">4</span> Mixing columnstore and rowstore</h2>
+      <p class="lede">One row-mode operator and four batch-mode ones, in a single plan — and the tell-tale pair of aggregations that means "local, then global".</p>
+
+      <div class="note tip">
+        <b>The rule in one sentence</b>
+        Batch mode isn't about the index you're reading from — it's about whether <b>at least one table in
+        the query has a columnstore index</b>, even an unhelpful one. Meet that, and individual operators
+        run in batch mode wherever they support it, in a plan that mixes both modes freely.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 12-6 · join a columnstore table to a rowstore table</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> bp.Name,
+       <span class="fn">AVG</span>(th.ActualCost),
+       <span class="fn">MAX</span>(th.ActualCost),
+       <span class="fn">MIN</span>(th.ActualCost)
+<span class="kw">FROM</span> dbo.bigTransactionHistory <span class="kw">AS</span> th
+    <span class="kw">JOIN</span> dbo.bigProduct <span class="kw">AS</span> bp
+        <span class="kw">ON</span> bp.ProductID = th.ProductID
+<span class="kw">GROUP BY</span> bp.Name;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter12/fig-12-5-rowstore-columnstore-join-plan.png"
+             alt="Plan: Columnstore Index Scan, Hash Match (Aggregate) 58%, Adaptive Join (Inner Join), with a Clustered Index Scan and Clustered Index Seek as lower inputs, then Sort, Stream Aggregate, Compute Scalar, SELECT.">
+        <figcaption><b>Figure 12-5</b> — Read right to left: <b>Columnstore Index Scan</b> → <b>Hash Match (Aggregate)</b> at 58% → <b>Adaptive Join (Inner Join)</b> → <b>Sort</b> → <b>Stream Aggregate</b> → Compute Scalar → SELECT. The join has two possible lower inputs: a Clustered Index Scan and a Clustered Index Seek on <code class="inl">bigProduct</code>.</figcaption>
+      </figure>
+
+      <p>
+        The plan looks over-engineered for one <code class="inl">GROUP BY</code>, and the reason is
+        aggregation being split in two. The scan does some of the work itself (aggregate pushdown, cutting
+        about 1.5 million rows), and the Hash Match does the rest — but <b>only locally</b>, on
+        <code class="inl">ProductID</code>.
+      </p>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter12/fig-12-6-defined-values-partialagg.png"
+               alt="Defined Values property showing [partialagg1005] built from several aggregated columns.">
+          <figcaption><b>Figure 12-6</b> — <b>Defined Values</b> names the output <code class="inl">[partialagg1005]</code> — a set of partial aggregates over several columns. That name is your proof this isn't the final answer.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter12/fig-12-7-hash-keys-build-productid.png"
+               alt="Hash Keys Build property showing ProductID.">
+          <figcaption><b>Figure 12-7</b> — <b>Hash Keys Build = ProductID</b>: the local aggregation is keyed on the join column, not on the <code class="inl">Name</code> you grouped by.</figcaption>
+        </figure>
+      </div>
+
+      <p>
+        That choice is deliberate. Aggregating on <code class="inl">ProductID</code> first cuts roughly
+        <b>30 million</b> rows down to <b>25,200</b> — the number of distinct ProductIDs — before the join
+        even happens. Only then does the plan join to <code class="inl">bigProduct</code> to pick up
+        <code class="inl">Name</code>, sort by it, and let a <b>Stream Aggregate</b> produce the final
+        global values.
+      </p>
+
+      <figure>
+        <img src="images/chapter12/fig-12-8-stream-aggregate-global.png"
+             alt="Stream Aggregate operator properties showing the final global aggregation.">
+        <figcaption><b>Figure 12-8</b> — The <b>Stream Aggregate</b> finishes the job on <code class="inl">Name</code> — and it runs in <b>row mode</b>, because it doesn't support batch mode at all.</figcaption>
+      </figure>
+
+      <div class="plain">
+        <div><span>Batch mode here</span>Columnstore Index Scan · Hash Match (Aggregate) · Adaptive Join · Sort. These operators understand batches.</div>
+        <div><span>Row mode here</span>Clustered Index Scan on <code class="inl">bigProduct</code> · Stream Aggregate. Row mode isn't a downgrade — it's the only option for these operators.</div>
+      </div>
+
+      <p>
+        The <b>Adaptive Join</b> (Chapter 4) is worth a second look: its <i>actual</i> join type was
+        <b>Hash Match</b>, with the Clustered Index Scan as the lower input, because the row count exceeded
+        the <code class="inl">Adaptive Threshold Rows</code> property. It made that decision during
+        execution, not during compilation — which is the whole point of an adaptive operator.
+      </p>
+    </section>
+
+    <section class="card" id="ch12-memory">
+      <h2><span class="num">5</span> Adaptive memory grants</h2>
+      <p class="lede">A query that over-estimates by 25×, asks for 80 MB, uses 3 MB — and then fixes itself on the next execution without recompiling.</p>
+
+      <div class="code">
+        <header><span>Listing 12-7 · the procedure</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE OR ALTER PROCEDURE</span> dbo.CostCheck (@Cost <span class="kw">MONEY</span>)
+<span class="kw">AS</span>
+<span class="kw">SELECT</span> p.Name,
+       <span class="fn">AVG</span>(th.Quantity)
+<span class="kw">FROM</span> dbo.bigTransactionHistory <span class="kw">AS</span> th
+    <span class="kw">JOIN</span> dbo.bigProduct <span class="kw">AS</span> p
+        <span class="kw">ON</span> p.ProductID = th.ProductID
+<span class="kw">WHERE</span> th.ActualCost = @Cost
+<span class="kw">GROUP BY</span> p.Name;</code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 12-8 · first execution</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> dbo.CostCheck @Cost = 0;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter12/fig-12-9-plan-warning-indicator.png"
+             alt="Execution plan with a warning triangle on the SELECT operator.">
+        <figcaption><b>Figure 12-9</b> — A warning on the SELECT operator. The tooltip shows only the <b>first</b> warning — with more than one, you need the Properties sheet.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter12/fig-12-10-memory-grant-warning.png"
+             alt="MemoryGrantWarning properties showing ExcessiveGrant, grant size 80840 KB, used 3192 KB.">
+        <figcaption><b>Figure 12-10</b> — The warning in full: <i>"The query memory grant detected <b>ExcessiveGrant</b>, which may impact the reliability. Grant size: Initial <b>80840</b> KB, Final 80840 KB, Used <b>3192</b> KB."</i></figcaption>
+      </figure>
+
+      <p>
+        The chain of over-estimation is worth following, because each step feeds the next:
+      </p>
+      <ul>
+        <li>The columnstore scan estimated <b>12.3 million</b> rows; the actual was <b>10.8 million</b>.</li>
+        <li>The Hash Match estimated its <b>output</b> at <b>25,200</b> rows from the sampled statistics; it produced about <b>10,000</b>.</li>
+        <li>The Hash Match (Aggregate) uses a hash table optimised for aggregation — it holds GROUP BY values and intermediate results, not the input rows — so its grant is based on <b>rows produced</b>, not read.</li>
+        <li>And because the Adaptive Join's build phase overlaps with the Hash Match, its grant is added on top, along with the Sort's.</li>
+      </ul>
+
+      <p>
+        Net result: <b>80,840 KB requested, 3,192 KB used</b>. The book is honest that these particular
+        over-estimates don't fully explain a grant quite that large — SQL Server deliberately allows a
+        generous margin to avoid spills.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 12-9 · second execution, different value</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> dbo.CostCheck @Cost = 15.035;</code></pre>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter12/fig-12-11-plan-without-warning.png"
+               alt="The same plan, now without a warning indicator.">
+          <figcaption><b>Figure 12-11</b> — Same plan, <b>no warning</b> — and note what <i>didn't</i> happen: no recompile, no statistics update, no change in any of the usual suspects.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter12/fig-12-12-adjusted-memory-properties.png"
+               alt="SELECT properties showing the adjusted memory grant and the reused Parameter List.">
+          <figcaption><b>Figure 12-12</b> — The memory grant was <b>adjusted in flight</b>, and the Parameter List confirms the plan is the one compiled for <code class="inl">@Cost = 0</code> — reused, not rebuilt.</figcaption>
+        </figure>
+      </div>
+
+      <p>
+        This is <b>adaptive memory grants</b>, available from SQL Server 2017 and in Azure SQL Database:
+        the engine adjusts the grant up or down on subsequent executions, based on what previous executions
+        actually needed. Since 2016's columnstore plans can be serial, this is another case where the
+        chapter's two topics — batch mode and parallelism — keep overlapping.
+      </p>
+
+      <div class="note warn">
+        <b>It switches itself off</b>
+        A query with wildly varied allocations could <b>thrash</b> — so at some point adaptive memory is
+        disabled <b>per plan</b>, automatically. It stays on for other plans, and is re-enabled whenever
+        that plan is recompiled. You can't see the disabled state in a single plan; you need Extended
+        Events. A practical test: compare memory allocation values across consecutive executions — if they
+        never change even while the query spills or over-allocates badly, adaptive memory is off.
+      </div>
+    </section>
+
+    <section class="card" id="ch12-loss">
+      <h2><span class="num">6</span> Losing batch mode</h2>
+      <p class="lede">The list of constructs that used to break it — and the reason SQL Server 2017 rarely lets it go.</p>
+
+      <p>
+        SQL Server 2017 has "a very heavy bias" towards batch mode for any query touching a columnstore
+        index, for all or at least part of the plan. On SQL Server <b>2014 or 2016</b>, these operations
+        would not run in batch mode:
+      </p>
+      <table>
+        <thead><tr><th>Construct</th><th>Effect on 2014 / 2016</th><th>Chapter</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">UNION ALL</code></td><td>That part of the plan drops to row mode</td><td>Ch. 5 / 10</td></tr>
+          <tr><td><code class="inl">OUTER JOIN</code></td><td>Row mode for the join</td><td>Ch. 4</td></tr>
+          <tr><td><code class="inl">IN</code> / <code class="inl">EXISTS</code>, including <code class="inl">NOT</code> versions</td><td>Row mode for the semi/anti join</td><td>Ch. 4</td></tr>
+          <tr><td><code class="inl">OR</code> in a <code class="inl">WHERE</code></td><td>Row mode</td><td>Ch. 3</td></tr>
+          <tr><td>Aggregation <b>without</b> <code class="inl">GROUP BY</code></td><td>Row mode</td><td>Ch. 5</td></tr>
+          <tr><td><code class="inl">OVER()</code></td><td>Row mode for the window aggregate</td><td>Ch. 5</td></tr>
+        </tbody>
+      </table>
+      <p>
+        On 2017 the book tested each of these and found the plan went to batch mode <b>in whole or in
+        part</b> every time. But the method doesn't change: <b>read the actual plan</b> and check each
+        operator's execution mode. That's the only reliable answer, on any version.
+      </p>
+    </section>
+
+    <section class="card" id="ch12-cheatsheet">
+      <h2><span class="num">★</span> Chapter 12 cheat sheet</h2>
+
+      <table>
+        <thead><tr><th>Property / feature</th><th>What it tells you</th><th>What to watch for</th></tr></thead>
+        <tbody>
+          <tr><td><b>Actual / Estimated Execution Mode</b></td><td>Batch or Row, per operator</td><td><b>Batch estimated + Row actual</b> = runtime fallback. Catastrophic, and (per Ch. 8) a 2012 spill issue.</td></tr>
+          <tr><td><b>Actual Number of Batches</b></td><td>How many ~900-row chunks moved</td><td>29.6 M rows in <b>32,990</b> batches; 25,200 rows out in <b>28</b>. Divide rows by batches to sanity-check size.</td></tr>
+          <tr><td><b>Locally Aggregated Rows</b></td><td>Rows aggregated inside the scan (aggregate pushdown)</td><td>These never travel the arrow — which is why "actual rows = 0" can be normal (Ch. 8, Fig 8-15).</td></tr>
+          <tr><td><b>Hash Match with two of them</b></td><td>Local (partial) + global aggregation</td><td><code class="inl">Defined Values</code> says <code class="inl">partialagg####</code>; <code class="inl">Hash Keys Build</code> shows the local key.</td></tr>
+          <tr><td><b>Stream Aggregate in a batch plan</b></td><td>Row mode — it doesn't support batch</td><td>Mixed modes in one plan are normal, not a problem.</td></tr>
+          <tr><td><b>Adaptive Join</b></td><td>Join type chosen at runtime</td><td><code class="inl">Actual Join Type</code> vs. the threshold; often the batch-mode plan's only adaptive operator.</td></tr>
+          <tr><td><b>MemoryGrantWarning</b></td><td><code class="inl">ExcessiveGrant</code>, grant vs. used</td><td>80,840 KB granted, <b>3,192</b> used. Warnings: tooltip shows only the first — use Properties.</td></tr>
+          <tr><td><b>Adaptive memory grant</b></td><td>Grant adjusted on later executions, no recompile</td><td>2017+/Azure. Disables itself per-plan if it thrashes; re-enables on recompile.</td></tr>
+          <tr><td><b>Trace flag 8649</b></td><td><code class="inl">QUERYTRACEON 8649</code> forces parallelism (so batch mode pre-2016)</td><td><b>Undocumented.</b> Prefer a newer version or a lower cost threshold.</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>Batch mode saves negotiation, not arithmetic.</b> 9,000 rows in 10 batches instead of 9,000 requests.</li>
+        <li><b>The requirement is "a columnstore somewhere",</b> not "read from the columnstore". One qualifying table enables batch mode across the plan.</li>
+        <li><b>Before 2016, batch mode needed a parallel plan</b> — which is why the same query changed shape at compatibility level 120.</li>
+        <li><b>Two aggregation operators are usually local-then-global.</b> Look for <code class="inl">partialagg</code> and the local hash key.</li>
+        <li><b>An excessive grant is a symptom, not a cause.</b> Follow the estimate chain — scan estimate → aggregate output estimate → join and sort grants.</li>
+        <li><b>Adaptive memory can hide a bad estimate</b> by correcting it on the second execution. Don't mistake "no warning now" for "the estimate was fine".</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        Batch mode moves large groups of rows at once instead of one at a time, and unlocks optimisations
+        that exist only in that mode. Today it needs a columnstore index and, on older versions, a parallel
+        plan and only a handful of capable operators. For large data sets the benefits are huge — but
+        point lookups and narrow range scans are still better served by row mode.
       </div>
     </section>
 
