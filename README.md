@@ -7,8 +7,8 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1 through 7** — 71 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 68 syntax-highlighted,
+One self-contained HTML file covering **Chapters 1 through 8** — 85 figures embedded as inline
+base64 images (works offline, no server, no external assets) and 81 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -20,6 +20,7 @@ copyable T-SQL listings.
 | 5 | Data Storage and Query Tuning | 105–158 | 5-1 … 5-22 | 5-1 … 5-14 |
 | 6 | CPU Load | 159–183 | 6-1 … 6-9 | 6-1 … 6-16 |
 | 7 | Memory Issues | 185–218 | 7-1 … 7-12 | 7-1 … 7-16 |
+| 8 | Locking, Blocking, and Concurrency | 219–262 | 8-1 … 8-14 | 8-1 … 8-13 |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -199,6 +200,40 @@ grants and spills, and why a `CHAR(8000)` column can inflate a grant 470×.
 - Listing 7-14 — Limiting the amount of memory for In-Memory OLTP
 - Listing 7-15 — Analyzing memory consumption of memory-optimized tables
 - Listing 7-16 — Detecting the 10 oldest In-Memory OLTP transactions
+
+### Chapter 8 — Locking, Blocking, and Concurrency
+
+Transaction isolation and the six lock types, how to diagnose blocking and
+deadlocks, lock escalation, optimistic isolation levels, and why most blocking
+is really a missing index.
+
+- Figure 8-1 — Full and intent locks
+- Figure 8-2 — Update locks during data modifications
+- Figure 8-3 — Output from DMVs at the time of blocking
+- Figure 8-4 — Detailed blocking information
+- Figure 8-5 — Execution plan of the blocked statement
+- Figure 8-6 — Blocking information collected by the Blocking Monitoring Framework
+- Figure 8-7 — Execution plans of a SELECT with and without a nonclustered index
+- Figure 8-8 — Key lookup deadlock
+- Figure 8-9 — Version store
+- Figure 8-10 — Version store and readers
+- Figure 8-11 — RCSI behavior
+- Figure 8-12 — Schema locks and the locking queue
+- Figure 8-13 — Number of locks and consumed memory without lock escalation
+- Figure 8-14 — Locks and memory consumption with lock escalation
+- Listing 8-1 — Creating the table with test data
+- Listing 8-2 — Getting additional details about a blocking condition
+- Listing 8-3 — Setting the blocked process report threshold to 10 seconds
+- Listing 8-4 — A blocked process report in XML
+- Listing 8-5 — Getting the execution plan and query with `sql_handle`
+- Listing 8-6 — Deadlock graph structure
+- Listing 8-7 — The deadlock graph `<process>` element
+- Listing 8-8 — The deadlock graph `<resource-list>` section
+- Listing 8-9 — Table definition
+- Listing 8-10 — Lock escalation demo (Session 1)
+- Listing 8-11 — Lock escalation demo (Session 2)
+- Listing 8-12 — Blocked process report (partial)
+- Listing 8-13 — Capturing lock escalations with xEvents
 
 ## Viewing it
 
