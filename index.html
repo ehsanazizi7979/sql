@@ -230,9 +230,9 @@
       figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">14 chapters covered</span>
-      <span class="badge">193 book listings</span>
-      <span class="badge">315 figures</span>
+      <span class="badge">15 chapters covered</span>
+      <span class="badge">197 book listings</span>
+      <span class="badge">328 figures</span>
       <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
@@ -373,6 +373,16 @@
     <a class="mini" href="#ch14-spatial">Spatial</a>
     <a class="mini" href="#ch14-cursors">Cursors</a>
     <a class="mini" href="#ch14-cheatsheet">Cheat sheet</a>
+    <div class="grp">Chapter 15 · Automating Plan Capture</div>
+    <a class="mini" href="#ch15-why">Why automate</a>
+    <a class="mini" href="#ch15-tools">Extended Events vs Trace</a>
+    <a class="mini" href="#ch15-events">The three showplan events</a>
+    <a class="mini" href="#ch15-session">Building a session (GUI)</a>
+    <a class="mini" href="#ch15-tsql">The same session in T-SQL</a>
+    <a class="mini" href="#ch15-details">Reading event details</a>
+    <a class="mini" href="#ch15-lightweight">A lightweight session</a>
+    <a class="mini" href="#ch15-trace">SQL Trace, if you must</a>
+    <a class="mini" href="#ch15-cheatsheet">Cheat sheet</a>
   </nav>
 
   <main>
@@ -9754,6 +9764,527 @@ sqlserver/2004/07/adventure-works/StoreSurvey";
         on the plan; cursors add row-by-row behaviour on top. But the operators and the method don't change:
         follow the rows, open the properties, and read the estimates — especially the ones that were
         hard-coded before your query was ever seen.
+      </div>
+    </section>
+
+    <div class="chapterbar" id="chapter15">
+      <span class="cnum">Chapter 15</span>
+      <div>
+        <h2>Automating Plan Capture</h2>
+        <p>Everything so far assumed you were sitting in front of SSMS. This chapter is about the
+        <i>2 a.m. problem</i>: the plan you need was captured by nothing, cached for four seconds, and is
+        gone. The answer is an Extended Events session — three showplan events, a couple of filters, and a
+        file on disk.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch15-why">
+      <h2><span class="num">1</span> Why you'd automate at all</h2>
+      <p class="lede">The plan cache and the Query Store both give you <i>aggregated</i> metrics. Aggregation is exactly what hides the five minutes last Tuesday when everything went wrong.</p>
+
+      <p>
+        Everything in Chapter 9's DMVs is a counter. Each execution adds to
+        <code class="inl">total_elapsed_time</code>, and the row you read is the total since the plan entered
+        cache. If a query is erratic, or the instance only misbehaves at specific times, that average smears
+        the interesting part into nothing. You need per-execution plans plus their runtime metrics, <i>for
+        a period</i>.
+      </p>
+
+      <p>Three specific situations defeat the casual approaches:</p>
+
+      <ul class="biglist">
+        <li><b>The plans aren't there any more.</b> High volumes of ad hoc, unparameterized queries flood the cache with single-use plans, and older plans age out (Chapter 9). The same workload probably has the Query Store filtering out most of that noise, so the plan is in neither place.</li>
+        <li><b>It happened hours ago.</b> By the time you're looking, the offending execution is history. You need something that was already recording.</li>
+        <li><b>You can't change the code.</b> Adding <code class="inl">SET STATISTICS XML ON</code> to a batch is fine on your dev box; on production it means a deployment.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The two tools</b>
+        <b>Extended Events</b> — the modern one, and what you should be using on SQL Server 2012+ and Azure
+        SQL DB. <b>SQL Trace / Profiler</b> — the one it replaced, deprecated, and only relevant if you're on
+        SQL Server 2005–2008R2 (2008/2008R2 Extended Events exist but can't capture plans and have no GUI).
+      </div>
+    </section>
+
+    <section class="card" id="ch15-tools">
+      <h2><span class="num">2</span> Why Extended Events, in one table</h2>
+      <p class="lede">The difference isn't cosmetic. It's collect-everything-then-discard versus collect-almost-nothing-on-purpose.</p>
+
+      <table>
+        <thead><tr><th></th><th>Extended Events</th><th>SQL Trace</th></tr></thead>
+        <tbody>
+          <tr><td><b>Design principle</b></td><td>Collect as little as possible; you define precisely when to collect.</td><td>Collect everything that might be needed, then discard what a trace doesn't want.</td></tr>
+          <tr><td><b>Where it runs</b></td><td>At a lower level inside SQL Server.</td><td>Higher up, with a heavier payload per event.</td></tr>
+          <tr><td><b>Filtering</b></td><td>Predicate evaluated <i>before</i> the event fires fully — cheap.</td><td>The event fires fully for every database and every SQL text; the filter is applied only when the trace consumer reads it.</td></tr>
+          <tr><td><b>Extra fields</b></td><td>None by default. You add actions (e.g. <code class="inl">sql_text</code>) explicitly.</td><td>Several global fields collected on every event whether you want them or not.</td></tr>
+          <tr><td><b>Future</b></td><td>Where all new SQL Server monitoring functionality is built.</td><td>On the deprecation path.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="warn note">
+        <b>The caveat that applies to both</b>
+        Capturing a plan happens <b>in-process, on the same thread that executes the query</b>, and plans
+        are big. That means real memory and I/O overhead added to the server you're diagnosing. On
+        production: add very granular filters, run for minutes not days, and test first.
+      </div>
+    </section>
+
+    <section class="card" id="ch15-events">
+      <h2><span class="num">3</span> The three showplan events</h2>
+      <p class="lede">They capture the plan at three different moments in the optimization process. Only one of them carries runtime metrics — and that's the expensive one.</p>
+
+      <table>
+        <thead><tr><th>Event</th><th>Fires</th><th>Runtime metrics?</th><th>Use it when</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code class="inl">query_post_compilation_showplan</code></td>
+            <td>Only on plan <b>compilation</b>. First call of a proc/batch/ad hoc query; also fires for an estimated-plan request when nothing is cached. Won't fire on plan reuse.</td>
+            <td>No</td>
+            <td>You want to see what was compiled — e.g. plan before a recompile.</td>
+          </tr>
+          <tr>
+            <td><code class="inl">query_pre_execution_showplan</code></td>
+            <td>Right <b>before</b> execution. The plan compiled or retrieved from cache.</td>
+            <td>No</td>
+            <td>Recompile investigations: capture before <i>and</i> after.</td>
+          </tr>
+          <tr>
+            <td><code class="inl">query_post_execution_showplan</code></td>
+            <td><b>After</b> execution.</td>
+            <td><b>Yes</b> — row counts, executions, estimated vs actual.</td>
+            <td>Almost always. This is the one the author reaches for.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <b>Because the first two fire before execution…</b>
+        …neither can contain runtime statistics. That's not a bug in your session; there's simply nothing to
+        report yet. And because the third one carries both the plan and the metrics, it's the most
+        expensive of the three.
+      </div>
+
+      <p>
+        The author usually adds two non-plan events for context: <code class="inl">sql_batch_completed</code>
+        (useful performance metrics for the finished batch) and <code class="inl">sql_statement_recompile</code>
+        (which reveals the cause of a statement-level recompile plus the database and object it happened on).
+      </p>
+    </section>
+
+    <section class="card" id="ch15-session">
+      <h2><span class="num">4</span> Building a session in the GUI</h2>
+      <p class="lede">Worth doing once so you can see what every option means — then script it out and never open the dialog again.</p>
+
+      <p>
+        Sessions live per-server under <b>Management → Extended Events → Sessions</b>. The green arrow /
+        red square tells you running vs stopped; <code class="inl">AlwaysOn_health</code>,
+        <code class="inl">system_health</code> and <code class="inl">telemetry_xevents</code> are built in.
+      </p>
+
+      <figure>
+        <img src="images/chapter15/fig-15-1-extended-events-sessions.png"
+             alt="Object Explorer list of Extended Events sessions with green running and red stopped indicators.">
+        <figcaption><b>Figure 15-1</b> — The session list in Object Explorer: green arrows are running, red squares are stopped.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter15/fig-15-2-new-session-dialog.png"
+             alt="New Session dialog, General page, with session name, start-on-create, watch live data and causality tracking options.">
+        <figcaption><b>Figure 15-2</b> — The <b>General</b> page: name it (<code class="inl">ExecutionPlansOnAdventureWorks2014</code>), start on create, watch live data, and turn on <b>Causality tracking</b>.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter15/fig-15-3-events-page.png"
+             alt="Events page with the event library filtered to 'showplan' and three showplan events in the Selected events pane.">
+        <figcaption><b>Figure 15-3</b> — The <b>Events</b> page. Filtering the library on "showplan" gives four events; three are selected with the <code class="inl">&gt;</code> arrow. The panel below carries the warning for the highlighted event.</figcaption>
+      </figure>
+
+      <p>
+        Note the description under <code class="inl">query_post_compilation_showplan</code>: <i>"Using this
+        event can have a significant performance overhead so it should only be used when troubleshooting or
+        monitoring specific problems for brief periods of time."</i> That is the product team saying the same
+        thing as the caution box.
+      </p>
+
+      <figure>
+        <img src="images/chapter15/fig-15-4-event-filters.png"
+             alt="Configure view, Filter (predicate) tab, with predicates on sqlserver.database_name and sqlserver.sql_text applied to all four events.">
+        <figcaption><b>Figure 15-4</b> — The part that matters: <b>Configure → Filter (predicate)</b>. Two predicates, applied to all four events: <code class="inl">database_name = N'AdventureWorks2014'</code> and <code class="inl">sql_text LIKE N'%Person.Person%'</code>.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>Reading those predicates</b>
+        The name in the GUI is <code class="inl">equal_i_sql_unicode_string</code>; when scripted it collapses to
+        plain <code class="inl">=</code>. The <code class="inl">like_i_sql_unicode_string</code> comparator
+        collapses to <code class="inl">LIKE</code>. Same predicate, two spellings — that's why the T-SQL in
+        Listing 15-1 looks simpler than the dialog.
+      </div>
+
+      <p>
+        The remaining two tabs are the payload: <b>Event Fields</b> (base columns, always captured) and
+        <b>Global Fields (Actions)</b> — where nothing is collected by default, and where you'd add
+        <code class="inl">sql_text</code> if an event didn't already carry it. Actions cost extra, so add
+        sparingly.
+      </p>
+
+      <figure>
+        <img src="images/chapter15/fig-15-5-data-storage-target.png"
+             alt="Data Storage page with an event_file target configured and file properties in the lower pane.">
+        <figcaption><b>Figure 15-5</b> — <b>Data Storage</b>: an <code class="inl">event_file</code> target, i.e. flat file on disk — the most common target and usually the fastest.</figcaption>
+      </figure>
+
+      <p>
+        The last page, <b>Advanced</b>, sets the memory buffer, dispatch frequency and retention; the book
+        doesn't cover it. Click OK and, because "watch live data" was ticked, a Live Data window opens
+        immediately.
+      </p>
+
+      <div class="note">
+        <b>Skip the New Session Wizard</b>
+        It can only <i>create</i> sessions, never alter them, and it has limitations. Use the dialog above,
+        or skip straight to T-SQL.
+      </div>
+    </section>
+
+    <section class="card" id="ch15-tsql">
+      <h2><span class="num">5</span> The same session, as T-SQL</h2>
+      <p class="lede">Right-click the session → <b>Script Session As…</b>. You get something you can read in a code review, diff, and move between servers.</p>
+
+      <div class="code">
+        <header><span>Listing 15-1 · event session with all three showplan events</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE EVENT SESSION</span> ExecutionPlansOnAdventureWorks2014
+<span class="kw">ON SERVER</span>
+    <span class="kw">ADD EVENT</span> sqlserver.query_post_compilation_showplan
+    (<span class="kw">WHERE</span> (   sqlserver.database_name = N'AdventureWorks2014'
+               <span class="kw">AND</span> sqlserver.like_i_sql_unicode_string(sqlserver.sql_text,
+                       N'%Person.Person%'))),
+    <span class="kw">ADD EVENT</span> sqlserver.query_post_execution_showplan
+    (<span class="kw">WHERE</span> (   sqlserver.database_name = N'AdventureWorks2014'
+               <span class="kw">AND</span> sqlserver.like_i_sql_unicode_string(sqlserver.sql_text,
+                       N'%Person.Person%'))),
+    <span class="kw">ADD EVENT</span> sqlserver.query_pre_execution_showplan
+    (<span class="kw">WHERE</span> (   sqlserver.database_name = N'AdventureWorks2014'
+               <span class="kw">AND</span> sqlserver.like_i_sql_unicode_string(sqlserver.sql_text,
+                       N'%Person.Person%'))),
+    <span class="kw">ADD EVENT</span> sqlserver.sql_batch_completed
+    (<span class="kw">WHERE</span> (   sqlserver.database_name = N'AdventureWorks2014'
+               <span class="kw">AND</span> sqlserver.like_i_sql_unicode_string(sqlserver.sql_text,
+                       N'%Person.Person%')))
+    <span class="kw">ADD TARGET</span> package0.event_file
+    (<span class="kw">SET</span> filename = N'C:\PerfData\ExecutionPlansOnAdventureWorks2014.xel')
+<span class="kw">WITH</span> (<span class="kw">MAX_MEMORY</span> = 4096KB,
+      <span class="kw">EVENT_RETENTION_MODE</span> = ALLOW_SINGLE_EVENT_LOSS,
+      <span class="kw">MAX_DISPATCH_LATENCY</span> = 30 SECONDS,
+      <span class="kw">MAX_EVENT_SIZE</span> = 0KB,
+      <span class="kw">MEMORY_PARTITION_MODE</span> = NONE,
+      <span class="kw">TRACK_CAUSALITY</span> = ON,
+      <span class="kw">STARTUP_STATE</span> = OFF)
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <p>Every choice from the five dialog pages is here. And the <code class="inl">WITH</code> block is worth reading once:</p>
+
+      <table>
+        <thead><tr><th>Option</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">MAX_MEMORY</code></td><td>Buffer size before events are dispatched to targets.</td></tr>
+          <tr><td><code class="inl">EVENT_RETENTION_MODE</code></td><td>What to lose when the buffer fills. Here: a single event.</td></tr>
+          <tr><td><code class="inl">MAX_DISPATCH_LATENCY</code></td><td>How long events can sit in the buffer before being flushed — trades latency for overhead.</td></tr>
+          <tr><td><code class="inl">TRACK_CAUSALITY</code></td><td>Adds the <code class="inl">attach_*</code> fields so related events can be grouped and ordered.</td></tr>
+          <tr><td><code class="inl">STARTUP_STATE</code></td><td><code class="inl">ON</code> would restart the session when SQL Server starts. Deliberately off here.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="step">Triggering it with a plan you know isn't cached</h3>
+
+      <div class="code">
+        <header><span>Listing 15-2 · evict the plan, then run the query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">USE</span> AdventureWorks2014;
+<span class="kw">GO</span>
+<span class="kw">DECLARE</span> @PlanHandle <span class="kw">VARBINARY</span>(64);
+
+<span class="kw">SELECT</span>  @PlanHandle = deqs.plan_handle
+<span class="kw">FROM</span>    sys.dm_exec_query_stats <span class="kw">AS</span> deqs
+        <span class="kw">CROSS APPLY</span> sys.dm_exec_sql_text(deqs.sql_handle) <span class="kw">AS</span> dest
+<span class="kw">WHERE</span>   dest.text <span class="kw">LIKE</span> '%Person.Person%';
+
+<span class="kw">IF</span> @PlanHandle <span class="kw">IS NOT NULL</span>
+    <span class="kw">BEGIN</span>
+        <span class="kw">DBCC FREEPROCCACHE</span>(@PlanHandle);
+    <span class="kw">END</span>;
+<span class="kw">GO</span>
+
+<span class="kw">SELECT</span>  p.LastName + ', ' + p.FirstName ,
+        p.Title ,
+        pp.PhoneNumber
+<span class="kw">FROM</span>    Person.Person <span class="kw">AS</span> p
+        <span class="kw">JOIN</span> Person.PersonPhone <span class="kw">AS</span> pp
+        <span class="kw">ON</span> pp.BusinessEntityID = p.BusinessEntityID
+        <span class="kw">JOIN</span> Person.PhoneNumberType <span class="kw">AS</span> pnt
+        <span class="kw">ON</span> pnt.PhoneNumberTypeID = pp.PhoneNumberTypeID
+<span class="kw">WHERE</span>   pnt.Name = 'Cell'
+        <span class="kw">AND</span> p.LastName = 'Dempsey';
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <p>
+        Why the setup batch? To guarantee all three showplan events fire — no cached plan means a genuine
+        compile. Both batches run in AdventureWorks and both mention
+        <code class="inl">Person.Person</code>, so all four events fire twice. Run the query batch alone
+        afterwards and you get only <b>three</b> events: nothing recompiles, so no
+        <code class="inl">post_compilation</code>.
+      </p>
+
+      <figure>
+        <img src="images/chapter15/fig-15-6-live-data-events.png"
+             alt="Live Data viewer grid showing the four captured events for the second batch.">
+        <figcaption><b>Figure 15-6</b> — Live Data viewer, four events for the second batch. Click any <code class="inl">*_showplan</code> row and the plan renders graphically in the <b>Query Plan</b> tab.</figcaption>
+      </figure>
+
+      <h3 class="step">The clue that a plan came from Extended Events</h3>
+
+      <figure>
+        <img src="images/chapter15/fig-15-7-xe-captured-plan.png"
+             alt="Graphical plan captured by Extended Events, where the first operator is the plan's NodeID 0 operator rather than a SELECT operator.">
+        <figcaption><b>Figure 15-7</b> — No SELECT operator at the top. The first operator is whatever NodeID 0 is — and some of the properties Microsoft normally shows for a first operator are missing here (see Chapter 13: the XML still has them, in <code class="inl">StmtSimple</code>).</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>Recognise this shape</b>
+        If you open a plan and the top of the tree looks wrong — no SELECT, missing properties — you're not
+        looking at a broken plan. You're looking at a plan captured out-of-band, and the metadata lives in
+        the XML rather than the picture.
+      </div>
+    </section>
+
+    <section class="card" id="ch15-details">
+      <h2><span class="num">6</span> Reading the event details</h2>
+      <p class="lede">The grid tells you an event fired. The Details tab tells you when, how much it cost, and what other events belong to the same story.</p>
+
+      <figure>
+        <img src="images/chapter15/fig-15-8-post-compilation-details.png"
+             alt="Details pane for query_post_compilation_showplan with attach_ fields, duration, estimate rows, plan_handle, sql_handle, showplan_xml and object_name.">
+        <figcaption><b>Figure 15-8</b> — <code class="inl">query_post_compilation_showplan</code> details: <code class="inl">attach_*</code> fields, <code class="inl">duration</code> (4192 µs to compile), estimated rows = 1, <code class="inl">plan_handle</code>, <code class="inl">sql_handle</code>, <code class="inl">showplan_xml</code>, and <code class="inl">object_name = Dynamic SQL</code>.</figcaption>
+      </figure>
+
+      <p>Three things in that pane earn their keep:</p>
+
+      <ul class="biglist">
+        <li><b>The <code class="inl">attach_</code> fields</b> only exist because <code class="inl">TRACK_CAUSALITY = ON</code>. <code class="inl">attach_activity_id.guid</code> groups related events; <code class="inl">attach_activity_id.seq</code> orders them. On a busy server where several event sets interleave, that's how you tell which events belong together. Here, seq says this is the first.</li>
+        <li><b><code class="inl">plan_handle</code> and <code class="inl">sql_handle</code></b> let you go and fetch the plan and text back out of cache if you need to.</li>
+        <li><b><code class="inl">object_name = Dynamic SQL</code></b>, <code class="inl">object_type</code> — what the query <i>is</i>. For a stored procedure you'd see its name instead, which is how you reconstruct which proc was slow.</li>
+      </ul>
+
+      <p>
+        The middle event, <code class="inl">query_pre_execution_showplan</code>, is similar but its base
+        payload doesn't include <code class="inl">plan_handle</code> or <code class="inl">sql_handle</code>.
+        And the one you actually care about:
+      </p>
+
+      <figure>
+        <img src="images/chapter15/fig-15-9-post-execution-details.png"
+             alt="Details pane for query_post_execution_showplan showing that the additional detail is in the plan itself.">
+        <figcaption><b>Figure 15-9</b> — <code class="inl">query_post_execution_showplan</code>: nothing dramatic in the fields by itself. The value is that the attached plan carries runtime information.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter15/fig-15-10-runtime-metrics-properties.png"
+             alt="Properties for the Nested Loops operator showing actual rows, actual executions and estimated values.">
+        <figcaption><b>Figure 15-10</b> — And there it is: the Nested Loops operator has <b>actual rows and actual executions</b> alongside the estimates. Same properties you'd see capturing an actual plan in SSMS — just recorded for you at 2 a.m.</figcaption>
+      </figure>
+    </section>
+
+    <section class="card" id="ch15-lightweight">
+      <h2><span class="num">7</span> The session you'd actually deploy</h2>
+      <p class="lede">Listing 15-1 was a teaching session: three showplan events, deliberately overdone to prove a point. Here's the real thing.</p>
+
+      <p>
+        Rules for a lightweight session: run for a limited time, capture exactly what you need, and
+        <b>pick one showplan event</b> — almost always
+        <code class="inl">query_post_execution_showplan</code>. Then filter hard so the event rarely fires
+        fully.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 15-3 · plans plus waits for one procedure</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE EVENT SESSION</span> ExecPlansAndWaits
+<span class="kw">ON SERVER</span>
+    <span class="kw">ADD EVENT</span> sqlos.wait_completed
+    (<span class="kw">WHERE</span> (   (sqlserver.database_name = N'AdventureWorks2014')
+               <span class="kw">AND</span> (sqlserver.like_i_sql_unicode_string(sqlserver.sql_text,
+                      N'%ProductTransferByReference%')))),
+    <span class="kw">ADD EVENT</span> sqlserver.query_post_execution_showplan
+    (<span class="kw">WHERE</span> (   (sqlserver.database_name = N'AdventureWorks2014')
+               <span class="kw">AND</span> (sqlserver.like_i_sql_unicode_string(sqlserver.sql_text,
+                      N'%ProductTransferByReference%')))),
+    <span class="kw">ADD EVENT</span> sqlserver.rpc_completed
+    (<span class="kw">WHERE</span> (   (sqlserver.database_name = N'AdventureWorks2014')
+               <span class="kw">AND</span> (sqlserver.like_i_sql_unicode_string(sqlserver.sql_text,
+                      N'%ProductTransferByReference%')))),
+    <span class="kw">ADD EVENT</span> sqlserver.rpc_starting
+    (<span class="kw">WHERE</span> (   (sqlserver.database_name = N'AdventureWorks2014')
+               <span class="kw">AND</span> (sqlserver.like_i_sql_unicode_string(sqlserver.sql_text,
+                      N'%ProductTransferByReference%'))))
+    <span class="kw">ADD TARGET</span> package0.event_file
+    (<span class="kw">SET</span> filename = N'C:\PerfData\ExecPlansAndWaits.xel')
+<span class="kw">WITH</span> (<span class="kw">TRACK_CAUSALITY</span> = ON)
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <p>Four events, one story, all filtered to one procedure:</p>
+
+      <div class="plain">
+        <div><span><code class="inl">rpc_starting</code></span>The procedure starts — including <b>parameter values</b>.</div>
+        <div><span><code class="inl">wait_completed</code></span>Each wait as it finishes, so you can see where the time went.</div>
+        <div><span><code class="inl">rpc_completed</code></span>The procedure finishes, with its metrics.</div>
+        <div><span><code class="inl">post_execution_showplan</code></span>The plan, with runtime counters.</div>
+      </div>
+
+      <p>
+        With causality tracking on, you can order all of it: procedure started with these parameters, waited
+        on this, then that, in this order, and here's the plan. That's essentially everything needed to
+        troubleshoot one specific query — start it on production, capture a few minutes, stop it.
+      </p>
+
+      <div class="note tip">
+        <b>Waits are the part people forget</b>
+        A plan tells you how the work was done. <code class="inl">wait_completed</code> tells you what it was
+        waiting on — the thing a plan can never show you. Pairing the two is the whole reason to automate.
+      </div>
+    </section>
+
+    <section class="card" id="ch15-trace">
+      <h2><span class="num">8</span> SQL Trace, for when you have no choice</h2>
+      <p class="lede">Deprecated, expensive, and inefficient at filtering. Included because you may still meet it — and because knowing why it's bad clarifies why Extended Events is designed the way it is.</p>
+
+      <div class="warn note">
+        <b>Never capture event data with the Profiler GUI</b>
+        Use Profiler to <i>define</i> the trace and script it out, then run it as a <b>server-side trace</b>
+        writing to a file. The GUI's caching mechanism can have a profoundly negative effect on the server
+        you're trying to diagnose.
+      </div>
+
+      <table>
+        <thead><tr><th>Trace event</th><th>Equivalent / behaviour</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td><b>Showplan XML</b></td><td>Fires on each execution; compile-time plan. Like <code class="inl">query_pre_execution_showplan</code>.</td><td>The preferable one if you must minimise impact.</td></tr>
+          <tr><td><b>Showplan XML for Query Compile</b></td><td>Only on compilation. Like <code class="inl">query_post_compilation_showplan</code>.</td><td>Useful, narrower.</td></tr>
+          <tr><td><b>Performance Statistics</b></td><td>Traces when plans are added to or removed from cache.</td><td>Different job; not a plan.</td></tr>
+          <tr><td><b>Showplan XML Statistics Profile</b></td><td>Actual plan, after execution.</td><td>The one you'd most want — and the most expensive to capture.</td></tr>
+        </tbody>
+      </table>
+
+      <p>
+        And the reason filtering doesn't save you: even filtered on database and SQL text, <b>the event
+        still fires fully</b> for every database and every text, and the filter is only applied when the
+        trace consumer reads it. Add the global fields collected by default, whether you want them or not,
+        and short runs become mandatory rather than advisable.
+      </p>
+
+      <figure>
+        <img src="images/chapter15/fig-15-11-profiler-trace-defined.png"
+             alt="Profiler Events Selection tab with Showplan XML and RPC:Completed selected.">
+        <figcaption><b>Figure 15-11</b> — A Profiler trace: <b>Showplan XML</b> (Performance section) plus context events like <b>RPC:Completed</b> and <b>SQL:BatchCompleted</b> — the trace equivalent of the actions you'd add in Extended Events. Creating or running a trace needs <code class="inl">sa</code>, <code class="inl">sysadmin</code>, or <code class="inl">ALTER TRACE</code>.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter15/fig-15-12-events-extraction-settings.png"
+             alt="Events Extraction Settings tab for extracting Showplan XML to one file or a file per plan.">
+        <figcaption><b>Figure 15-12</b> — The third tab that appears for XML events: <b>Events Extraction Settings</b>. Extract each plan to its own file, or all into one — this is how you end up with a folder of <code class="inl">.sqlplan</code>-ish XML instead of a giant trace.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter15/fig-15-13-trace-output-plan.png"
+             alt="Trace output with a Showplan XML event selected and the graphical plan in the lower pane.">
+        <figcaption><b>Figure 15-13</b> — Trace output with a plan selected. No SELECT operator here either — same out-of-band capture artefact as Figure 15-7. Operator properties aren't available in this window at all: read the <b>TextData</b> XML, or right-click → <b>Extract Event Data</b>.</figcaption>
+      </figure>
+
+      <h3 class="step">Scripting it as a server-side trace</h3>
+
+      <p>
+        Start and immediately stop a Profiler trace, then <b>File → Export → Script Trace Definition → For
+        SQL Servers 2005–2017…</b>. What you get:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 15-4 · truncated server-side trace definition</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> @rc = sp_trace_create @TraceID <span class="kw">OUTPUT</span>,
+                           0,
+                           N'InsertFileNameHere',
+                           @maxfilesize,
+                           <span class="kw">NULL</span>;
+<span class="kw">IF</span> (@rc != 0)
+    <span class="kw">GOTO</span> error;
+
+<span class="cm">-- Client side File and Table cannot be scripted</span>
+
+<span class="cm">-- Set the events</span>
+<span class="kw">DECLARE</span> @on <span class="kw">BIT</span>;
+<span class="kw">SET</span> @on = 1;
+<span class="kw">EXEC</span> sp_trace_setevent @TraceID, 122, 1, @on;
+<span class="kw">EXEC</span> sp_trace_setevent @TraceID, 122, 9, @on;
+<span class="kw">EXEC</span> sp_trace_setevent @TraceID, 122, 2, @on;
+…
+
+<span class="cm">-- Set the Filters</span>
+<span class="kw">DECLARE</span> @intfilter <span class="kw">INT</span>;
+<span class="kw">DECLARE</span> @bigintfilter <span class="kw">BIGINT</span>;
+
+<span class="cm">-- Set the trace status to start</span>
+<span class="kw">EXEC</span> sp_trace_setstatus @TraceID, 1;
+
+<span class="cm">-- display trace id for future references</span>
+<span class="kw">SELECT</span> @TraceID <span class="kw">AS</span> TraceID;
+<span class="kw">GOTO</span> finish;
+error:
+<span class="kw">SELECT</span> @rc <span class="kw">AS</span> ErrorCode;
+finish:
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <div class="warn note">
+        <b>Compare the two listings and the argument makes itself</b>
+        Listing 15-4 does roughly what Listing 15-1 or 15-3 does — in far more lines, with numeric event and
+        column IDs (<code class="inl">122</code>, <code class="inl">1</code>, <code class="inl">9</code>, …)
+        instead of names you can read. That opacity is not an accident of the tooling; it's what deprecation
+        looks like.
+      </div>
+    </section>
+
+    <section class="card" id="ch15-cheatsheet">
+      <h2><span class="num">9</span> Cheat sheet</h2>
+      <p class="lede">The decisions, in the order you'd make them.</p>
+
+      <table>
+        <thead><tr><th>Decision</th><th>Answer</th></tr></thead>
+        <tbody>
+          <tr><td>Which tool?</td><td>Extended Events on 2012+ / Azure SQL DB. SQL Trace only on 2005–2008R2.</td></tr>
+          <tr><td>Which plan event?</td><td><code class="inl">query_post_execution_showplan</code> — the only one with runtime metrics. <code class="inl">query_post_compilation_showplan</code> if you specifically want compiles. <code class="inl">query_pre_execution_showplan</code> when studying recompiles.</td></tr>
+          <tr><td>How many plan events?</td><td><b>One.</b> Listing 15-1's three-event session is a demo, not a pattern.</td></tr>
+          <tr><td>How to limit the data?</td><td>Predicates on <code class="inl">sqlserver.database_name</code> and <code class="inl">sqlserver.sql_text</code> (<code class="inl">like_i_sql_unicode_string</code>). The event doesn't fire fully unless they match.</td></tr>
+          <tr><td>What else to add?</td><td><code class="inl">rpc_starting</code>/<code class="inl">rpc_completed</code> for parameters and duration; <code class="inl">sqlos.wait_completed</code> for where the time went; <code class="inl">sql_statement_recompile</code> for recompile causes.</td></tr>
+          <tr><td>Where to write it?</td><td><code class="inl">package0.event_file</code> — flat file, best performing, most common target.</td></tr>
+          <tr><td>Causality tracking?</td><td>On, if you're collecting several event types and need to group and order them.</td></tr>
+          <tr><td>How long?</td><td>Minutes. Then stop it. Test it off-production first.</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>The problem the chapter solves</b> is aggregation: cache and Query Store hide a bad five minutes inside a lifetime average.</li>
+        <li><b>Capturing plans is in-process and expensive</b> — same thread as the query, big payloads. Filter hard, run briefly.</li>
+        <li><b>Pre-execution events have no runtime stats.</b> Nothing to report yet — not a bug.</li>
+        <li><b>Extended Events filters before firing; Trace filters after.</b> That single sentence explains the whole performance gap.</li>
+        <li><b>A captured plan has no SELECT operator</b> and may be missing first-operator properties. Read the XML, not the picture.</li>
+        <li><b>Causality gives you a story</b>: <code class="inl">attach_activity_id.guid</code> groups, <code class="inl">.seq</code> orders.</li>
+        <li><b>Network capture &gt; GUI capture.</b> Both tools: define it, script it, run it server-side.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        Automating capture reaches plans that cache queries and Query Store settings can't give you — and it
+        lets you correlate the plan with the events around it (waits, recompiles, parameters). Use Extended
+        Events rather than Trace. But "low overhead" is not "no overhead": filter precisely, capture briefly,
+        and test before pointing it at production.
       </div>
     </section>
 
