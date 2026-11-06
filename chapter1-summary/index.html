@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapters 1–15 · SQL Fundamentals, Transactions, Views and Metadata — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Chapters 1–16 · SQL Fundamentals, Views, Metadata and Analytic Functions — Simple Summary (Learning SQL, 3rd Ed.)</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -211,7 +211,7 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapters 1–15, in plain English</h1>
+  <h1>Chapters 1–16, in plain English</h1>
   <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
   and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
   data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
@@ -228,12 +228,13 @@
   <b>Ch. 12 — Transactions:</b> grouping changes into a safe unit of work.
   <b>Ch. 13 — Indexes and Constraints:</b> speeding lookups and enforcing data rules.
   <b>Ch. 14 — Views:</b> presenting stored queries as tables.
-  <b>Ch. 15 — Metadata:</b> querying information about database objects.</p>
+  <b>Ch. 15 — Metadata:</b> querying information about database objects.
+  <b>Ch. 16 — Analytic Functions:</b> rankings, running totals and comparisons across rows.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–266 (PDF pp. 19–284)</span>
-    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14 + 10 + 11 + 10 + 11 + 10 + 11</span>
+    <span><b>Book pages:</b> 1–286 (PDF pp. 19–304)</span>
+    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14 + 10 + 11 + 10 + 11 + 10 + 11 + 11</span>
     <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8, Figures 6-1…6-4, Figure 13-1</span>
-    <span><b>Reading time:</b> ~192 min</span>
+    <span><b>Reading time:</b> ~206 min</span>
   </div>
   <div class="jump">
     <a href="#tldr">↓ Chapter 1 · A Little Background</a>
@@ -251,6 +252,7 @@
     <a href="#ch13">↓ Chapter 13 · Indexes and Constraints</a>
     <a href="#ch14">↓ Chapter 14 · Views</a>
     <a href="#ch15">↓ Chapter 15 · Metadata</a>
+    <a href="#ch16">↓ Chapter 16 · Analytic Functions</a>
   </div>
 </header>
 
@@ -453,6 +455,19 @@
     <li><a href="#ch15-prepare">Prepared dynamic SQL</a></li>
     <li><a href="#ch15-dynamic">Generating SQL from metadata</a></li>
     <li><a href="#ch15-exercises">Exercises &amp; recap</a></li>
+  </ol>
+  <div class="brand" style="margin-top:18px">Chapter 16 · Analytic functions</div>
+  <ol>
+    <li><a href="#ch16-intro">The chapter in one paragraph</a></li>
+    <li><a href="#ch16-windows">Windows and partitions</a></li>
+    <li><a href="#ch16-order">Window ordering</a></li>
+    <li><a href="#ch16-rank">Rankings and ties</a></li>
+    <li><a href="#ch16-top">Rank within each month</a></li>
+    <li><a href="#ch16-report">Reporting totals and percentages</a></li>
+    <li><a href="#ch16-frames">Running totals and frames</a></li>
+    <li><a href="#ch16-lag">LAG and LEAD</a></li>
+    <li><a href="#ch16-concat">Concatenating grouped values</a></li>
+    <li><a href="#ch16-exercises">Exercises &amp; recap</a></li>
   </ol>
 </nav>
 
@@ -6329,17 +6344,274 @@ ORDER BY index_name;</code></pre></div>
   <tr><td>Constraints</td><td>TABLE_CONSTRAINTS and KEY_COLUMN_USAGE</td></tr>
   <tr><td>Dynamic values</td><td>PREPARE / EXECUTE with bound parameters; whitelist identifiers separately</td></tr>
   </tbody></table>
-  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 16, <em>Analytic Functions</em>,
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p><a href="#ch16">Chapter 16, <em>Analytic Functions</em></a>,
   explores calculations over related rows without collapsing them into one group.</p></div>
+</section>
+<div class="chap" id="ch16">
+  <div class="kicker">Chapter 16 · book pages 267–286 (PDF pp. 285–304)</div>
+  <h2><span class="num">16.0</span>Analytic Functions</h2>
+  <p>Calculate rankings, totals, and comparisons across related rows without collapsing them.</p>
+</div>
+<section id="ch16-intro">
+  <h2><span class="num">16.1</span>The chapter in one paragraph</h2>
+  <p class="lede">A window function looks across a set of rows while keeping each result row visible.</p>
+  <p><span class="inline">OVER</span> defines the window. <span class="inline">PARTITION BY</span>
+  separates rows into groups for the calculation, an inner <span class="inline">ORDER BY</span> determines
+  their analytic order, and a frame can narrow which rows are included. Ranking functions handle ties
+  differently; LAG and LEAD look at neighboring rows. The final result still needs its own ORDER BY.</p>
+  <div class="simple"><span class="tag">Original diagram · window anatomy</span>
+  function(value) OVER (PARTITION BY group_key ORDER BY sort_key ROWS …)
+  </div>
+  <p>Window functions generally operate on the rows remaining after WHERE, GROUP BY and HAVING.
+  Window calculations and filtering syntax vary by engine and version; the book's examples use MySQL.</p>
+</section>
+<section id="ch16-windows">
+  <h2><span class="num">16.2</span>Windows and partitions</h2>
+  <p>The book first groups 2005 payments into monthly sums, then computes the maximum monthly sum
+  across all months and within each quarter. Grouping creates one row per month; the window functions
+  add values to those rows instead of collapsing them again.</p>
+  <div class="code"><div class="bar"><span>Book example · overall and quarterly maxima</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT quarter(payment_date) quarter,
+  monthname(payment_date) month_nm,
+  sum(amount) monthly_sales,
+  max(sum(amount))
+    over () max_overall_sales,
+  max(sum(amount))
+    over (partition by quarter(payment_date)) max_qrtr_sales
+FROM payment
+WHERE year(payment_date) = 2005
+GROUP BY quarter(payment_date), monthname(payment_date);</code></pre></div>
+  <table><thead><tr><th>Quarter</th><th>Month</th><th>Monthly sales</th><th>Overall maximum</th><th>Quarter maximum</th></tr></thead><tbody>
+  <tr><td>2</td><td>May</td><td>4824.43</td><td>28373.89</td><td>9631.88</td></tr>
+  <tr><td>2</td><td>June</td><td>9631.88</td><td>28373.89</td><td>9631.88</td></tr>
+  <tr><td>3</td><td>July</td><td>28373.89</td><td>28373.89</td><td>28373.89</td></tr>
+  <tr><td>3</td><td>August</td><td>24072.13</td><td>28373.89</td><td>28373.89</td></tr></tbody></table>
+  <p>Without PARTITION BY, OVER () uses the whole result; with it, each quarter has its own partition.
+  These figures are the book's sample data, not a guarantee for another installation.</p>
+</section>
+<section id="ch16-order">
+  <h2><span class="num">16.3</span>Window order is not output order</h2>
+  <p>The book ranks monthly sales overall using an ORDER BY inside OVER, then orders the displayed
+  results by quarter and month:</p>
+  <div class="code"><div class="bar"><span>Book example · two different orderings</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT quarter(payment_date) quarter,
+  monthname(payment_date) month_nm,
+  sum(amount) monthly_sales,
+  rank() over (order by sum(amount) desc) sales_rank
+FROM payment
+WHERE year(payment_date) = 2005
+GROUP BY quarter(payment_date), monthname(payment_date)
+ORDER BY 1, month(payment_date);</code></pre></div>
+  <p>July ranks first even though it is not the first displayed month. Grouping and ORDER BY expressions
+  can be subject to SQL mode and engine restrictions; test the book's syntax on your server. For robust
+  chronological grouping across multiple years, retain a year and numeric month or a month-start date.</p>
+</section>
+<section id="ch16-rank">
+  <h2><span class="num">16.4</span>Rankings and ties</h2>
+  <div class="code"><div class="bar"><span>Book example · compare ranking functions</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT customer_id, count(*) num_rentals,
+  row_number() over (order by count(*) desc) row_number_rnk,
+  rank() over (order by count(*) desc) rank_rnk,
+  dense_rank() over (order by count(*) desc) dense_rank_rnk
+FROM rental
+GROUP BY customer_id
+ORDER BY 2 desc;</code></pre></div>
+  <table><thead><tr><th>Rentals</th><th>ROW_NUMBER</th><th>RANK</th><th>DENSE_RANK</th></tr></thead><tbody>
+  <tr><td>46</td><td>1</td><td>1</td><td>1</td></tr><tr><td>45</td><td>2</td><td>2</td><td>2</td></tr>
+  <tr><td>42</td><td>3 or 4</td><td>3</td><td>3</td></tr><tr><td>42</td><td>4 or 3</td><td>3</td><td>3</td></tr>
+  <tr><td>41</td><td>5</td><td>5</td><td>4</td></tr></tbody></table>
+  <p>ROW_NUMBER assigns unique positions, RANK shares a rank and leaves gaps, and DENSE_RANK shares
+  a rank without gaps. Add a stable tie-breaker for deterministic ROW_NUMBER; adding it to RANK's
+  window order also changes which rows count as tied. The book's top-ten example yields 10 rows with
+  ROW_NUMBER or RANK and 37 with DENSE_RANK; other data can yield different counts.</p>
+</section>
+<section id="ch16-top">
+  <h2><span class="num">16.5</span>Restart ranking within each month</h2>
+  <p>PARTITION BY resets the rank for each month. To filter by the rank in MySQL, the book wraps the
+  window query in a derived table:</p>
+  <div class="code"><div class="bar"><span>Book example · top ranks per month</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT customer_id, rental_month, num_rentals,
+  rank_rnk ranking
+FROM
+ (SELECT customer_id,
+    monthname(rental_date) rental_month,
+    count(*) num_rentals,
+    rank() over (partition by monthname(rental_date)
+      order by count(*) desc) rank_rnk
+  FROM rental
+  GROUP BY customer_id, monthname(rental_date)
+ ) cust_rankings
+WHERE rank_rnk &lt;= 5
+ORDER BY rental_month, num_rentals desc, rank_rnk;</code></pre></div>
+  <p>In the book's August result, four customers tie for rank 1 and six more tie at rank 5: “rank ≤ 5”
+  returns ten, not exactly five. The example groups month names across years; include the year when
+  distinct calendar months are required. Some databases offer other ways to filter window results.</p>
+</section>
+<section id="ch16-report">
+  <h2><span class="num">16.6</span>Totals and percentages alongside rows</h2>
+  <p>For payments of at least $10, this query keeps every qualifying payment row and attaches its
+  month total and the overall total:</p>
+  <div class="code"><div class="bar"><span>Book example · reporting totals</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT monthname(payment_date) payment_month,
+  amount,
+  sum(amount)
+    over (partition by monthname(payment_date)) monthly_total,
+  sum(amount) over () grand_total
+FROM payment
+WHERE amount &gt;= 10
+ORDER BY 1;</code></pre></div>
+  <p>The book returns 114 rows, with grand total 1262.86 on each. These totals include only rows
+  surviving WHERE; do not sum the repeated grand_total values to get the total.</p>
+  <div class="code"><div class="bar"><span>Book example · share of total</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT monthname(payment_date) payment_month,
+  sum(amount) month_total,
+  round(sum(amount) / sum(sum(amount)) over ()
+    * 100, 2) pct_of_total
+FROM payment
+GROUP BY monthname(payment_date);</code></pre></div>
+  <p>The sample gives July 28373.89 and 42.09% of all payments. If the grand total can be zero,
+  protect the denominator and choose an appropriate NULL or other result. Month names alone can combine
+  different years.</p>
+</section>
+<section id="ch16-frames">
+  <h2><span class="num">16.7</span>Frames: running and moving calculations</h2>
+  <p>A frame limits which rows within the ordered partition contribute to a calculation. This cumulative
+  sum includes every grouped row from the start through the current row:</p>
+  <div class="code"><div class="bar"><span>Book example · running weekly total</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT yearweek(payment_date) payment_week,
+  sum(amount) week_total,
+  sum(sum(amount))
+    over (order by yearweek(payment_date)
+      rows unbounded preceding) rolling_sum
+FROM payment
+GROUP BY yearweek(payment_date)
+ORDER BY 1;</code></pre></div>
+  <p>Its final sample total is 67416.51. Because the book does not partition by year, the running sum
+  continues into 2006 rather than resetting in January.</p>
+  <div class="code"><div class="bar"><span>Book example · neighboring rows</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT yearweek(payment_date) payment_week,
+  sum(amount) week_total,
+  avg(sum(amount))
+    over (order by yearweek(payment_date)
+      rows between 1 preceding and 1 following) rolling_3wk_avg
+FROM payment
+GROUP BY yearweek(payment_date)
+ORDER BY 1;</code></pre></div>
+  <p>The first and last rows average only two available rows. ROWS means neighboring <em>result rows</em>,
+  not necessarily consecutive calendar weeks: missing weeks are skipped.</p>
+  <div class="code"><div class="bar"><span>Book example · date range frame in MySQL</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT date(payment_date), sum(amount),
+  avg(sum(amount)) over (order by date(payment_date)
+    range between interval 3 day preceding
+      and interval 3 day following) 7_day_avg
+FROM payment
+WHERE payment_date BETWEEN '2005-07-01' AND '2005-09-01'
+GROUP BY date(payment_date)
+ORDER BY 1;</code></pre></div>
+  <p>RANGE uses date distance, but the average still includes only dates represented by rows; it does not
+  invent zero-sales days. The book's BETWEEN includes the instant at the upper endpoint. Explicit frames
+  and unique ordering help avoid surprises with peers, default frames, and ties.</p>
+</section>
+<section id="ch16-lag">
+  <h2><span class="num">16.8</span>LAG and LEAD: neighboring rows</h2>
+  <p>LAG reads an earlier row and LEAD a later row in the window ordering. The book compares weekly totals:</p>
+  <div class="code"><div class="bar"><span>Book example · previous and next totals</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT yearweek(payment_date) payment_week,
+  sum(amount) week_total,
+  lag(sum(amount), 1)
+    over (order by yearweek(payment_date)) prev_wk_tot,
+  lead(sum(amount), 1)
+    over (order by yearweek(payment_date)) next_wk_tot
+FROM payment
+GROUP BY yearweek(payment_date)
+ORDER BY 1;</code></pre></div>
+  <p>The first previous and last next values are NULL. The previous <em>row</em> may not be the previous
+  calendar week: week 200524 follows 200522 in the sample because week 200523 is missing.</p>
+  <div class="code"><div class="bar"><span>Book example · percentage change</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT yearweek(payment_date) payment_week,
+  sum(amount) week_total,
+  round((sum(amount) - lag(sum(amount), 1)
+    over (order by yearweek(payment_date)))
+    / lag(sum(amount), 1)
+      over (order by yearweek(payment_date))
+    * 100, 1) pct_diff
+FROM payment
+GROUP BY yearweek(payment_date)
+ORDER BY 1;</code></pre></div>
+  <p>The sample's week 200522 change is −30.6%. A missing or zero prior value needs explicit handling;
+  for example, NULLIF can protect a zero denominator. Define a deterministic order if keys can tie.</p>
+</section>
+<section id="ch16-concat">
+  <h2><span class="num">16.9</span>Concatenate grouped values</h2>
+  <p>MySQL's GROUP_CONCAT is an aggregate, not itself a window function. The book lists actor last names
+  for films with three joined actor rows:</p>
+  <div class="code"><div class="bar"><span>Book example · grouped names</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT f.title,
+  group_concat(a.last_name order by a.last_name
+    separator ', ') actors
+FROM actor a
+  INNER JOIN film_actor fa
+  ON a.actor_id = fa.actor_id
+  INNER JOIN film f
+  ON fa.film_id = f.film_id
+GROUP BY f.title
+HAVING count(*) = 3;</code></pre></div>
+  <p>The book gets 119 rows. Grouping only by title may merge different films with the same title; use
+  film_id when identity matters. GROUP_CONCAT can be truncated by MySQL's group_concat_max_len and
+  ignores NULL inputs. Other databases have their own string-aggregation syntax.</p>
+</section>
+<section id="ch16-exercises">
+  <h2><span class="num">16.10</span>Exercises &amp; recap</h2>
+  <p class="lede">Try the book's exercises using this Sales_Fact data. Answers are independently
+  worked, not copied from Appendix B.</p>
+  <table><thead><tr><th>Year</th><th>Month</th><th>Sales</th><th>Year</th><th>Month</th><th>Sales</th></tr></thead><tbody>
+  <tr><td>2019</td><td>1</td><td>19228</td><td>2020</td><td>1</td><td>20347</td></tr>
+  <tr><td>2019</td><td>2</td><td>18554</td><td>2020</td><td>2</td><td>17434</td></tr>
+  <tr><td>2019</td><td>3</td><td>17325</td><td>2020</td><td>3</td><td>16225</td></tr>
+  <tr><td>2019</td><td>4</td><td>13221</td><td>2020</td><td>4</td><td>13853</td></tr>
+  <tr><td>2019</td><td>5</td><td>9964</td><td>2020</td><td>5</td><td>14589</td></tr>
+  <tr><td>2019</td><td>6</td><td>12658</td><td>2020</td><td>6</td><td>13248</td></tr>
+  <tr><td>2019</td><td>7</td><td>14233</td><td>2020</td><td>7</td><td>8728</td></tr>
+  <tr><td>2019</td><td>8</td><td>17342</td><td>2020</td><td>8</td><td>9378</td></tr>
+  <tr><td>2019</td><td>9</td><td>16853</td><td>2020</td><td>9</td><td>11467</td></tr>
+  <tr><td>2019</td><td>10</td><td>17121</td><td>2020</td><td>10</td><td>13842</td></tr>
+  <tr><td>2019</td><td>11</td><td>19095</td><td>2020</td><td>11</td><td>15742</td></tr>
+  <tr><td>2019</td><td>12</td><td>21436</td><td>2020</td><td>12</td><td>18636</td></tr></tbody></table>
+  <h3>16-1 · Rank all 24 rows</h3>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · overall positions</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT year_no, month_no, tot_sales,
+  ROW_NUMBER() OVER (ORDER BY tot_sales DESC, year_no, month_no) AS sales_rank
+FROM Sales_Fact
+ORDER BY sales_rank;</code></pre></div>
+  <p>December 2019 is first (21436); July 2020 is 24th (8728). ROW_NUMBER gives unique positions;
+  the year/month tie-breaker makes equal sales deterministic if the data changes.</p></details>
+  <h3>16-2 · Rank separately by year</h3>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · one ranking per year</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT year_no, month_no, tot_sales,
+  ROW_NUMBER() OVER (PARTITION BY year_no
+    ORDER BY tot_sales DESC, month_no) AS sales_rank
+FROM Sales_Fact
+ORDER BY year_no, sales_rank;</code></pre></div>
+  <p>Each year has twelve rows numbered 1–12. The sample has no ties, so RANK gives the same positions
+  here; its behavior differs if a future dataset has ties.</p></details>
+  <h3>16-3 · Show 2020 and the previous month's sales</h3>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · include December before filtering</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT year_no, month_no, tot_sales, previous_sales
+FROM (
+  SELECT year_no, month_no, tot_sales,
+    LAG(tot_sales) OVER (ORDER BY year_no, month_no) AS previous_sales
+  FROM Sales_Fact
+) sales_with_previous
+WHERE year_no = 2020
+ORDER BY year_no, month_no;</code></pre></div>
+  <p>January 2020's previous value is <strong>21436</strong> from December 2019; February's is 20347.
+  Filtering to 2020 inside the subquery would make January's LAG NULL instead. LAG means previous
+  available row, so missing or duplicate months require extra handling for a true calendar-month comparison.</p></details>
+  <h3>Quick reference</h3>
+  <table><thead><tr><th>Need</th><th>Tool</th></tr></thead><tbody>
+  <tr><td>Separate groups</td><td>OVER (PARTITION BY ...)</td></tr><tr><td>Choose tie behavior</td><td>ROW_NUMBER, RANK, or DENSE_RANK</td></tr>
+  <tr><td>Running or moving value</td><td>Window aggregate with an explicit ROWS or RANGE frame</td></tr>
+  <tr><td>Compare neighboring rows</td><td>LAG and LEAD; mind missing periods</td></tr>
+  <tr><td>Filter by a rank</td><td>Use an outer query where the database requires it</td></tr></tbody></table>
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 17, <em>Working with Large Databases</em>,
+  explores techniques for managing larger datasets.</p></div>
 </section>
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–15 of <i>Learning SQL: Generate,
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–16 of <i>Learning SQL: Generate,
   Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
   ISBN 9781492057611). Figures 1-1…1-3, 6-1…6-4 and 13-1 and the Table 2-6…2-8 crops are reproduced from
   the PDF in this repository for personal study; please buy the book if you like it. SQL snippets include
-  the book's teaching examples. Exercise answers for Chapters 3–15 are worked here, not copied from the book —
+  the book's teaching examples. Exercise answers for Chapters 3–16 are worked here, not copied from the book —
   its own solutions live in Appendix B. Diagrams marked <i>original</i> are drawn for this page.</p>
 </footer>
 </div>
@@ -6362,7 +6634,7 @@ const io=new IntersectionObserver(es=>{
 },{rootMargin:'-15% 0px -75% 0px'});
 document.querySelectorAll('main section').forEach(s=>io.observe(s));
 
-const KW=/\b(create|table|view|insert|into|values|select|from|where|inner|outer|left|right|cross|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max|union|all|any|with|intersect|except|case|when|then|else|end|start|transaction|commit|rollback|savepoint|index|explain|cascade|restrict|check|prepare|execute|deallocate|using)\b/gi;
+const KW=/\b(create|table|view|insert|into|values|select|from|where|inner|outer|left|right|cross|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max|union|all|any|with|intersect|except|case|when|then|else|end|start|transaction|commit|rollback|savepoint|index|explain|cascade|restrict|check|prepare|execute|deallocate|using|over|partition|rows|range|unbounded|preceding|following|current|row|rank|dense_rank|row_number|lag|lead)\b/gi;
 function hl(src){
   const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const toks=[];
