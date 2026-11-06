@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapter 1 · A Little Background — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Chapters 1–2 · A Little Background + Creating &amp; Populating a Database — Simple Summary (Learning SQL, 3rd Ed.)</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -34,6 +34,17 @@
   .sub{font-size:1.16rem;color:var(--muted);max-width:62ch}
   .meta{font-family:var(--sans);font-size:13.5px;color:var(--muted);margin-top:22px;display:flex;flex-wrap:wrap;gap:10px 22px}
   .meta b{color:var(--ink);font-weight:600}
+  .jump{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;font-family:var(--sans);font-size:13.5px}
+  .jump a{text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:7px 16px;color:var(--ink);transition:.15s}
+  .jump a:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+  /* ---------- chapter divider ---------- */
+  .chap{background:linear-gradient(135deg,#2b2620,#413528 55%,#5b3a1f);color:#f6efe6;
+    border-radius:16px;padding:30px 34px;margin:44px 0 8px;border:0}
+  .chap h2{color:#fff;margin:0 0 4px}
+  .chap h2 .num{color:#f0a95f}
+  .chap p{color:#e3d7c6;margin:.5em 0 0;max-width:70ch}
+  .chap .kicker{color:#f0a95f;margin-bottom:10px}
   /* ---------- typography ---------- */
   main section{padding:38px 0 6px;scroll-margin-top:20px;border-bottom:1px dashed var(--line)}
   main section:last-of-type{border-bottom:0}
@@ -94,6 +105,33 @@
     background:var(--accent);box-shadow:0 0 0 3px var(--paper)}
   .tl .yr{display:block;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
   .tl .t{font-weight:600}
+  /* ---------- schema diagram (original) ---------- */
+  .schema{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin:26px 0;
+    font-family:var(--mono);font-size:13px}
+  .tbl{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .tbl h5{font-family:var(--sans);margin:0;padding:9px 14px;background:#f4f1ea;border-bottom:1px solid var(--line);
+    font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+  .tbl .r{display:flex;justify-content:space-between;gap:12px;padding:6px 14px;border-bottom:1px solid #f1ede5}
+  .tbl .r:last-child{border-bottom:0}
+  .tbl .r i{font-style:normal;color:var(--muted);font-size:11.5px}
+  .badge{font-family:var(--sans);font-size:9.5px;font-weight:800;letter-spacing:.06em;padding:1px 6px;
+    border-radius:4px;margin-left:8px;vertical-align:1px}
+  .pk{background:#fce8d5;color:#9a3c07}.fk{background:#e2eddf;color:#2f6f4f}.ai{background:#e2eaf7;color:#2a4f8f}
+  /* ---------- error cards ---------- */
+  .err{border:1px solid #f0d6cf;border-left:4px solid #c0392b;background:#fdf6f4;border-radius:0 12px 12px 0;
+    padding:14px 20px;margin:18px 0}
+  .err .msg{font-family:var(--mono);font-size:12.8px;background:#2b1c1a;color:#f0c8bd;padding:8px 12px;
+    border-radius:7px;margin:8px 0 0;overflow-x:auto;white-space:pre}
+  .err h4{font-family:var(--sans);margin:0 0 4px;font-size:.95rem;color:#8f2c1c}
+  .err p{margin:.4em 0;font-size:.95rem}
+  /* ---------- type picker ---------- */
+  .pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:22px 0}
+  .pick div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:.92rem}
+  .pick h4{font-family:var(--sans);font-size:.82rem;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 8px}
+  .pick ul{margin:0;padding-left:1.1em;font-family:var(--sans)}
+  .pick li{margin:.25em 0}
   /* ---------- footer ---------- */
   footer{grid-column:1/-1;border-top:1px solid var(--line);margin-top:44px;padding:26px 0 0;
     font-family:var(--sans);font-size:13px;color:var(--muted);line-height:1.6}
@@ -124,19 +162,25 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapter 1 — A Little Background</h1>
-  <p class="sub">Why relational databases exist, where SQL came from, and what the language
-  actually does — explained in plain English, with the book's own figures and example code.</p>
+  <h1>Chapters 1 &amp; 2, in plain English</h1>
+  <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
+  and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
+  data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
+  rows — with the book's own figures, design tables and example code.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–15 (PDF pp. 19–34)</span>
-    <span><b>Sections:</b> 5</span>
-    <span><b>Figures:</b> 1-1, 1-2, 1-3</span>
-    <span><b>Reading time:</b> ~12 min</span>
+    <span><b>Book pages:</b> 1–43 (PDF pp. 19–62)</span>
+    <span><b>Sections:</b> 12 + 10</span>
+    <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8</span>
+    <span><b>Reading time:</b> ~25 min</span>
+  </div>
+  <div class="jump">
+    <a href="#tldr">↓ Chapter 1 · A Little Background</a>
+    <a href="#ch2">↓ Chapter 2 · Creating &amp; Populating a Database</a>
   </div>
 </header>
 
 <nav class="toc" aria-label="Table of contents">
-  <div class="brand">Contents</div>
+  <div class="brand">Chapter 1 · Background</div>
   <ol>
     <li><a href="#tldr">The one-paragraph version</a></li>
     <li><a href="#before">Databases before computers</a></li>
@@ -151,11 +195,24 @@
     <li><a href="#unplugged">SQL unplugged</a></li>
     <li><a href="#next">What's in store</a></li>
   </ol>
+  <div class="brand" style="margin-top:18px">Chapter 2 · Build a database</div>
+  <ol>
+    <li><a href="#ch2-intro">The chapter in one paragraph</a></li>
+    <li><a href="#setup">Getting a server &amp; the mysql tool</a></li>
+    <li><a href="#datatypes">Choosing a data type</a></li>
+    <li><a href="#design">Design: from napkin to tables</a></li>
+    <li><a href="#create">CREATE TABLE &amp; constraints</a></li>
+    <li><a href="#keys">Auto-increment keys</a></li>
+    <li><a href="#modify">INSERT, UPDATE, DELETE, SELECT</a></li>
+    <li><a href="#errors">When good statements go bad</a></li>
+    <li><a href="#sakila">The Sakila database</a></li>
+    <li><a href="#recap">Cheat sheet &amp; self-test</a></li>
+  </ol>
 </nav>
 
 <main>
 <section id="tldr">
-  <h2><span class="num">01</span>The one-paragraph version</h2>
+  <h2><span class="num">1.1</span>The one-paragraph version</h2>
   <p class="lede">Before it teaches you any syntax, the chapter explains the <em>problem</em> that
     relational databases solved — and that makes the syntax make sense later.</p>
 
@@ -185,7 +242,7 @@
 </section>
 
 <section id="before">
-  <h2><span class="num">02</span>Databases before computers</h2>
+  <h2><span class="num">1.2</span>Databases before computers</h2>
   <p class="lede">"A database is nothing more than a set of related information."</p>
 
   <p>The book starts deliberately low-tech. A phone book is a database, and it has three problems that
@@ -213,7 +270,7 @@
 </section>
 
 <section id="nonrelational">
-  <h2><span class="num">03</span>The messy early systems: hierarchical &amp; network</h2>
+  <h2><span class="num">1.3</span>The messy early systems: hierarchical &amp; network</h2>
   <p class="lede">Data as trees, then as webs — both fast to traverse, painful to query.</p>
 
   <p>The running example through the whole chapter is a tiny bank: two customers
@@ -270,7 +327,7 @@
 </section>
 
 <section id="relational">
-  <h2><span class="num">04</span>The relational idea: tables instead of pointers</h2>
+  <h2><span class="num">1.4</span>The relational idea: tables instead of pointers</h2>
   <p class="lede">Codd, 1970: represent data as sets of tables, and let repeated ID values do the linking.</p>
 
   <p>Dr. E.&nbsp;F. Codd of IBM Research published <em>"A Relational Model of Data for Large Shared Data
@@ -342,7 +399,7 @@
 </section>
 
 <section id="terms">
-  <h2><span class="num">05</span>Words you need (Table 1-1)</h2>
+  <h2><span class="num">1.5</span>Words you need (Table 1-1)</h2>
   <p class="lede">The seven terms the rest of the book assumes.</p>
   <table>
     <thead><tr><th>Term</th><th>What it means in this book</th></tr></thead>
@@ -358,7 +415,7 @@
   </table>
 </section>
 <section id="sql">
-  <h2><span class="num">06</span>What SQL is (and why it has that name)</h2>
+  <h2><span class="num">1.6</span>What SQL is (and why it has that name)</h2>
   <p class="lede">A research prototype that got renamed four times and then became a standard.</p>
 
   <p>Codd didn't only describe tables — he also proposed a language for manipulating them,
@@ -387,7 +444,7 @@
 </section>
 
 <section id="classes">
-  <h2><span class="num">07</span>Three families of statements</h2>
+  <h2><span class="num">1.7</span>Three families of statements</h2>
   <p class="lede">Build the structure, move the data, control the trust.</p>
 
   <div class="grid">
@@ -449,7 +506,7 @@ VALUES (27, 'Acme Paper Corporation');</code></pre>
 </section>
 
 <section id="nonproc">
-  <h2><span class="num">08</span>SQL is not a programming language</h2>
+  <h2><span class="num">1.8</span>SQL is not a programming language</h2>
   <p class="lede">You say what you want. The optimizer decides how to get it.</p>
 
   <p>If you've written Java or Python, you're used to declaring variables, branching with
@@ -489,7 +546,7 @@ VALUES (27, 'Acme Paper Corporation');</code></pre>
 </section>
 
 <section id="examples">
-  <h2><span class="num">09</span>The example queries — a first look at SELECT</h2>
+  <h2><span class="num">1.9</span>The example queries — a first look at SELECT</h2>
   <p class="lede">The promise from Figure 1-3, kept in one statement.</p>
 
   <p>Remember the awkward question — all transactions on George Blake's checking account? In the relational
@@ -582,7 +639,7 @@ WHERE product_cd = 'CD';</code></pre>
 </section>
 
 <section id="mysql">
-  <h2><span class="num">10</span>MySQL and the other servers</h2>
+  <h2><span class="num">1.10</span>MySQL and the other servers</h2>
   <p class="lede">They do roughly the same thing; the book deliberately sticks to common ground.</p>
 
   <p>Relational databases have been commercial products for over three decades. The mature big three:</p>
@@ -608,7 +665,7 @@ WHERE product_cd = 'CD';</code></pre>
 </section>
 
 <section id="unplugged">
-  <h2><span class="num">11</span>SQL unplugged</h2>
+  <h2><span class="num">1.11</span>SQL unplugged</h2>
   <p class="lede">New technologies, same query language.</p>
   <p>A lot changed between the book's second and third editions. Relational databases remain heavily used,
     but systems built for the scale of Amazon and Google emerged alongside them:
@@ -623,7 +680,7 @@ WHERE product_cd = 'CD';</code></pre>
 </section>
 
 <section id="next">
-  <h2><span class="num">12</span>What's in store, and the chapter in one screen</h2>
+  <h2><span class="num">1.12</span>What's in store, and the chapter in one screen</h2>
   <p class="lede">Where the book goes next — plus a cheat sheet worth keeping open.</p>
 
   <p>The next four chapters introduce SQL <em>data</em> statements, with heavy emphasis on the main clauses
@@ -675,13 +732,813 @@ WHERE product_cd = 'CD';</code></pre>
   </ol>
 </section>
 
+<div class="chap" id="ch2">
+  <div class="kicker">Chapter 2 · book pages 45–71 (PDF pp. 35–62)</div>
+  <h2><span class="num">2.0</span>Creating and Populating a Database</h2>
+  <p>Chapter 1 was theory. This one is hands on: how to get a MySQL server, how to pick a data type for
+  a column, how to turn a rough idea into a normalized <span class="inline">CREATE TABLE</span> statement,
+  and how to put rows in and take them out. It ends with four ways to break the rules and the exact errors
+  the server throws back.</p>
+</div>
+
+<section id="ch2-intro">
+  <h2><span class="num">2.1</span>The chapter in one paragraph</h2>
+  <p class="lede">Everything in this chapter is a setup step for the rest of the book.</p>
+  <p>You install or borrow a MySQL 8.0 server, talk to it with the <span class="inline">mysql</span>
+    command-line tool, and learn that every column must be declared with a <em>type</em> — character
+    (<span class="inline">char</span>/<span class="inline">varchar</span>/<span class="inline">text</span>),
+    numeric (<span class="inline">tinyint</span>…<span class="inline">bigint</span>,
+    <span class="inline">float</span>/<span class="inline">double</span>), or temporal
+    (<span class="inline">date</span>/<span class="inline">datetime</span>/<span class="inline">timestamp</span>/<span class="inline">year</span>/<span class="inline">time</span>).
+    You then design a <span class="inline">person</span> table the way a real designer does — brainstorm the
+    facts, then attack the draft with normalization until each column holds exactly one fact and a key
+    guarantees uniqueness. Two tables come out of that: <span class="inline">person</span> and
+    <span class="inline">favorite_food</span>, tied together by a foreign key. You create them, let the
+    server generate primary keys with <span class="inline">AUTO_INCREMENT</span>, insert rows, correct one
+    with <span class="inline">UPDATE</span>, delete one, and finally load the Sakila sample database that
+    the rest of the book queries.</p>
+  <div class="simple">
+    <span class="tag">Why types come first</span>
+    In Chapter 1 the relational model was about <em>shape</em> (tables, keys, joins). Chapter 2 adds the
+    other half: every column also has a <em>storage contract</em> — a size, a range, a format. Most beginner
+    errors are one of those three being violated.
+  </div>
+</section>
+
+<section id="setup">
+  <h2><span class="num">2.2</span>Getting a server, and the mysql tool</h2>
+  <p class="lede">Two ways in, then the handful of client commands you'll live inside.</p>
+
+  <p>The book offers a choice for experimenting with the example data:</p>
+  <div class="grid">
+    <div class="tile"><h4>1 · Install MySQL 8.0+</h4><p>Download the server, then load the Sakila sample database from MySQL's "Example Databases" page. Your work persists; you own the box.</p></div>
+    <div class="tile"><h4>2 · Use the MySQL Sandbox</h4><p>A free Katacoda scenario starts a server with Sakila already loaded and drops you at a <span class="inline">mysql&gt;</span> prompt. Easiest path — but changes vanish when the session ends.</p></div>
+  </div>
+  <p>If you install it yourself, loading the sample data means downloading the sakila files, putting them
+    in a folder, and running the two schema/data scripts through the client's
+    <span class="inline">source</span> command. (Sakila is MySQL's own BSD-licensed example database about a
+    fictitious movie-rental chain.)</p>
+  <p>Then you're in the client. These are the commands the chapter leans on — not SQL, but the tool's own
+    verbs:</p>
+
+  <div class="code">
+    <div class="bar"><span class="k">start the client, pick a database, look around</span></div>
+    <pre><code class="sql">mysql -u root -p;
+
+SHOW DATABASES;
+
+USE sakila;
+
+SHOW TABLES;
+
+DESCRIBE person;   /* or: DESC person; */
+
+QUIT;   /* or EXIT; */</code></pre>
+  </div>
+  <p>A shortcut worth knowing: pass the database on the command line
+    (<span class="inline">mysql -u root -p sakila</span>) and you skip typing
+    <span class="inline">USE sakila;</span> every session.</p>
+  <p>You can also ask the server questions that need no table at all:</p>
+  <div class="code">
+    <div class="bar"><span class="k">a query with no FROM</span></div>
+    <pre><code class="sql">mysql&gt; SELECT now();
++---------------------+
+| now()               |
++---------------------+
+| 2019-04-04 20:44:26 |
++---------------------+
+1 row in set (0.01 sec)</code></pre>
+  </div>
+  <div class="note">
+    <span class="tag">Portability sidebar — the DUAL table</span>
+    Some servers (notably Oracle) refuse a <span class="inline">SELECT</span> with no
+    <span class="inline">FROM</span> clause. They ship a one-row, one-column table called
+    <span class="inline">dual</span> purely so you have something to select <em>from</em> when you just want
+    to call a function. MySQL added <span class="inline">dual</span> for compatibility, so
+    <span class="inline">SELECT now() FROM dual;</span> works on both. If you don't need Oracle
+    compatibility, drop the clause.
+  </div>
+  <p>Notice the last line of every result: <em>"N rows in set (T.TT sec)"</em>. That habit — read the
+    feedback line — started in Chapter 1 and pays off throughout this one.</p>
+</section>
+
+<section id="datatypes">
+  <h2><span class="num">2.3</span>Choosing a data type</h2>
+  <p class="lede">Three families: characters, numbers, time. Pick the smallest thing that fits.</p>
+
+  <p>All mainstream servers store the same basic kinds of data; they diverge on specialty types (XML, JSON,
+    spatial). Since ~98% of real columns are simple, the chapter covers only these three families.</p>
+
+  <div class="pick">
+    <div><h4>Character</h4><ul>
+      <li><span class="inline">char(n)</span> — fixed length, right-padded with spaces, always n bytes</li>
+      <li><span class="inline">varchar(n)</span> — variable length, no padding</li>
+      <li>Max size: <b>255</b> bytes for <span class="inline">char</span>, <b>65,535</b> for
+        <span class="inline">varchar</span></li>
+      <li>Rule of thumb: <span class="inline">char</span> when every value is the same length (state codes),
+        <span class="inline">varchar</span> when they vary (names)</li>
+    </ul></div>
+    <div><h4>Numeric</h4><ul>
+      <li>Integers for whole numbers: <span class="inline">tinyint</span> →
+        <span class="inline">bigint</span> (1 → 8 bytes)</li>
+      <li><span class="inline">unsigned</span> = "never negative", which doubles the positive headroom</li>
+      <li>Booleans are just 0/1 integers</li>
+      <li><span class="inline">float(p,s)</span> / <span class="inline">double(p,s)</span> for fractions</li>
+    </ul></div>
+    <div><h4>Temporal</h4><ul>
+      <li><span class="inline">date</span> — day only</li>
+      <li><span class="inline">datetime</span> — day + time, manual</li>
+      <li><span class="inline">timestamp</span> — same fields, but the server fills it in automatically on
+        insert and on modify</li>
+      <li><span class="inline">year</span> · <span class="inline">time</span> — elapsed duration, no date part</li>
+    </ul></div>
+  </div>
+
+  <h3>Text types, for when 64 KB isn't enough (Table 2-1)</h3>
+  <table>
+    <thead><tr><th>Type</th><th>Max bytes</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><td>tinytext</td><td>255</td><td>obsolete — <span class="inline">varchar</span> already beats it</td></tr>
+      <tr><td>text</td><td>65,535</td><td>same as <span class="inline">varchar</span>'s ceiling</td></tr>
+      <tr><td>mediumtext</td><td>16,777,215</td><td>documents, emails, XML</td></tr>
+      <tr><td>longtext</td><td>4,294,967,295</td><td>large documents</td></tr>
+    </tbody>
+  </table>
+  <p>Trade-offs: oversized data is <em>truncated</em> silently, trailing spaces are kept, and sorting or
+    grouping on a text column uses only the first 1,024 bytes. These type names are MySQL-specific — SQL
+    Server has one <span class="inline">text</span> type, Oracle and DB2 use
+    <span class="inline">clob</span>. Other ceilings to keep in mind: Oracle allows 2,000 bytes for
+    <span class="inline">char</span> and 4,000 for <span class="inline">varchar2</span>; SQL Server allows
+    8,000 for both but 2 GB via <span class="inline">varchar(max)</span>.</p>
+  <div class="simple">
+    <span class="tag">Practical rule</span>
+    Free-form notes? <span class="inline">varchar</span> is fine. Actual documents?
+    <span class="inline">mediumtext</span> or <span class="inline">longtext</span>.
+  </div>
+
+  <h3>Integer sizes (Table 2-2), and why you shouldn't grab bigint out of fear</h3>
+  <table>
+    <thead><tr><th>Type</th><th>Signed range</th><th>Unsigned range</th></tr></thead>
+    <tbody>
+      <tr><td>tinyint</td><td>−128 … 127</td><td>0 … 255</td></tr>
+      <tr><td>smallint</td><td>−32,768 … 32,767</td><td>0 … 65,535</td></tr>
+      <tr><td>mediumint</td><td>−8,388,608 … 8,388,607</td><td>0 … 16,777,215</td></tr>
+      <tr><td>int</td><td>−2,147,483,648 … 2,147,483,647</td><td>0 … 4,294,967,295</td></tr>
+      <tr><td>bigint</td><td>−2⁶³ … 2⁶³−1</td><td>0 … 2⁶⁴−1</td></tr>
+    </tbody>
+  </table>
+  <p>MySQL allocates real bytes per row — 1 for <span class="inline">tinyint</span>, 8 for
+    <span class="inline">bigint</span> — so choose the smallest type that comfortably holds the largest
+    number you can imagine. Precision and scale behave the same way for
+    <span class="inline">float</span>/<span class="inline">double</span>:
+    <em>precision</em> is total digits, <em>scale</em> is digits after the decimal point. A
+    <span class="inline">float(4,2)</span> column stores 27.44 and 8.19 happily, rounds 17.8675 to 17.87,
+    and <strong>errors</strong> on 178.375 because it needs five digits. (And note:
+    <span class="inline">unsigned</span> on a floating-point column only blocks negatives — it doesn't
+    extend the range.)</p>
+
+  <h3>Dates: format strings are the contract (Tables 2-4 &amp; 2-5)</h3>
+  <table>
+    <thead><tr><th>Type</th><th>Default format</th><th>Range</th></tr></thead>
+    <tbody>
+      <tr><td>date</td><td>YYYY-MM-DD</td><td>1000-01-01 … 9999-12-31</td></tr>
+      <tr><td>datetime</td><td>YYYY-MM-DD HH:MI:SS[.fraction]</td><td>1000-01-01 00:00:00 … 9999-12-31 23:59:59</td></tr>
+      <tr><td>timestamp</td><td>YYYY-MM-DD HH:MI:SS[.fraction]</td><td>1970-01-01 … 2038-01-18</td></tr>
+      <tr><td>year</td><td>YYYY</td><td>1901 … 2155</td></tr>
+      <tr><td>time</td><td>HHH:MI:SS</td><td>−838:59:59 … 838:59:59</td></tr>
+    </tbody>
+  </table>
+  <p>The format string isn't cosmetic — it tells you both how the value <em>displays</em> on retrieval and
+    how you must <em>write</em> it in an insert or update. To store March 23, 2020 in a
+    <span class="inline">date</span> column you pass the string <span class="inline">'2020-03-23'</span>.
+    <span class="inline">datetime</span>, <span class="inline">timestamp</span> and
+    <span class="inline">time</span> accept fractional seconds down to microseconds — declare
+    <span class="inline">datetime(2)</span> for hundredths.</p>
+  <div class="note">
+    <span class="tag">Which temporal type?</span>
+    Expected shipping date and birth date → <span class="inline">date</span> (you don't need the second, and
+    nobody cares what time you were born). Actual shipment moment →
+    <span class="inline">datetime</span>. "When was this row last touched?" →
+    <span class="inline">timestamp</span>, because the server maintains it for you. Just a duration →
+    <span class="inline">time</span>, rather than subtracting two datetimes and confusing everyone.
+  </div>
+  <p>One more reason to store dates as dates and not strings: the supported <em>range</em> differs per
+    server — Oracle spans 4712 BC to 9999 AD, SQL Server starts at 1753 AD (1 AD with
+    <span class="inline">datetime2</span>), and MySQL sits between them at 1000 AD–9999 AD. Storing
+    historical dates? Check your server first.</p>
+  <p>For international text, MySQL supports many character sets; <span class="inline">SHOW CHARACTER
+    SET</span> lists them, and any set whose <em>Maxlen</em> is greater than 1 is a multibyte set (Japanese,
+    Korean and friends need more than one byte per character). MySQL 8 defaults to
+    <span class="inline">utf8mb4</span> where older versions defaulted to
+    <span class="inline">latin1</span>, and you can override per column
+    (<span class="inline">varchar(20) character set latin1</span>) or for a whole database:</p>
+  <div class="code">
+    <div class="bar"><span class="k">setting a database default character set</span></div>
+    <pre><code class="sql">CREATE DATABASE european_sales CHARACTER SET latin1;</code></pre>
+  </div>
+</section>
+
+<section id="design">
+  <h2><span class="num">2.4</span>Design: from napkin to two normalized tables</h2>
+  <p class="lede">The most instructive pages in the chapter — watch a bad design get argued into a good one.</p>
+
+  <p>Rather than hand you a finished schema, the author builds one live, in three named steps. Keep a small
+    business in mind: a person, an address, an eye colour, a birth date, and their favourite foods.</p>
+
+  <h3>Step 1 — Design (brainstorm the facts)</h3>
+  <p>List what describes a person, name each column, assign a type. The first pass is honest and wrong:</p>
+
+  <figure>
+    <img src="images/tab2-6-person-first-pass.png" width="1116" height="366"
+         alt="Table 2-6: person table first pass — name, eye_color, birth_date, address, favorite_foods.">
+    <figcaption><b>Table 2-6 — Person table, first pass.</b> Five columns, no key. It looks reasonable, and
+      it is broken in four separate ways. (Learning SQL, Ch. 2)</figcaption>
+  </figure>
+
+  <h3>Step 2 — Refinement (attack your own draft)</h3>
+  <p>Chapter 1's normalization rule comes to collect the debt. Four objections:</p>
+  <ul>
+    <li><span class="inline">name</span> is a <strong>compound</strong> value — first and last name in one column.</li>
+    <li><strong>Nothing guarantees uniqueness.</strong> Two people can share a name, eye colour and birth
+      date, so no column (or combination) can serve as a primary key.</li>
+    <li><span class="inline">address</span> is also compound — street, city, state, country, postal code.</li>
+    <li><span class="inline">favorite_foods</span> is a <strong>list in a single cell</strong> — zero, one or
+      many items crammed into one column. It belongs in its own table with a foreign key back to the person.</li>
+  </ul>
+
+  <figure>
+    <img src="images/tab2-7-person-second-pass.png" width="1116" height="583"
+         alt="Table 2-7: person table second pass — person_id, first_name, last_name, eye_color, birth_date, street, city, state, country, postal_code.">
+    <figcaption><b>Table 2-7 — Person table, second pass.</b> Ten columns: a surrogate
+      <span class="inline">person_id</span> primary key, the compound columns split into atomic ones, and
+      the food list gone entirely. (Learning SQL, Ch. 2)</figcaption>
+  </figure>
+
+  <figure>
+    <img src="images/tab2-8-favorite-food.png" width="1116" height="235"
+         alt="Table 2-8: favorite_food table with person_id and food columns.">
+    <figcaption><b>Table 2-8 — favorite_food table.</b> Two columns that do two jobs at once: together they
+      are the <em>primary key</em> (a person can like a given food only once), and
+      <span class="inline">person_id</span> alone is the <em>foreign key</em> to
+      <span class="inline">person</span>. (Learning SQL, Ch. 2)</figcaption>
+  </figure>
+
+  <div class="simple">
+    <span class="tag">How far is "enough"?</span>
+    The book then asks the question a real reviewer asks: if one person says "pasta" and another says
+    "spaghetti", are those the same value? A fully normalized design would add a
+    <span class="inline">food</span> lookup table and store a <span class="inline">food_id</span> foreign
+    key. But if you're happy keeping exactly what users typed, leaving it alone is a legitimate choice.
+    Normalization is a tool, not a tax.
+  </div>
+</section>
+
+<section id="create">
+  <h2><span class="num">2.5</span>CREATE TABLE, and the three constraints</h2>
+  <p class="lede">Design becomes DDL: a primary key, a foreign key, and a check that MySQL quietly ignores.</p>
+
+  <p>Step 3 turns Table 2-7 into SQL. Read the columns, then the last line — that line is the point:</p>
+  <div class="code">
+    <div class="bar"><span class="k">schema · the person table</span></div>
+    <pre><code class="sql">CREATE TABLE person
+ (person_id SMALLINT UNSIGNED,
+  fname VARCHAR(20),
+  lname VARCHAR(20),
+  eye_color CHAR(2),
+  birth_date DATE,
+  street VARCHAR(30),
+  city VARCHAR(20),
+  state VARCHAR(20),
+  country VARCHAR(20),
+  postal_code VARCHAR(20),
+  CONSTRAINT pk_person PRIMARY KEY (person_id)
+ );</code></pre>
+  </div>
+  <p>Only the final clause is new: a <span class="term">constraint</span> is a named rule attached to the
+    table. Here it's a <strong>primary key constraint</strong> on <span class="inline">person_id</span>,
+    named <span class="inline">pk_person</span>.</p>
+
+  <h3>Check constraints — and MySQL's catch</h3>
+  <p>A <strong>check constraint</strong> restricts the <em>values</em> a column may hold:</p>
+  <div class="code">
+    <div class="bar"><span class="k">constrain allowable values</span></div>
+    <pre><code class="sql">eye_color CHAR(2) CHECK (eye_color IN ('BR','BL','GR')),</code></pre>
+  </div>
+  <p>Most servers enforce that. <strong>MySQL parses it and then ignores it</strong> — so the book uses the
+    MySQL idiom instead, an <span class="inline">enum</span> data type that bakes the allowed list into the
+    type itself:</p>
+  <div class="code">
+    <div class="bar"><span class="k">the MySQL way</span></div>
+    <pre><code class="sql">eye_color ENUM('BR','BL','GR'),</code></pre>
+  </div>
+  <p>and the resulting statement, run in the client:</p>
+  <div class="code">
+    <div class="bar"><span class="k">running it</span></div>
+    <pre><code class="sql">mysql&lt; CREATE TABLE person
+    -&gt;  (person_id SMALLINT UNSIGNED,
+    -&gt;   fname VARCHAR(20),
+    -&gt;   lname VARCHAR(20),
+    -&gt;   eye_color ENUM('BR','BL','GR'),
+    -&gt;   birth_date DATE,
+    -&gt;   street VARCHAR(30),
+    -&gt;   city VARCHAR(20),
+    -&gt;   state VARCHAR(20),
+    -&gt;   country VARCHAR(20),
+    -&gt;   postal_code VARCHAR(20),
+    -&gt;   CONSTRAINT pk_person PRIMARY KEY (person_id)
+    -&gt;  );
+Query OK, 0 rows affected (0.37 sec)</code></pre>
+  </div>
+  <p>"<em>0 rows affected</em>" is the expected success message for a schema statement — nothing was created
+    <em>in</em> a table, the table itself was created. Verify it with
+    <span class="inline">DESC person;</span>, and read its six columns as a checklist:</p>
+  <table>
+    <thead><tr><th>Column</th><th>What it tells you</th></tr></thead>
+    <tbody>
+      <tr><td>Field</td><td>the column name</td></tr>
+      <tr><td>Type</td><td>its data type, as the server stored it</td></tr>
+      <tr><td>Null</td><td>may the column be omitted on insert? (<span class="inline">NO</span> = required)</td></tr>
+      <tr><td>Key</td><td>does it participate in a key? <span class="inline">PRI</span> primary, <span class="inline">MUL</span> non-unique/foreign</td></tr>
+      <tr><td>Default</td><td>what fills in if you omit it</td></tr>
+      <tr><td>Extra</td><td>anything else — e.g. <span class="inline">auto_increment</span>, <span class="inline">DEFAULT_GENERATED on update CURRENT_TIMESTAMP</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>The foreign key that makes the child table a child</h3>
+  <div class="code">
+    <div class="bar"><span class="k">schema · the favorite_food table</span></div>
+    <pre><code class="sql">mysql&lt; CREATE TABLE favorite_food
+    -&gt;  (person_id SMALLINT UNSIGNED,
+    -&gt;  food VARCHAR(20),
+    -&gt;  CONSTRAINT pk_favorite_food PRIMARY KEY (person_id, food),
+    -&gt;  CONSTRAINT fk_fav_food_person_id FOREIGN KEY (person_id)
+    -&gt;  REFERENCES person (person_id)
+    -&gt;  );
+Query OK, 0 rows affected (0.10 sec)</code></pre>
+  </div>
+  <p>Two differences from <span class="inline">person</span>, and both matter:</p>
+  <ul>
+    <li><strong>A two-column primary key.</strong> One person can like many foods, so
+      <span class="inline">person_id</span> alone isn't unique — you need
+      <span class="inline">(person_id, food)</span> together. This is the <em>compound key</em> Chapter 1
+      named.</li>
+    <li><strong>A foreign key constraint.</strong> <span class="inline">person_id</span> in this table may
+      only contain values that already exist in <span class="inline">person</span>. You cannot record that
+      person 27 likes pizza if person 27 doesn't exist.</li>
+  </ul>
+  <div class="note">
+    <span class="tag">Two gotchas, stated plainly</span>
+    ① If you forget the foreign key when you create the table, you can add it later with
+    <span class="inline">ALTER TABLE</span>. ② MySQL enforces foreign keys <strong>only for InnoDB
+    tables</strong> (storage engines are Chapter 12) — on other engines the constraint is accepted and
+    silently unenforced, which is exactly the kind of "it worked but nothing happened" bug worth knowing
+    about early.
+  </div>
+
+  <h3>The design, drawn</h3>
+  <div class="schema">
+    <div class="tbl">
+      <h5>person</h5>
+      <div class="r"><span>person_id <span class="badge pk">PK</span><span class="badge ai">AUTO_INC</span></span><i>smallint uns</i></div>
+      <div class="r"><span>fname</span><i>varchar(20)</i></div>
+      <div class="r"><span>lname</span><i>varchar(20)</i></div>
+      <div class="r"><span>eye_color</span><i>enum BR/BL/GR</i></div>
+      <div class="r"><span>birth_date</span><i>date</i></div>
+      <div class="r"><span>street</span><i>varchar(30)</i></div>
+      <div class="r"><span>city · state</span><i>varchar(20)</i></div>
+      <div class="r"><span>country · postal_code</span><i>varchar(20)</i></div>
+    </div>
+    <div class="tbl">
+      <h5>favorite_food</h5>
+      <div class="r"><span>person_id <span class="badge pk">PK</span><span class="badge fk">FK→person</span></span><i>smallint uns</i></div>
+      <div class="r"><span>food <span class="badge pk">PK</span></span><i>varchar(20)</i></div>
+      <div style="padding:10px 14px;font-family:var(--sans);font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)">
+        one person → many foods; a food may be listed once per person
+      </div>
+    </div>
+  </div>
+  <p style="font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:-8px">Diagram drawn from
+    Tables 2-7 and 2-8 — the book itself has no figure in this chapter.</p>
+</section>
+
+<section id="keys">
+  <h2><span class="num">2.6</span>Who numbers the primary keys?</h2>
+  <p class="lede">Never "max + 1". Let the server do it.</p>
+  <p>You need a <span class="inline">person_id</span> before you can insert. Two options suggest
+    themselves:</p>
+  <ul>
+    <li><strong>Read the current maximum and add one.</strong> Looks fine, and it isn't: in a multi-user
+      system two people can read the same maximum at the same instant and both insert the same key. This is
+      a race condition, and it's the reason this pattern never survives contact with a real server.</li>
+    <li><strong>Let the server generate it.</strong> Every server has a safe mechanism for this — Oracle
+      uses a separate object called a <em>sequence</em>; MySQL puts
+      <span class="inline">AUTO_INCREMENT</span> on the column.</li>
+  </ul>
+  <p>The table is already built, so the chapter changes it with another schema statement,
+    <span class="inline">ALTER TABLE</span>:</p>
+  <div class="code">
+    <div class="bar"><span class="k">redefine a column in place</span></div>
+    <pre><code class="sql">ALTER TABLE person MODIFY person_id SMALLINT UNSIGNED AUTO_INCREMENT;</code></pre>
+  </div>
+  <div class="note">
+    <span class="tag">Sequencing trick you'll meet again</span>
+    Because <span class="inline">favorite_food</span> has a foreign key pointing at
+    <span class="inline">person.person_id</span>, you can't just rebuild that column. The book turns the
+    check off, alters, and turns it back on:
+    <span class="inline">SET foreign_key_checks=0;</span> → <span class="inline">ALTER TABLE person MODIFY
+    person_id SMALLINT UNSIGNED AUTO_INCREMENT;</span> → <span class="inline">SET foreign_key_checks=1;</span>
+    — the <span class="inline">ALTER</span> redefines the column, which is why the constraint has to be
+    out of the way for the moment.
+  </div>
+  <p>Now <span class="inline">DESC person;</span> shows <span class="inline">auto_increment</span> in the
+    Extra column — and inserting becomes a matter of passing <span class="inline">null</span> for the key
+    and letting MySQL hand back the next number (it starts at 1).</p>
+</section>
+
+<section id="modify">
+  <h2><span class="num">2.7</span>INSERT, UPDATE, DELETE — and reading the feedback</h2>
+  <p class="lede">Three statements, one shared habit: check how many rows were touched.</p>
+
+  <p>An <span class="inline">INSERT</span> has exactly three parts — which table, which columns, which
+    values — and the column list and value list must match in <em>number</em> and <em>type</em>:</p>
+  <div class="code">
+    <div class="bar"><span class="k">first row, key omitted from values on purpose</span></div>
+    <pre><code class="sql">mysql&lt; INSERT INTO person
+    -&gt;   (person_id, fname, lname, eye_color, birth_date)
+    -&gt; VALUES (null, 'William','Turner', 'BR', '1972-05-27');
+Query OK, 1 row affected (0.22 sec)</code></pre>
+  </div>
+  <p>Three things to notice in that one statement:</p>
+  <ul>
+    <li><span class="inline">null</span> for <span class="inline">person_id</span> is how you ask
+      <span class="inline">AUTO_INCREMENT</span> for the next number.</li>
+    <li>The five address columns are simply absent — legal, because they allow nulls. They get filled in
+      later, or never (an order cancelled before shipping has no meaningful
+      <span class="inline">ship_date</span>).</li>
+    <li>The date went in as a <strong>string</strong>. MySQL converts it, <em>as long as it matches the
+      column's expected format</em> — which is the seed of the error in
+      <a href="#errors">§2.8</a>.</li>
+  </ul>
+  <div class="code">
+    <div class="bar"><span class="k">prove it landed</span></div>
+    <pre><code class="sql">mysql&lt; SELECT person_id, fname, lname, birth_date
+    -&gt; FROM person;
++-----------+---------+--------+------------+
+| person_id | fname   | lname  | birth_date |
++-----------+---------+--------+------------+
+|         1 | William | Turner | 1972-05-27 |
++-----------+---------+--------+------------+
+1 row in set (0.06 sec)</code></pre>
+  </div>
+  <p>The server invented <span class="inline">person_id = 1</span>. With one row in the table you can get
+    away with no <span class="inline">WHERE</span>; with more, you filter — and the chapter shows that the
+    filter doesn't have to use the key at all:</p>
+  <div class="code">
+    <div class="bar"><span class="k">filter by key, or by any column</span></div>
+    <pre><code class="sql">SELECT person_id, fname, lname, birth_date
+FROM person
+WHERE person_id = 1;
+
+SELECT person_id, fname, lname, birth_date
+FROM person
+WHERE lname = 'Turner';</code></pre>
+  </div>
+  <p>William's three favourite foods become three inserts — one row per value, which is exactly what
+    pulling the list out of the <span class="inline">person</span> table bought us:</p>
+  <div class="code">
+    <div class="bar"><span class="k">the child rows</span></div>
+    <pre><code class="sql">mysql&lt; INSERT INTO favorite_food (person_id, food)
+    -&gt; VALUES (1, 'pizza');
+Query OK, 1 row affected (0.01 sec)
+mysql&lt; INSERT INTO favorite_food (person_id, food)
+    -&gt; VALUES (1, 'cookies');
+Query OK, 1 row affected (0.00 sec)
+mysql&lt; INSERT INTO favorite_food (person_id, food)
+    -&gt; VALUES (1, 'nachos');
+Query OK, 1 row affected (0.01 sec)</code></pre>
+  </div>
+  <p>and a first taste of sorting:</p>
+  <div class="code">
+    <div class="bar"><span class="k">ORDER BY — the only way to promise an order</span></div>
+    <pre><code class="sql">mysql&lt; SELECT food
+    -&gt; FROM favorite_food
+    -&gt; WHERE person_id = 1
+    -&gt; ORDER BY food;
++---------+
+| food    |
++---------+
+| cookies |
+| nachos  |
+| pizza   |
++---------+
+3 rows in set (0.02 sec)</code></pre>
+  </div>
+  <div class="simple">
+    <span class="tag">Say it once and mean it</span>
+    Without an <span class="inline">ORDER BY</span>, a table gives you <strong>no guarantee whatsoever</strong>
+    about the order rows come back in. If order matters, you must ask for it.
+  </div>
+  <p>A second person arrives, this time <em>with</em> an address — so the column and value lists grow by
+    five:</p>
+  <div class="code">
+    <div class="bar"><span class="k">more columns, more values</span></div>
+    <pre><code class="sql">mysql&lt; INSERT INTO person
+    -&gt; (person_id, fname, lname, eye_color, birth_date,
+    -&gt;  street, city, state, country, postal_code)
+    -&gt; VALUES (null, 'Susan','Smith', 'BL', '1975-11-02',
+    -&gt;  '23 Maple St.', 'Arlington', 'VA', 'USA', '20220');
+Query OK, 1 row affected (0.01 sec)</code></pre>
+  </div>
+
+  <h3>UPDATE — filling in what you skipped</h3>
+  <div class="code">
+    <div class="bar"><span class="k">set many columns, match one row</span></div>
+    <pre><code class="sql">mysql&lt; UPDATE person
+    -&gt; SET street = '1225 Tremont St.',
+    -&gt;   city = 'Boston',
+    -&gt;   state = 'MA',
+    -&gt;   country = 'USA',
+    -&gt;   postal_code = '02138'
+    -&gt; WHERE person_id = 1;
+Query OK, 1 row affected (0.04 sec)
+Rows matched: 1  Changed: 1  Warnings: 0</code></pre>
+  </div>
+  <p>MySQL answers an update with two lines, and they answer two different questions:
+    <em>Rows matched</em> = how many rows satisfied the <span class="inline">WHERE</span>;
+    <em>Changed</em> = how many were actually written. Matching one and changing one is the healthy
+    case. The number of rows an unguarded statement touches is decided entirely by your
+    <span class="inline">WHERE</span>:</p>
+  <div class="code">
+    <div class="bar"><span class="k">blast radius, three ways</span></div>
+    <pre><code class="sql">WHERE person_id = 1     -- exactly one row (a primary key)
+WHERE person_id &lt; 10    -- both William and Susan
+/* no WHERE clause */   -- every row in the table</code></pre>
+  </div>
+
+  <h3>DELETE</h3>
+  <p>William and Susan aren't getting along; since William was there first, Susan is removed the same
+    careful way:</p>
+  <div class="code">
+    <div class="bar"><span class="k">isolate by primary key, then delete</span></div>
+    <pre><code class="sql">mysql&lt; DELETE FROM person
+    -&gt; WHERE person_id = 2;
+Query OK, 1 row affected (0.01 sec)</code></pre>
+  </div>
+  <p>Same rules as <span class="inline">UPDATE</span>: a key identifies one row, a range deletes several,
+    and <strong>no <span class="inline">WHERE</span> at all empties the table</strong>. Chapter 1 flagged
+    this exact hazard; Chapter 2 is where you build the reflex of reading "N rows affected" before you
+    relax.</p>
+
+  <div class="note">
+    <span class="tag">Aside — the same rows as XML</span>
+    Most servers can emit query results as XML. With MySQL, start the client with
+    <span class="inline">--xml</span> and every result arrives wrapped as
+    <span class="inline">&lt;row&gt;&lt;field name="food"&gt;pizza&lt;/field&gt;&lt;/row&gt;</span> — no
+    query changes. SQL Server instead appends a clause:
+    <span class="inline">SELECT * FROM favorite_food FOR XML AUTO, ELEMENTS</span>.
+  </div>
+</section>
+
+<section id="errors">
+  <h2><span class="num">2.8</span>When good statements go bad</h2>
+  <p class="lede">Four mistakes, four error messages — learn to read them, not fear them.</p>
+  <p>Every statement so far obeyed the rules of the two table definitions. Here's what happens when one
+    doesn't.</p>
+
+  <div class="err">
+    <h4>① Duplicate primary key</h4>
+    <p>A primary key means <em>unique</em>, so supplying your own key value lets you collide with an
+      existing row — this attempt to bypass <span class="inline">AUTO_INCREMENT</span> and force
+      <span class="inline">1</span> again is refused:</p>
+    <div class="msg">mysql&gt; INSERT INTO person
+   (person_id, fname, lname, eye_color, birth_date)
+ VALUES (1, 'Charles','Fulton', 'GR', '1968-01-15');
+ERROR 1062 (23000): Duplicate entry '1' for key 'PRIMARY'</div>
+    <p>What it does <em>not</em> prevent: two people with identical names, addresses and birth dates, as
+      long as their keys differ. Uniqueness is a property of the key, not of the row's meaning — so a
+      "no duplicate customers" rule needs a <span class="inline">UNIQUE</span> constraint on the relevant
+      columns, which is why the same data entered with <span class="inline">null</span> for the key (letting
+      the server assign 3) succeeds just fine.</p>
+  </div>
+
+  <div class="err">
+    <h4>② Nonexistent foreign key</h4>
+    <p>Referential integrity means a child row can't reference a parent that isn't there. Person 999 does
+      not exist, so their dinner preference has nowhere to hang:</p>
+    <div class="msg">mysql&gt; INSERT INTO favorite_food (person_id, food)
+ VALUES (999, 'lasagna');
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint
+fails ('sakila'.'favorite_food', CONSTRAINT 'fk_fav_food_person_id' FOREIGN KEY
+('person_id') REFERENCES 'person' ('person_id'))</div>
+    <p>The vocabulary is <strong>parent</strong> (<span class="inline">person</span>) and
+      <strong>child</strong> (<span class="inline">favorite_food</span>), named for who depends on whom.
+      Practical consequence for loading data: <strong>parents first, then children</strong>. And remember
+      the fine print — this check only runs on InnoDB tables.</p>
+  </div>
+
+  <div class="err">
+    <h4>③ Value outside the allowed set</h4>
+    <p><span class="inline">eye_color</span> accepts <span class="inline">BR</span>,
+      <span class="inline">BL</span>, <span class="inline">GR</span>. Nobody's eyes are 'ZZ':</p>
+    <div class="msg">mysql&gt; UPDATE person
+ SET eye_color = 'ZZ'
+ WHERE person_id = 1;
+ERROR 1265 (01000): Data truncated for column 'eye_color' at row 1</div>
+    <p>The wording is genuinely confusing for what's happening. "Data truncated" is the generic complaint
+      MySQL raises when a value doesn't fit the column's definition — for an <span class="inline">enum</span>
+      an invalid member is treated as the empty value, so the server reports truncation rather than
+      "invalid option". Read it as <em>the value is not allowed here</em>.</p>
+  </div>
+
+  <div class="err">
+    <h4>④ Date that doesn't match the format</h4>
+    <p>Recall the earlier win: <span class="inline">'1972-05-27'</span> worked because it matched
+      <span class="inline">YYYY-MM-DD</span>. Change the order and the conversion fails:</p>
+    <div class="msg">mysql&gt; UPDATE person
+ SET birth_date = 'DEC-21-1980'
+ WHERE person_id = 1;
+ERROR 1292 (22007): Incorrect date value: 'DEC-21-1980' for column 'birth_date'
+at row 1</div>
+    <p>The fix is to stop relying on the default and state the format explicitly with
+      <span class="inline">str_to_date</span>:</p>
+    <div class="code">
+      <div class="bar"><span class="k">same value, format declared</span></div>
+      <pre><code class="sql">mysql&lt; UPDATE person
+    -&gt; SET birth_date = str_to_date('DEC-21-1980' , '%b-%d-%Y')
+    -&gt; WHERE person_id = 1;
+Query OK, 1 row affected (0.12 sec)
+Rows matched: 1  Changed: 1  Warnings: 0</code></pre>
+    </div>
+    <p>Which also makes the point that a date column stores a <em>value</em>, not text: William is now
+      eight years younger, no surgery required. Careful with MySQL's format tokens — they are
+      <strong>not</strong> the <span class="inline">YYYY-MM-DD</span> style shown earlier. A few you'll
+      actually need: <span class="inline">%Y</span> four-digit year,
+      <span class="inline">%m</span> numeric month, <span class="inline">%M</span> full month name,
+      <span class="inline">%b</span> abbreviated month, <span class="inline">%d</span> day of month,
+      <span class="inline">%H</span> hour 24, <span class="inline">%h</span> hour 12 with
+      <span class="inline">%p</span> AM/PM, <span class="inline">%i</span> minutes,
+      <span class="inline">%s</span> seconds, <span class="inline">%f</span> microseconds,
+      <span class="inline">%j</span> day of year, <span class="inline">%W</span>/<span class="inline">%w</span>
+      weekday name/number, <span class="inline">%a</span> abbreviated weekday,
+      <span class="inline">%c</span> numeric month 0–12.</p>
+  </div>
+
+  <div class="simple">
+    <span class="tag">The pattern behind all four</span>
+    None of these are SQL syntax errors — the statements parse fine. Each is the server refusing to violate
+    a rule <em>you</em> declared in <span class="inline">CREATE TABLE</span>: a key must be unique, a foreign
+    key must exist, an enum must be one of its values, a date must be a real date in the expected format.
+    Constraints are the thing doing the protecting, which is the whole argument for writing them.
+  </div>
+</section>
+
+<section id="sakila">
+  <h2><span class="num">2.9</span>The Sakila database</h2>
+  <p class="lede">The toy tables were the tutorial. This is the one you'll actually query for 400 pages.</p>
+  <p><span class="inline">person</span> and <span class="inline">favorite_food</span> exist to teach schema
+    creation — they're not used again, and the book says to feel free to drop them. The real playground is
+    <strong>Sakila</strong>, MySQL's sample database modelling a chain of DVD rental stores (yes, dated —
+    the book jokes you can rebrand it as a streaming company and ignore the staff and address tables).
+    Full schema diagram is in the book's Appendix A.</p>
+  <div class="grid">
+    <div class="tile"><h4>film</h4><p>A movie that has been released and can be rented.</p></div>
+    <div class="tile"><h4>actor</h4><p>A person who acts in films.</p></div>
+    <div class="tile"><h4>customer</h4><p>A person who watches films.</p></div>
+    <div class="tile"><h4>category</h4><p>A genre of films.</p></div>
+    <div class="tile"><h4>payment</h4><p>A rental of a film by a customer.</p></div>
+    <div class="tile"><h4>language</h4><p>A language spoken by the actors of a film.</p></div>
+    <div class="tile"><h4>film_actor</h4><p>An actor in a film — the link table joining films to actors.</p></div>
+    <div class="tile"><h4>inventory</h4><p>A physical copy of a film available for rental.</p></div>
+  </div>
+  <p><span class="inline">SHOW TABLES;</span> lists 23 relations in a fresh Sakila install — the eight
+    above plus <span class="inline">store</span>, <span class="inline">rental</span>,
+    <span class="inline">address</span>, <span class="inline">city</span>,
+    <span class="inline">country</span>, <span class="inline">staff</span> and several
+    <em>views</em> that end in <span class="inline">_list</span> or
+    <span class="inline">_info</span> (<span class="inline">actor_info</span>,
+    <span class="inline">customer_list</span>, <span class="inline">film_list</span>,
+    <span class="inline">nicer_but_slower_film_list</span>,
+    <span class="inline">sales_by_film_category</span>, <span class="inline">sales_by_store</span>…). If
+    <span class="inline">person</span> and <span class="inline">favorite_food</span> appear in your list,
+    here's the cleanup:</p>
+  <div class="code">
+    <div class="bar"><span class="k">drop the tutorial tables — child first!</span></div>
+    <pre><code class="sql">mysql&lt; DROP TABLE favorite_food;
+Query OK, 0 rows affected (0.56 sec)
+mysql&lt; DROP TABLE person;
+Query OK, 0 rows affected (0.05 sec)</code></pre>
+  </div>
+  <p>The order isn't arbitrary: <span class="inline">favorite_food</span> references
+    <span class="inline">person</span>, so the child has to go before the parent — the same dependency
+    error ② enforced, applied to schema objects.</p>
+  <p>You meet Sakila properly with <span class="inline">DESC customer;</span>, and it rewards a close read,
+    because here is every concept of this chapter at once in real production-ish DDL:</p>
+  <div class="code">
+    <div class="bar"><span class="k">a real table's describe output</span></div>
+    <pre><code class="sql">mysql&lt; desc customer;
++-------------+--------------+------+-----+-------------+----------------------+
+| Field       | Type         | Null | Key | Default     | Extra                |
++-------------+--------------+------+-----+-------------+----------------------+
+| customer_id | smallint(5)  | NO   | PRI | NULL        | auto_increment       |
+|             | unsigned     |      |     |             |                      |
+| store_id    | tinyint(3)   | NO   | MUL | NULL        |                      |
+|             | unsigned     |      |     |             |                      |
+| first_name  | varchar(45)  | NO   |     | NULL        |                      |
+| last_name   | varchar(45)  | NO   | MUL | NULL        |                      |
+| email       | varchar(50)  | YES  |     | NULL        |                      |
+| address_id  | smallint(5)  | NO   | MUL | NULL        |                      |
+|             | unsigned     |      |     |             |                      |
+| active      | tinyint(1)   | NO   |     | 1           |                      |
+| create_date | datetime     | NO   |     | NULL        |                      |
+| last_update | timestamp    | YES  |     | CURRENT_    | DEFAULT_GENERATED on |
+|             |              |      |     | TIMESTAMP   | update CURRENT_      |
+|             |              |      |     |             | TIMESTAMP            |
++-------------+--------------+------+-----+-------------+----------------------+</code></pre>
+  </div>
+  <table>
+    <thead><tr><th>Column</th><th>What Sakila is telling you</th></tr></thead>
+    <tbody>
+      <tr><td>customer_id</td><td><span class="inline">smallint unsigned</span> + <span class="inline">auto_increment</span> + PRI — the exact pattern you built by hand in §2.6.</td></tr>
+      <tr><td>store_id, address_id</td><td><span class="inline">MUL</span> in the Key column: indexed because they're foreign keys to other tables.</td></tr>
+      <tr><td>last_name</td><td><span class="inline">MUL</span> with no foreign key — a plain index, there to speed up searching by name.</td></tr>
+      <tr><td>email</td><td>The only nullable column — matching §2.7's rule that optional facts may stay absent.</td></tr>
+      <tr><td>active</td><td><span class="inline">tinyint(1)</span> default 1: the boolean from §2.3's "is this order shipped?" example, live.</td></tr>
+      <tr><td>create_date</td><td><span class="inline">datetime</span> — recorded once, by whoever inserts.</td></tr>
+      <tr><td>last_update</td><td><span class="inline">timestamp</span> with <em>DEFAULT_GENERATED on update CURRENT_TIMESTAMP</em> — the self-maintaining column, so you never trust an app to remember to stamp its own edits.</td></tr>
+    </tbody>
+  </table>
+  <div class="simple">
+    <span class="tag">Why the book insists you get comfortable here</span>
+    From Chapter 3 on, the examples don't stop to explain the tables. Knowing Sakila is what keeps you
+    reading about SQL instead of decoding a schema — and if you wreck your copy, drop it and reload from
+    the downloaded scripts. On the hosted sandbox, changes are lost at logout, so keep your own script of
+    anything you want to reproduce.
+  </div>
+</section>
+
+<section id="recap">
+  <h2><span class="num">2.10</span>Chapter 2 cheat sheet &amp; self-test</h2>
+  <p class="lede">The vocabulary, the commands, and eight questions.</p>
+
+  <table>
+    <thead><tr><th>Idea</th><th>In one line</th></tr></thead>
+    <tbody>
+      <tr><td>char vs varchar</td><td>Fixed length (padded, always n bytes) vs variable. Same-length values → <span class="inline">char</span>; varying → <span class="inline">varchar</span>.</td></tr>
+      <tr><td>65,535</td><td>Bytes a <span class="inline">varchar</span> can hold; beyond that use <span class="inline">mediumtext</span>/<span class="inline">longtext</span>.</td></tr>
+      <tr><td>unsigned</td><td>"never negative" — doubles positive headroom on integers; on floats it only blocks the minus sign.</td></tr>
+      <tr><td>precision, scale</td><td><span class="inline">float(4,2)</span> = 4 digits total, 2 after the point. Overflow rounds or errors.</td></tr>
+      <tr><td>date vs datetime vs timestamp</td><td>Day / day+time you supply / day+time the server maintains.</td></tr>
+      <tr><td>NULL</td><td>The <em>absence</em> of a value — not applicable, unknown, or empty set. A column can be declared <span class="inline">NOT NULL</span>.</td></tr>
+      <tr><td>enum</td><td>MySQL's way to restrict a column's values when <span class="inline">CHECK</span> isn't enforced.</td></tr>
+      <tr><td>compound PK</td><td>No single column unique? Combine them — <span class="inline">PRIMARY KEY (person_id, food)</span>.</td></tr>
+      <tr><td>FK constraint</td><td>Values must exist in the parent table. InnoDB only. Insert parents before children.</td></tr>
+      <tr><td>AUTO_INCREMENT</td><td>Server-assigned key; pass <span class="inline">null</span> to get it. Never "max + 1".</td></tr>
+      <tr><td>ALTER TABLE … MODIFY</td><td>Redefine a column of an existing table (wrap it in <span class="inline">foreign_key_checks</span> off/on).</td></tr>
+      <tr><td>Rows matched / Changed</td><td>Two different numbers on an update — one is your <span class="inline">WHERE</span>, one is the write.</td></tr>
+      <tr><td>str_to_date</td><td>Convert text to a date by <em>declaring</em> the format (<span class="inline">'%b-%d-%Y'</span>), don't rely on the default.</td></tr>
+      <tr><td>DROP TABLE order</td><td>Child before parent.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Questions to test yourself</h3>
+  <ol>
+    <li>Your notes column will hold a paragraph or two, maybe a page.
+      <span class="inline">char</span>, <span class="inline">varchar</span> or a text type — and why?</li>
+    <li>A <span class="inline">flag</span> column records yes/no. Which MySQL type does the book use for
+      that, and what does its default mean?</li>
+    <li>Why is <span class="inline">timestamp</span> better than <span class="inline">datetime</span> for
+      "when did anyone last edit this row"?</li>
+    <li>Name the four objections that turned Table 2-6 into Table 2-7 and 2-8.</li>
+    <li>Why can't <span class="inline">favorite_food</span> be keyed on
+      <span class="inline">person_id</span> alone?</li>
+    <li>You try <span class="inline">INSERT INTO favorite_food VALUES (42,'tofu')</span> and get error
+      1452. What are the two possible fixes, and which is usually the honest one?</li>
+    <li>An update reports <em>Rows matched: 3, Changed: 0</em>. What happened?</li>
+    <li>Why must <span class="inline">SET foreign_key_checks=0</span> surround the
+      <span class="inline">ALTER TABLE … AUTO_INCREMENT</span> statement, and what must you not forget
+      afterwards?</li>
+  </ol>
+
+  <div class="card">
+    <h3 style="margin-top:0">What's next</h3>
+    <p>Chapter 3, <em>Query Primer</em>, is where the book stops setting things up and starts asking
+      questions: the anatomy of a <span class="inline">SELECT</span> and how its clauses interact —
+      <span class="inline">select</span>, <span class="inline">from</span>,
+      <span class="inline">where</span>, <span class="inline">group by</span>,
+      <span class="inline">having</span>, <span class="inline">order by</span> — the three-clause skeleton
+      from Chapter 1 growing into the full shape you'll use for the rest of the book, all against Sakila.
+      Say the word and I'll add it to this page the same way.</p>
+  </div>
+</section>
+
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapter 1 of <i>Learning SQL: Generate,
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1 and 2 of <i>Learning SQL: Generate,
   Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
-  ISBN 9781492057611). Figures are reproduced from the copy in this repository for personal study;
-  please buy the book if you like it. SQL snippets are the book's teaching examples.</p>
+  ISBN 9781492057611). Figure 1-1…1-3 and the Table 2-6…2-8 crops are reproduced from the copy of that PDF
+  in this repository for personal study; please buy the book if you like it. SQL snippets are the book's
+  teaching examples.</p>
 </footer>
 </div>
 
