@@ -7,8 +7,8 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1 through 4** — 28 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 22 syntax-highlighted,
+One self-contained HTML file covering **Chapters 1 through 5** — 50 figures embedded as inline
+base64 images (works offline, no server, no external assets) and 31 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -17,6 +17,7 @@ copyable T-SQL listings.
 | 2 | SQL Server Execution Model and Wait Statistics | 27–44 | 2-1 … 2-6 | 2-1 … 2-4 |
 | 3 | Disk Subsystem Performance | 45–67 | 3-1 … 3-8 | 3-1 … 3-3 |
 | 4 | Inefficient Queries | 69–103 | 4-1 … 4-9 | 4-1 … 4-10 |
+| 5 | Data Storage and Query Tuning | 105–158 | 5-1 … 5-22 | 5-1 … 5-9 |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -89,6 +90,48 @@ Extended Events, the Query Store, and third-party tools.
 - Listing 4-8 — Getting expensive queries from the Query Store
 - Listing 4-9 — Queries with different context settings
 - Listing 4-10 — Detecting queries with duplicated `query_hash` values
+
+### Chapter 5 — Data Storage and Query Tuning
+
+How row-store data is actually laid out, why a seek can cost the same as a scan, how
+statistics drive cardinality estimation, and how to choose indexes and join types.
+
+- Figure 5-1 — Internal table structure
+- Figure 5-2 — B-Tree index
+- Figure 5-3 — Index scan
+- Figure 5-4 — Top and Index Scan operators
+- Figure 5-5 — Index Seek operator
+- Figure 5-6 — Composite indexes
+- Figure 5-7 — Clustered and nonclustered indexes in the `Customers` table
+- Figure 5-8 — Nonclustered index usage, part 1
+- Figure 5-9 — Nonclustered index usage, part 2
+- Figure 5-10 — Page split
+- Figure 5-11 — Statistics output from `DBCC SHOW_STATISTICS`
+- Figure 5-12 — Row mode execution: getting the first row
+- Figure 5-13 — Row mode execution: getting the next row
+- Figure 5-14 — Live Query Statistics
+- Figure 5-15 — Inefficient index seek
+- Figure 5-16 — Index Seek operator properties
+- Figure 5-17 — Cardinality estimation error in a loop join
+- Figure 5-18 — Incorrect cardinality estimation and excessive key lookups
+- Figure 5-19 — Index with included columns
+- Figure 5-20 — Indexing example: initial execution plan
+- Figure 5-21 — Indexing example: plan with the index on the `Customers` table
+- Figure 5-22 — Indexing example: final execution plan
+- Listing 5-1 — The `Customers` table
+- Listing 5-2 — Examining statistics with `DBCC SHOW_STATISTICS`
+- Listing 5-3 — Analyzing statistics properties
+- Listing 5-4 — Row mode execution: sample query
+- Listing 5-5 — Using the `sys.dm_exec_query_statistics_xml` function
+- Listing 5-6 — Index seek inefficiency
+- Listing 5-7 — Sample query showing Seek Predicate vs. Predicate
+- Listing 5-8 — Loop join algorithm (pseudocode)
+- Listing 5-9 — Inner merge join algorithm (pseudocode)
+- Listing 5-10 — Inner hash join algorithm (pseudocode)
+- Listing 5-11 — Join performance: table creation
+- Listing 5-12 — Join performance: test cases
+- Listing 5-13 — Forcing join types
+- Listing 5-14 — Selecting a list of a customer's orders
 
 ## Viewing it
 
