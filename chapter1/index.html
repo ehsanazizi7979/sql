@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>T-SQL Fundamentals — Chapters 1–9 | Plain-English Study Companion</title>
-<meta name="description" content="Plain-English summaries of Chapters 1–9 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, code samples, and original study diagrams.">
+<title>T-SQL Fundamentals — Chapters 1–10 | Plain-English Study Companion</title>
+<meta name="description" content="Plain-English summaries of Chapters 1–10 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, code samples, and original study diagrams.">
 <style>
   :root{
     --paper:#f7f4ed;
@@ -237,29 +237,29 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="#top"><span class="brand-mark">1–9</span> T-SQL Fundamentals · Chapters 1–9</a>
+    <a class="brand" href="#top"><span class="brand-mark">1–10</span> T-SQL Fundamentals · Chapters 1–10</a>
     <div class="topbar-meta">
-      <span>Plain-English summaries</span><span class="dot"></span><span>15 figures + 5 tables + 6 diagrams</span><span class="dot"></span><span>320+ code samples</span>
+      <span>Plain-English summaries</span><span class="dot"></span><span>16 figures + 8 tables + 9 diagrams</span><span class="dot"></span><span>360+ code samples</span>
     </div>
-    <a class="pill" href="#ch9-intro">Jump to Chapter 9 ↓</a>
+    <a class="pill" href="#ch10-trans">Jump to Chapter 10 ↓</a>
   </div>
 </header>
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <span class="eyebrow">📘 Chapters 1–9 · T-SQL Fundamentals, 4th Edition</span>
+    <span class="eyebrow">📘 Chapters 1–10 · T-SQL Fundamentals, 4th Edition</span>
     <h1>The ideas behind the queries</h1>
-    <p class="lede">A plain-English study companion for Chapters 1–9 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
+    <p class="lede">A plain-English study companion for Chapters 1–10 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
     <div class="chips">
-      <span class="chip">9 chapters · 366 book pages</span>
-      <span class="chip">15 figures + 5 tables from the book</span>
-      <span class="chip">6 original study diagrams</span>
-      <span class="chip">320+ code samples</span>
-      <span class="chip">~150 min read</span>
+      <span class="chip">10 chapters · 408 book pages</span>
+      <span class="chip">16 figures + 8 tables from the book</span>
+      <span class="chip">9 original study diagrams</span>
+      <span class="chip">360+ code samples</span>
+      <span class="chip">~170 min read</span>
     </div>
     <div class="hero-quote">
-      <span>The nine-chapter version</span>
-      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets. Chapter 8 switches from reading to writing: inserts, deletes, updates, <code>MERGE</code>, key generation, and the <code>OUTPUT</code> clause. Chapter 9 puts a running history behind every row with system-versioned temporal tables.</p>
+      <span>The ten-chapter version</span>
+      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets. Chapter 8 switches from reading to writing: inserts, deletes, updates, <code>MERGE</code>, key generation, and the <code>OUTPUT</code> clause. Chapter 9 puts a running history behind every row. Chapter 10 asks what happens when those statements run at the same time: transactions, locks, blocking, isolation levels, and deadlocks.</p>
     </div>
   </div>
 </section>
@@ -356,9 +356,19 @@
       <a href="#ch9-practice"><span class="n">9.5</span> Practice: 4 exercises</a>
       <a href="#ch9-recap"><span class="n">9.6</span> Recap &amp; key terms</a>
       <a href="#ch9-quiz"><span class="n">9.7</span> Check yourself</a>
+      <div class="toc-group">Chapter 10 · Transactions &amp; concurrency</div>
+      <a href="#ch10-trans"><span class="n">10.1</span> Transactions &amp; ACID</a>
+      <a href="#ch10-locks"><span class="n">10.2</span> Locks</a>
+      <a href="#ch10-blocking"><span class="n">10.3</span> Troubleshooting blocking</a>
+      <a href="#ch10-levels"><span class="n">10.4</span> Isolation levels</a>
+      <a href="#ch10-versioning"><span class="n">10.5</span> Row versioning</a>
+      <a href="#ch10-deadlocks"><span class="n">10.6</span> Deadlocks</a>
+      <a href="#ch10-practice"><span class="n">10.7</span> Practice: 3 labs</a>
+      <a href="#ch10-recap"><span class="n">10.8</span> Recap &amp; key terms</a>
+      <a href="#ch10-quiz"><span class="n">10.9</span> Check yourself</a>
     </nav>
     <div class="toc-foot">
-      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit; Chapter 8 turns that toolkit toward changing data; Chapter 9 records every change. If you only have five minutes, read the nine recaps.
+      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit; Chapter 8 turns that toolkit toward changing data; Chapter 9 records every change; Chapter 10 keeps it all correct when many sessions run at once. If you only have five minutes, read the ten recaps.
     </div>
   </aside>
 
@@ -7893,6 +7903,1090 @@ DROP TABLE dbo.DepartmentsHistory, dbo.Departments;</code></pre>
       </details>
     </section>
 
+    <!-- ================= CHAPTER 10 ================= -->
+    <div class="part-divider" id="chapter-10">
+      <span class="part-eyebrow">Chapter 10 · Transactions and concurrency</span>
+      <h2>When two users want the same row</h2>
+      <p>A transaction is a unit of work; concurrency is what happens when several of them run at once. This chapter covers the ACID properties, the locks SQL Server takes to keep transactions apart, how to troubleshoot blocking, the six isolation levels that let you choose how consistent your reads are, and the deadlocks that result when two sessions each hold what the other needs.</p>
+      <div class="part-chips">
+        <span>Book pages 367–408</span>
+        <span>1 figure + 3 tables</span>
+        <span>3 hands-on labs</span>
+      </div>
+    </div>
+
+    <!-- 10.1 -->
+    <section class="section" id="ch10-trans">
+      <div class="section-head">
+        <div class="sec-num">10.1</div>
+        <div>
+          <div class="kicker">Transactions</div>
+          <h2>A unit of work, and the ACID promise</h2>
+        </div>
+      </div>
+      <p class="lead">A transaction is a unit of work that might include several activities that query and modify data — and can even change the data definition. This chapter is about disk-based tables; memory-optimized tables (In-Memory OLTP) handle concurrency very differently and are outside the scope of the book.</p>
+
+      <h3 class="subhead">Marking the boundaries <span class="tag">p. 367</span></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Statement</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>BEGIN TRAN</code></td><td>Marks the beginning of a transaction explicitly</td></tr>
+            <tr><td><code>COMMIT TRAN</code></td><td>Marks the end, making the changes permanent</td></tr>
+            <tr><td><code>ROLLBACK TRAN</code></td><td>Marks the end, undoing the changes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · two inserts, one unit of work</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>BEGIN TRAN;
+  INSERT INTO dbo.T1(keycol, col1, col2) VALUES(4, 101, 'C');
+  INSERT INTO dbo.T2(keycol, col1, col2) VALUES(4, 201, 'X');
+COMMIT TRAN;</code></pre>
+      </div>
+      <p>If you don’t mark the boundaries, SQL Server treats <strong>each individual statement</strong> as a transaction — it begins one before each statement and commits it when the statement ends. That is <strong>auto-commit</strong> mode, the default. Turning the session option <code>IMPLICIT_TRANSACTIONS</code> on means you no longer need <code>BEGIN TRAN</code>, but you still have to end each transaction with <code>COMMIT TRAN</code> or <code>ROLLBACK TRAN</code> — and the next statement then implicitly begins another one.</p>
+      <div class="tip">
+        <strong>Am I in a transaction?</strong>
+        Query <code>@@TRANCOUNT</code>: it returns 0 when you are not in an open transaction and a value greater than 0 when you are.
+      </div>
+
+      <h3 class="subhead">The four ACID properties <span class="tag">p. 368</span></h3>
+      <div class="grid grid-2">
+        <div class="card"><div class="mini">Atomicity</div><p>All changes happen or none do. If the system fails before the commit is recorded in the log, SQL Server undoes the changes on restart. Severe errors (a full filegroup, for instance) also trigger an automatic rollback — but primary-key violations and lock timeouts do not. Turn on <code>XACT_ABORT</code> if you want every error to abort and roll back.</p></div>
+        <div class="card"><div class="mini">Consistency</div><p>The database moves from one consistent state to another, adhering to every integrity rule you defined with constraints. Consistency is also the subjective part: which state of the data a concurrent reader is allowed to see is exactly what isolation levels control.</p></div>
+        <div class="card"><div class="mini">Isolation</div><p>Transactions see only consistent data. With disk-based tables SQL Server offers two models: one based purely on <strong>locking</strong> (the default in a box product) and one based on <strong>row versioning</strong> (the default in Azure SQL Database).</p></div>
+        <div class="card"><div class="mini">Durability</div><p>Once the commit is acknowledged, the change is guaranteed to persist. Changes are written to the transaction log on disk before the data portion, and recovery replays (redo) or undoes (undo) as needed. SQL Server 2019 adds Accelerated Database Recovery, which changes the mechanics but not the guarantee.</p></div>
+      </div>
+
+      <h3 class="subhead">A realistic transaction <span class="tag">p. 369</span></h3>
+      <p>An order header plus its order lines: the identity value generated for the header is captured with <code>SCOPE_IDENTITY</code> and reused for the lines.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · one order, header and lines</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+
+-- Start a new transaction
+BEGIN TRAN;
+  -- Declare a variable
+  DECLARE @neworderid AS INT;
+
+  -- Insert a new order into the Sales.Orders table
+  INSERT INTO Sales.Orders
+      (custid, empid, orderdate, requireddate, shippeddate,
+       shipperid, freight, shipname, shipaddress, shipcity,
+       shippostalcode, shipcountry)
+    VALUES
+      (85, 5, '20220212', '20220301', '20220216',
+       3, 32.38, N'Ship to 85-B', N'6789 rue de l''Abbaye', N'Reims',
+       N'10345', N'France');
+
+  -- Save the new order ID in a variable
+  SET @neworderid = SCOPE_IDENTITY();
+
+  -- Return the new order ID
+  SELECT @neworderid AS neworderid;   -- 11078
+
+  -- Insert order lines for the new order into Sales.OrderDetails
+  INSERT INTO Sales.OrderDetails
+      (orderid, productid, unitprice, qty, discount)
+    VALUES(@neworderid, 11, 14.00, 12, 0.000),
+          (@neworderid, 42,  9.80, 10, 0.000),
+          (@neworderid, 72, 34.80,  5, 0.000);
+-- Commit the transaction
+COMMIT TRAN;</code></pre>
+      </div>
+      <div class="warn">
+        <strong>This example has no error handling</strong>
+        There is no provision for a <code>ROLLBACK</code> if something goes wrong. In real code you wrap the transaction in a <code>TRY/CATCH</code> construct — the book covers error handling in Chapter 12.
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DELETE FROM Sales.OrderDetails
+WHERE orderid &gt; 11077;
+
+DELETE FROM Sales.Orders
+WHERE orderid &gt; 11077;</code></pre>
+      </div>
+    </section>
+
+    <!-- 10.2 -->
+    <section class="section" id="ch10-locks">
+      <div class="section-head">
+        <div class="sec-num">10.2</div>
+        <div>
+          <div class="kicker">Locks</div>
+          <h2>Exclusive, shared, and intent</h2>
+        </div>
+      </div>
+      <p class="lead">A lock is a control resource a transaction obtains to guard a data resource, preventing conflicting access by other transactions. Two modes matter most: <strong>exclusive</strong> and <strong>shared</strong>.</p>
+
+      <div class="note">
+        <strong>Testing on Azure SQL Database?</strong>
+        It uses the row-versioning model by default. To follow the locking examples in this chapter, switch the database to the locking model with <code>ALTER DATABASE TSQLV6 SET READ_COMMITTED_SNAPSHOT OFF;</code>. Also note that Azure SQL connections time out quickly, which can quietly break a demo.
+      </div>
+
+      <h3 class="subhead">The two main lock modes <span class="tag">p. 371</span></h3>
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="mini">Exclusive (X)</div>
+          <p>Requested whenever you <strong>modify</strong> data, whatever your isolation level. Held <strong>until the end of the transaction</strong>. You cannot get an exclusive lock if anyone holds any lock on the resource — and nobody can get any lock while you hold an exclusive one. This behaviour is not configurable.</p>
+        </div>
+        <div class="card">
+          <div class="mini">Shared (S)</div>
+          <p>Requested when you <strong>read</strong> data under a locking-based isolation level. “Shared” because several transactions can hold shared locks on the same resource at once. In <code>READ COMMITTED</code> it is released as soon as the read statement is done with the resource — which you <em>can</em> change by changing isolation level.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Requested mode ↓ / Granted →</th><th>Exclusive (X)</th><th>Shared (S)</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Exclusive</strong></td><td>No</td><td>No</td></tr>
+            <tr><td><strong>Shared</strong></td><td>No</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Table 10-1 from the book, recreated in HTML. “No” means the locks are incompatible and the requester must wait.</p>
+      <p>In plain terms: data modified by one transaction can be neither modified nor read (by default, in a box product) by another until the first finishes — and while one transaction is reading data, another cannot modify it.</p>
+
+      <h3 class="subhead">Lockable resources and intent locks <span class="tag">p. 372</span></h3>
+      <p>SQL Server can lock rows (RID in a heap, key in an index), pages, objects (tables), databases, and more. To lock a resource, a transaction must first acquire <strong>intent locks</strong> of the same mode at higher levels of granularity: an exclusive row lock is preceded by intent exclusive locks on the page and the table. Intent locks let SQL Server detect incompatible requests at a higher level cheaply, and they do not block requests at lower levels.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Requested ↓ / Granted →</th><th>X</th><th>S</th><th>IX</th><th>IS</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Exclusive (X)</strong></td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+            <tr><td><strong>Shared (S)</strong></td><td>No</td><td>Yes</td><td>No</td><td>Yes</td></tr>
+            <tr><td><strong>Intent exclusive (IX)</strong></td><td>No</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+            <tr><td><strong>Intent shared (IS)</strong></td><td>No</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Table 10-2 from the book, recreated in HTML.</p>
+
+      <h3 class="subhead">Lock granularity and escalation <span class="tag">p. 373</span></h3>
+      <p>Ideally only the affected rows are locked, but locks cost memory and management overhead, so SQL Server balances concurrency against resources: row locks when it estimates few rows, page locks for larger sets. It may also try to <strong>escalate</strong> fine-grained locks to a table lock: escalation is triggered when a single statement acquires at least <strong>5,000</strong> locks on the same object, with checks first at 1,250 locks and then every 1,250. You can control this per table with the <code>LOCK_ESCALATION</code> option of <code>ALTER TABLE</code> — disabling it, or escalating to table (default) or partition level.</p>
+    </section>
+
+    <!-- 10.3 -->
+    <section class="section" id="ch10-blocking">
+      <div class="section-head">
+        <div class="sec-num">10.3</div>
+        <div>
+          <div class="kicker">Blocking</div>
+          <h2>Who is waiting for whom</h2>
+        </div>
+      </div>
+      <p class="lead">When one transaction holds a lock and another requests an incompatible lock on the same resource, the requester enters a wait state. Blocking is normal — but when waits get long, you need to find the chain.</p>
+
+      <h3 class="subhead">The demo setup <span class="tag">p. 374</span></h3>
+      <p>Open three query windows against <code>TSQLV6</code>, running under <code>READ COMMITTED</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Connection 1 · the blocker</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>BEGIN TRAN;
+  UPDATE Production.Products
+    SET unitprice += 1.00
+  WHERE productid = 2;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Connection 2 · the blocked reader</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT productid, unitprice
+FROM Production.Products
+WHERE productid = 2;</code></pre>
+      </div>
+      <p>Connection 1 acquired an exclusive lock and is holding it because the transaction is still open. Connection 2 needs a shared lock, which is incompatible — so it waits.</p>
+
+      <h3 class="subhead">Step 1 · who holds what: <code>sys.dm_tran_locks</code> <span class="tag">p. 374</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Connection 3 · lock information</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT -- use * to explore other available attributes
+  request_session_id            AS sid,
+  resource_type                 AS restype,
+  resource_database_id          AS dbid,
+  DB_NAME(resource_database_id) AS dbname,
+  resource_description          AS res,
+  resource_associated_entity_id AS resid,
+  request_mode                  AS mode,
+  request_status                AS status
+FROM sys.dm_tran_locks;</code></pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>sid</th><th>restype</th><th>dbname</th><th>res</th><th>mode</th><th>status</th></tr></thead>
+          <tbody>
+            <tr><td>53</td><td>DATABASE</td><td>TSQLV6</td><td></td><td>S</td><td>GRANT</td></tr>
+            <tr><td>52</td><td>DATABASE</td><td>TSQLV6</td><td></td><td>S</td><td>GRANT</td></tr>
+            <tr><td>53</td><td>PAGE</td><td>TSQLV6</td><td>1:127</td><td>IS</td><td>GRANT</td></tr>
+            <tr><td>52</td><td>PAGE</td><td>TSQLV6</td><td>1:127</td><td>IX</td><td>GRANT</td></tr>
+            <tr><td>53</td><td>OBJECT</td><td>TSQLV6</td><td></td><td>IS</td><td>GRANT</td></tr>
+            <tr><td>52</td><td>OBJECT</td><td>TSQLV6</td><td></td><td>IX</td><td>GRANT</td></tr>
+            <tr><td>52</td><td>KEY</td><td>TSQLV6</td><td>(020068e8b274)</td><td><strong>X</strong></td><td>GRANT</td></tr>
+            <tr><td>53</td><td>KEY</td><td>TSQLV6</td><td>(020068e8b274)</td><td><strong>S</strong></td><td><strong>WAIT</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Abbreviated output from the book, p. 375.</p>
+      <p>Session 53 is waiting for a shared lock on the same row (<code>res</code> and <code>resid</code> match) that session 52 holds exclusively. Walk <em>up</em> the lock hierarchy of either session to the object lock and translate its <code>resid</code> with <code>OBJECT_NAME</code> to find the table — here <code>Production.Products</code>.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 10-1</span><span class="fig-src">From the book, p. 375</span></div>
+          <img class="fig-img" src="images/figure-10-1.png" alt="Screenshot of a SQL Server Management Studio query window status bar showing the session ID 52 in parentheses to the right of the login name SHIRE\Gandalf.">
+          <div class="fig-body">
+            <p class="fig-cap">The session ID shown in SQL Server Management Studio</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> you can find your own session ID in three ways — by querying <code>@@SPID</code>, in the status bar at the bottom of the focused query window (in parentheses after the login name), and in the window’s caption. Every DMV in this section reports session IDs, so this is the first thing you need to know.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">Step 2 · connections, sessions, and blocking <span class="tag">p. 376</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · connection info</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT -- use * to explore
+  session_id AS sid,
+  connect_time,
+  last_read,
+  last_write,
+  most_recent_sql_handle
+FROM sys.dm_exec_connections
+WHERE session_id IN(52, 53);</code></pre>
+      </div>
+      <p>Pass <code>most_recent_sql_handle</code> to a table function to see the code each session last ran. The book uses <code>CROSS APPLY</code> — the <code>APPLY</code> operator from Chapter 5 — to do it for every connection at once:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · what were they running?</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT session_id, text
+FROM sys.dm_exec_connections
+  CROSS APPLY sys.dm_exec_sql_text(most_recent_sql_handle) AS ST
+WHERE session_id IN(52, 53);
+
+-- SQL Server 2016+: the same idea with a newer function
+SELECT session_id, event_info
+FROM sys.dm_exec_connections
+  CROSS APPLY sys.dm_exec_input_buffer(session_id, NULL) AS IB
+WHERE session_id IN(52, 53);</code></pre>
+      </div>
+      <div class="note">
+        <strong>Read the output with care</strong>
+        The blocked session shows the query that is waiting, because that is the last thing it ran. The blocker, however, may still be working — so the last batch you see is not necessarily the statement that caused the problem.
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · session info</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT -- use * to explore
+  session_id AS sid,
+  login_time,
+  host_name,
+  program_name,
+  login_name,
+  nt_user_name,
+  last_request_start_time,
+  last_request_end_time
+FROM sys.dm_exec_sessions
+WHERE session_id IN(52, 53);</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · isolate blocked requests</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT -- use * to explore
+  session_id AS sid,
+  blocking_session_id,
+  command,
+  sql_handle,
+  database_id,
+  wait_type,
+  wait_time,
+  wait_resource
+FROM sys.dm_exec_requests
+WHERE blocking_session_id &gt; 0;
+-- sid  blocking_session_id  command  wait_type  wait_time  wait_resource
+-- 53   52                   SELECT   LCK_M_S    1383760    KEY: 8:72057594038845440 (020068e8b274)</code></pre>
+      </div>
+      <p><code>sys.dm_exec_requests</code> has a row for every active request, and <code>blocking_session_id &gt; 0</code> isolates exactly the blocked ones. <code>sys.dm_os_waiting_tasks</code> is an alternative that carries only waiting tasks and adds a few attributes of its own, including the resource description in conflict.</p>
+
+      <h3 class="subhead">Step 3 · timeouts and <code>KILL</code> <span class="tag">p. 379</span></h3>
+      <p>By default a session waits forever. Set <code>LOCK_TIMEOUT</code> in milliseconds to cap the wait — <code>0</code> times out immediately, <code>-1</code> (the default) means no timeout.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · five seconds, then give up</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SET LOCK_TIMEOUT 5000;
+
+SELECT productid, unitprice
+FROM Production.Products
+WHERE productid = 2;
+-- Msg 1222, Level 16, State 51, Line 3
+-- Lock request time out period exceeded.</code></pre>
+      </div>
+      <div class="warn">
+        <strong>A lock timeout does not roll back the transaction</strong>
+        The statement fails; the transaction stays open with all its locks. Only <code>COMMIT</code>, <code>ROLLBACK</code>, or <code>KILL</code> ends it.
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · restore the default, then end the blocker</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>-- Connection 2
+SET LOCK_TIMEOUT -1;
+
+SELECT productid, unitprice
+FROM Production.Products
+WHERE productid = 2;
+-- productid   unitprice
+-- 2           19.00      &lt;-- after the blocker was killed and rolled back
+
+-- Connection 3
+KILL 52;   -- rolls back Connection 1's transaction and releases the lock</code></pre>
+      </div>
+      <p>If you close a query window while a transaction is open, SSMS asks you whether to commit or roll it back.</p>
+      <div class="tip">
+        <strong>Blocking is usually a design problem, not a server problem</strong>
+        Long-running transactions hold locks for a long time: shorten them by moving activities that do not belong to the unit of work outside the transaction. And fix application bugs that leave transactions open on certain paths.
+      </div>
+    </section>
+
+    <!-- 10.4 -->
+    <section class="section" id="ch10-levels">
+      <div class="section-head">
+        <div class="sec-num">10.4</div>
+        <div>
+          <div class="kicker">Isolation levels</div>
+          <h2>Four rungs on the locking ladder</h2>
+        </div>
+      </div>
+      <p class="lead">Isolation levels determine how consistent the data you read is. You cannot change how writers lock, but you can change how readers lock — and that indirectly influences writers too.</p>
+
+      <h3 class="subhead">Setting the level <span class="tag">p. 380</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · session option vs. table hint</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>-- for the whole session
+SET TRANSACTION ISOLATION LEVEL &lt;isolation name&gt;;
+
+-- for one query
+SELECT ... FROM &lt;table&gt; WITH (&lt;isolationname&gt;);</code></pre>
+      </div>
+      <ul>
+        <li>The session option keeps the spaces: <code>REPEATABLE READ</code>. The table hint drops them: <code>WITH (REPEATABLEREAD)</code>.</li>
+        <li>Some hints have synonyms: <code>NOLOCK</code> = <code>READUNCOMMITTED</code>, <code>HOLDLOCK</code> = <code>SERIALIZABLE</code>.</li>
+        <li>You cannot set <code>READ COMMITTED SNAPSHOT</code> as a session or query option at all — it is a database flag (see the next section).</li>
+      </ul>
+      <p>SQL Server supports four isolation levels based purely on locking — <code>READ UNCOMMITTED</code>, <code>READ COMMITTED</code> (the box default), <code>REPEATABLE READ</code>, and <code>SERIALIZABLE</code> — plus two based on locking and row versioning: <code>SNAPSHOT</code> and <code>READ COMMITTED SNAPSHOT</code> (the Azure SQL default). With the four locking levels, the higher you go, the stricter and longer-lived the readers’ locks: more consistency, less concurrency.</p>
+
+      <h3 class="subhead">READ UNCOMMITTED <span class="tag">p. 381</span></h3>
+      <p>The reader asks for no shared lock at all, so it can never conflict with a writer — which means it can read <strong>uncommitted</strong> changes. Those are <em>dirty reads</em>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Connection 1 · write, don’t commit</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>BEGIN TRAN;
+  UPDATE Production.Products
+    SET unitprice += 1.00
+  WHERE productid = 2;
+
+  SELECT productid, unitprice
+  FROM Production.Products
+  WHERE productid = 2;
+-- 2           20.00</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Connection 2 · read it anyway</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+SELECT productid, unitprice
+FROM Production.Products
+WHERE productid = 2;
+-- 2           20.00    &lt;-- never committed!</code></pre>
+      </div>
+      <p>If Connection 1 then rolls back, the value 20.00 the reader saw never existed as a committed state. That is the dirty read.</p>
+
+      <h3 class="subhead">READ COMMITTED <span class="tag">p. 382</span></h3>
+      <p>The lowest level that prevents dirty reads, and the default in a box product. A reader must obtain a shared lock, so it waits while a writer holds an exclusive lock; once the writer commits, the reader sees only committed changes.</p>
+      <p>The catch is <strong>duration</strong>: the shared lock is released as soon as the read statement is done with the resource — not even at the end of the statement, let alone the transaction. Between two reads of the same resource in the same transaction, no lock is held, so another transaction can modify it in between and the reader gets a different value each time. That is a <strong>nonrepeatable read</strong> (or inconsistent analysis).</p>
+
+      <h3 class="subhead">REPEATABLE READ <span class="tag">p. 384</span></h3>
+      <p>Here the reader holds its shared locks <strong>until the end of the transaction</strong>. Once it has read a resource, nobody can get an exclusive lock on it until the reader commits — so reads repeat.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Connection 1 · hold the shared lock</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+BEGIN TRAN;
+  SELECT productid, unitprice
+  FROM Production.Products
+  WHERE productid = 2;
+-- 2           19.00</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Connection 2 · the update is blocked</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>UPDATE Production.Products
+  SET unitprice += 1.00
+WHERE productid = 2;   -- waits: X conflicts with the reader's S lock</code></pre>
+      </div>
+      <p>This level also prevents <strong>lost updates</strong> — two transactions read a value, calculate, and write it back, with the last writer silently winning. Below <code>REPEATABLE READ</code> no lock survives the read; here both sides hold shared locks, so neither can escalate to an exclusive lock and the conflict surfaces as a deadlock instead.</p>
+
+      <h3 class="subhead">SERIALIZABLE <span class="tag">p. 386</span></h3>
+      <p><code>REPEATABLE READ</code> locks only the rows the query found the first time. Rows inserted later that also match the filter are <strong>phantoms</strong>, and reading them on a second pass is a <strong>phantom read</strong>. <code>SERIALIZABLE</code> behaves like <code>REPEATABLE READ</code> but also locks the whole range of keys qualifying for the filter — including rows that do not exist yet.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Connection 1 · lock the key range</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+BEGIN TRAN
+  SELECT productid, productname, categoryid, unitprice
+  FROM Production.Products
+  WHERE categoryid = 1;
+-- 12 rows</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Connection 2 · a phantom that never appears</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>INSERT INTO Production.Products
+    (productname, supplierid, categoryid,
+     unitprice, discontinued)
+  VALUES('Product ABCDE', 1, 1, 20.00, 0);   -- blocked!</code></pre>
+      </div>
+      <p>In every lower isolation level this insert would succeed. Under <code>SERIALIZABLE</code> it waits, and the second read in Connection 1 returns the same 12 rows with no phantoms.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">LOCK DURATION BY ISOLATION LEVEL</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 300" role="img" aria-label="Timeline diagram showing how long a reader holds a shared lock under each of the four locking-based isolation levels">
+                <defs>
+                  <marker id="arrow10" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                </defs>
+                <text x="290" y="22" text-anchor="middle" class="jtitle">READ 1</text>
+                <text x="450" y="22" text-anchor="middle" class="jtitle">READ 2</text>
+                <text x="610" y="22" text-anchor="middle" class="jtitle">COMMIT</text>
+                <line x1="290" y1="34" x2="290" y2="284" stroke="#d3cab8" stroke-width="1" stroke-dasharray="4 4"/>
+                <line x1="450" y1="34" x2="450" y2="284" stroke="#d3cab8" stroke-width="1" stroke-dasharray="4 4"/>
+                <line x1="610" y1="34" x2="610" y2="284" stroke="#d3cab8" stroke-width="1" stroke-dasharray="4 4"/>
+
+                <text x="15" y="66" class="jlabel">READ UNCOMMITTED</text>
+                <line x1="283" y1="60" x2="617" y2="60" stroke="#9aa6b2" stroke-width="2" stroke-dasharray="6 5"/>
+                <text x="655" y="56" class="jcap">no shared lock requested</text>
+                <text x="655" y="72" class="jcap">dirty reads possible</text>
+
+                <text x="15" y="132" class="jlabel">READ COMMITTED</text>
+                <rect x="283" y="120" width="55" height="16" rx="3" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.3"/>
+                <rect x="443" y="120" width="55" height="16" rx="3" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.3"/>
+                <text x="430" y="156" text-anchor="middle" class="jcap">another transaction can modify here</text>
+                <text x="655" y="126" class="jcap">lock released after the read</text>
+                <text x="655" y="142" class="jcap">nonrepeatable reads possible</text>
+
+                <text x="15" y="200" class="jlabel">REPEATABLE READ</text>
+                <rect x="283" y="190" width="334" height="16" rx="3" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.3"/>
+                <text x="655" y="194" class="jcap">lock held until COMMIT</text>
+                <text x="655" y="210" class="jcap">phantom reads still possible</text>
+
+                <text x="15" y="266" class="jlabel">SERIALIZABLE</text>
+                <rect x="283" y="256" width="334" height="16" rx="3" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.3"/>
+                <rect x="283" y="274" width="334" height="8" rx="2" fill="#cfe6e1" stroke="#0f6b63" stroke-width="1.1" stroke-dasharray="5 3"/>
+                <text x="630" y="288" class="jcap">dashed = key range</text>
+                <text x="655" y="262" class="jcap">key-range lock held to end</text>
+                <text x="655" y="278" class="jcap">no phantom reads</text>
+              </svg>
+            </div>
+            <p class="fig-cap">How long a reader’s shared lock lives</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> each teal bar is a shared lock. Under <code>READ COMMITTED</code> the lock dies the moment the read finishes, leaving a gap between the two reads where another transaction can slip in — hence nonrepeatable reads. <code>REPEATABLE READ</code> holds it to the end of the transaction. <code>SERIALIZABLE</code> adds the dashed key-range lock underneath, which is what blocks inserts of rows that do not exist yet.</p>
+          </div>
+        </div>
+      </figure>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup for this section</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DELETE FROM Production.Products
+WHERE productid &gt; 77;
+
+-- run in all open connections:
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;</code></pre>
+      </div>
+    </section>
+
+    <!-- 10.5 -->
+    <section class="section" id="ch10-versioning">
+      <div class="section-head">
+        <div class="sec-num">10.5</div>
+        <div>
+          <div class="kicker">Row versioning</div>
+          <h2>Readers that never wait</h2>
+        </div>
+      </div>
+      <p class="lead">With row versioning, SQL Server keeps previous committed versions of rows in a <strong>version store</strong> — in <code>tempdb</code>, or in the user database itself when Accelerated Database Recovery is enabled. Readers take no shared locks, so readers don’t block writers and writers don’t block readers.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">LOCKING vs. ROW VERSIONING</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 276" role="img" aria-label="Diagram comparing the locking model, where a reader waits for a writer to commit, with the row-versioning model, where the reader is served an older committed version from the version store">
+                <defs>
+                  <marker id="arrow10b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                  <marker id="arrow10c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#b45309"/>
+                  </marker>
+                </defs>
+
+                <rect x="15" y="20" width="420" height="236" rx="10" fill="#fbf9f3" stroke="#d3cab8" stroke-width="1.5"/>
+                <text x="225" y="46" text-anchor="middle" class="jtitle">LOCKING · PESSIMISTIC</text>
+                <text x="225" y="62" text-anchor="middle" class="jcap">default in a SQL Server box product</text>
+
+                <rect x="35" y="85" width="150" height="46" rx="6" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="110" y="106" text-anchor="middle" class="jlabel">WRITER</text>
+                <text x="110" y="122" text-anchor="middle" class="jcap">holds X lock</text>
+
+                <line x1="190" y1="108" x2="245" y2="108" stroke="#b45309" stroke-width="2" marker-end="url(#arrow10c)"/>
+                <text x="217" y="98" text-anchor="middle" class="jcap">blocks</text>
+
+                <rect x="250" y="85" width="150" height="46" rx="6" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+                <text x="325" y="106" text-anchor="middle" class="jlabel">READER</text>
+                <text x="325" y="122" text-anchor="middle" class="jcap">asks for S lock</text>
+
+                <rect x="35" y="146" width="290" height="28" rx="4" fill="#fdf3e3" stroke="#b45309" stroke-width="1.2"/>
+                <text x="180" y="166" text-anchor="middle" class="jcap">waiting</text>
+                <rect x="330" y="146" width="70" height="28" rx="4" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.2"/>
+                <text x="365" y="166" text-anchor="middle" class="jcap">reads</text>
+
+                <text x="225" y="200" text-anchor="middle" class="jcap">the reader waits until the writer</text>
+                <text x="225" y="216" text-anchor="middle" class="jcap">commits or rolls back</text>
+                <text x="225" y="240" text-anchor="middle" class="jcap">readers block writers, and vice versa</text>
+
+                <rect x="465" y="20" width="420" height="236" rx="10" fill="#fbf9f3" stroke="#d3cab8" stroke-width="1.5"/>
+                <text x="675" y="46" text-anchor="middle" class="jtitle">ROW VERSIONING · OPTIMISTIC</text>
+                <text x="675" y="62" text-anchor="middle" class="jcap">SNAPSHOT · READ COMMITTED SNAPSHOT</text>
+
+                <rect x="490" y="85" width="140" height="46" rx="6" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="560" y="106" text-anchor="middle" class="jlabel">WRITER</text>
+                <text x="560" y="122" text-anchor="middle" class="jcap">holds X lock</text>
+
+                <line x1="635" y1="108" x2="655" y2="108" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow10b)"/>
+
+                <rect x="660" y="85" width="185" height="46" rx="6" fill="#fdf3e3" stroke="#b45309" stroke-width="1.5"/>
+                <text x="752" y="106" text-anchor="middle" class="jlabel">VERSION STORE</text>
+                <text x="752" y="122" text-anchor="middle" class="jcap">old committed rows</text>
+
+                <line x1="752" y1="131" x2="752" y2="153" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow10b)"/>
+
+                <rect x="660" y="155" width="185" height="46" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="752" y="176" text-anchor="middle" class="jlabel">READER</text>
+                <text x="752" y="192" text-anchor="middle" class="jcap">no shared lock</text>
+
+                <text x="675" y="224" text-anchor="middle" class="jcap">readers never wait — they get the version</text>
+                <text x="675" y="242" text-anchor="middle" class="jcap">they are supposed to see</text>
+              </svg>
+            </div>
+            <p class="fig-cap">Two answers to the same conflict</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> on the left, the reader queues behind the writer (the amber bar is the wait). On the right, the writer copies the pre-change version of the row into the version store, and the reader is served that older version instead of waiting. The trade-off: <code>UPDATE</code> and <code>DELETE</code> pay an extra copying cost, while readers usually get dramatically faster. (<code>INSERT</code> writes nothing to the version store — there is no earlier version.)</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">SNAPSHOT <span class="tag">p. 388</span></h3>
+      <p>A reader gets the last committed version that was available when the <strong>transaction</strong> started: committed reads, repeatable reads, no phantoms — the consistency of <code>SERIALIZABLE</code>, achieved with versions instead of locks. In a box product you must opt in at the database level first:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · allow SNAPSHOT</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER DATABASE TSQLV6 SET ALLOW_SNAPSHOT_ISOLATION ON;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Connection 1 · update, don’t commit</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>BEGIN TRAN;
+  UPDATE Production.Products
+    SET unitprice += 1.00
+  WHERE productid = 2;
+
+  SELECT productid, unitprice
+  FROM Production.Products
+  WHERE productid = 2;
+-- 2           20.00</code></pre>
+      </div>
+      <p>Even though Connection 1 runs under <code>READ COMMITTED</code>, SQL Server copies the pre-update version (19.00) into the version store, because <code>SNAPSHOT</code> is enabled at the database level.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Connection 2 · read the old version</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SET TRANSACTION ISOLATION LEVEL SNAPSHOT;
+
+BEGIN TRAN;
+  SELECT productid, unitprice
+  FROM Production.Products
+  WHERE productid = 2;
+-- 2           19.00     &lt;-- not blocked; the version from tempdb
+
+COMMIT TRAN;   -- commit Connection 1 first, then read again: still 19.00</code></pre>
+      </div>
+      <p>Because the snapshot is taken at <em>transaction</em> start, reading again after Connection 1 commits still returns 19.00. Only a <strong>new</strong> transaction sees 20.00. Once no transaction needs the old version, a cleanup thread can remove it — which is why very long transactions make the version store grow.</p>
+
+      <h3 class="subhead">Update conflict detection <span class="tag">p. 390</span></h3>
+      <p><code>REPEATABLE READ</code>, <code>SERIALIZABLE</code>, and <code>SNAPSHOT</code> all prevent lost updates — but only <code>SNAPSHOT</code> tells you so specifically. It inspects the version store, notices that another transaction modified the row between your read and your write, and fails your transaction:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Error message</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>Msg 3960, Level 16, State 2, Line 1
+Snapshot isolation transaction aborted due to update conflict. You cannot use snapshot
+isolation to access table 'Production.Products' directly or indirectly in database
+'TSQLV6' to update, delete, or insert the row that has been modified or deleted by
+another transaction. Retry the transaction or change the isolation level for the
+update/delete statement.</code></pre>
+      </div>
+      <p>The lower levels produce a generic deadlock error instead, which could have been caused by anything — so Table 10-3 credits only <code>SNAPSHOT</code> with detecting update conflicts. Wrap your transaction in error-handling code and retry.</p>
+
+      <h3 class="subhead">READ COMMITTED SNAPSHOT <span class="tag">p. 392</span></h3>
+      <p>Also row-versioning based, but it gives a <strong>statement-level</strong> view rather than a transaction-level one, and it does <strong>not</strong> detect update conflicts. In practice it behaves like <code>READ COMMITTED</code> — including nonrepeatable reads — except that readers take no shared locks and never wait.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · enable it, and opt back in to locking</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER DATABASE TSQLV6 SET READ_COMMITTED_SNAPSHOT ON;   -- needs exclusive DB access
+
+-- if you want shared locks anyway, per query:
+SELECT * FROM dbo.T1 WITH (READCOMMITTEDLOCK);</code></pre>
+      </div>
+      <div class="warn">
+        <strong>This flag redefines READ COMMITTED</strong>
+        Unlike <code>ALLOW_SNAPSHOT_ISOLATION</code>, turning on <code>READ_COMMITTED_SNAPSHOT</code> changes the meaning of the <code>READ COMMITTED</code> isolation level itself. With the flag on, <code>READ COMMITTED SNAPSHOT</code> is the default for every session that does not set a level explicitly. That is why some texts treat the two as one isolation level with two different semantic treatments.
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · statement-level, so reads don’t repeat</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>-- Connection 1: update and leave the transaction open (price becomes 20.00)
+
+-- Connection 2:
+BEGIN TRAN;
+  SELECT productid, unitprice
+  FROM Production.Products
+  WHERE productid = 2;
+-- 2           19.00   &lt;-- version at STATEMENT start
+
+-- Connection 1: COMMIT TRAN;
+
+-- Connection 2, same transaction, read again:
+  SELECT productid, unitprice
+  FROM Production.Products
+  WHERE productid = 2;
+COMMIT TRAN;
+-- 2           20.00   &lt;-- version at THIS statement's start: a nonrepeatable read</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · back to the defaults</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER DATABASE TSQLV6 SET ALLOW_SNAPSHOT_ISOLATION OFF;
+ALTER DATABASE TSQLV6 SET READ_COMMITTED_SNAPSHOT OFF;</code></pre>
+      </div>
+
+      <h3 class="subhead">Table 10-3 · all six levels at a glance <span class="tag">p. 394</span></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Isolation level</th><th>Uncommitted reads?</th><th>Nonrepeatable reads?</th><th>Lost updates?</th><th>Phantom reads?</th><th>Detects update conflicts?</th><th>Row versioning?</th></tr></thead>
+          <tbody>
+            <tr><td><strong>READ UNCOMMITTED</strong></td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>No</td><td>No</td></tr>
+            <tr><td><strong>READ COMMITTED</strong></td><td>No</td><td>Yes</td><td>Yes</td><td>Yes</td><td>No</td><td>No</td></tr>
+            <tr><td><strong>READ COMMITTED SNAPSHOT</strong></td><td>No</td><td>Yes</td><td>Yes</td><td>Yes</td><td>No</td><td><strong>Yes</strong></td></tr>
+            <tr><td><strong>REPEATABLE READ</strong></td><td>No</td><td>No</td><td>No</td><td>Yes</td><td>No</td><td>No</td></tr>
+            <tr><td><strong>SERIALIZABLE</strong></td><td>No</td><td>No</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+            <tr><td><strong>SNAPSHOT</strong></td><td>No</td><td>No</td><td>No</td><td>No</td><td><strong>Yes</strong></td><td><strong>Yes</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Table 10-3 from the book, recreated in HTML. “Yes” in the first four columns means the phenomenon is <em>allowed</em>.</p>
+    </section>
+
+    <!-- 10.6 -->
+    <section class="section" id="ch10-deadlocks">
+      <div class="section-head">
+        <div class="sec-num">10.6</div>
+        <div>
+          <div class="kicker">Deadlocks</div>
+          <h2>Each holds what the other needs</h2>
+        </div>
+      </div>
+      <p class="lead">A deadlock is two or more sessions blocking each other. SQL Server detects it and terminates one of the transactions; otherwise the sessions would stay deadlocked forever.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">A DEADLY EMBRACE</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 290" role="img" aria-label="Diagram of a two-session deadlock: Connection 1 holds an exclusive lock on Production.Products and waits for Sales.OrderDetails, while Connection 2 holds an exclusive lock on Sales.OrderDetails and waits for Production.Products">
+                <defs>
+                  <marker id="arrow10d" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                  <marker id="arrow10e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#b45309"/>
+                  </marker>
+                </defs>
+
+                <text x="20" y="20" class="jtitle">DEADLOCK · TWO SESSIONS, TWO RESOURCES</text>
+
+                <rect x="20" y="34" width="240" height="68" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.6"/>
+                <text x="140" y="56" text-anchor="middle" class="jlabel">CONNECTION 1</text>
+                <text x="140" y="74" text-anchor="middle" class="jcap">UPDATE Products</text>
+                <text x="140" y="90" text-anchor="middle" class="jcap">then read OrderDetails</text>
+
+                <rect x="640" y="34" width="240" height="68" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.6"/>
+                <text x="760" y="56" text-anchor="middle" class="jlabel">CONNECTION 2</text>
+                <text x="760" y="74" text-anchor="middle" class="jcap">UPDATE OrderDetails</text>
+                <text x="760" y="90" text-anchor="middle" class="jcap">then read Products</text>
+
+                <line x1="140" y1="106" x2="140" y2="176" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow10d)"/>
+                <text x="140" y="132" text-anchor="middle" class="jcap">holds X</text>
+                <line x1="760" y1="106" x2="760" y2="176" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow10d)"/>
+                <text x="760" y="132" text-anchor="middle" class="jcap">holds X</text>
+
+                <path d="M 265 84 C 380 84, 470 206, 575 208" fill="none" stroke="#b45309" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow10e)"/>
+                <path d="M 635 84 C 520 84, 430 206, 325 208" fill="none" stroke="#b45309" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow10e)"/>
+                <text x="450" y="168" text-anchor="middle" class="jlabel">each waits for the other</text>
+
+                <rect x="30" y="180" width="280" height="56" rx="8" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="170" y="202" text-anchor="middle" class="jlabel">Production.Products</text>
+                <text x="170" y="220" text-anchor="middle" class="jcap">row for product 2 · X lock: C1</text>
+
+                <rect x="590" y="180" width="280" height="56" rx="8" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="730" y="202" text-anchor="middle" class="jlabel">Sales.OrderDetails</text>
+                <text x="730" y="220" text-anchor="middle" class="jcap">rows for product 2 · X lock: C2</text>
+
+                <text x="450" y="268" text-anchor="middle" class="jcap">SQL Server kills one transaction: Msg 1205, “Transaction (Process ID 52) ... chosen as the deadlock victim. Rerun the transaction.”</text>
+              </svg>
+            </div>
+            <p class="fig-cap">The classic deadly embrace</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the solid teal arrows are locks already granted; the dashed amber arrows are the blocked requests. C1 holds Products and wants OrderDetails; C2 holds OrderDetails and wants Products. Neither can proceed, so SQL Server picks a victim — the session with the lowest <code>DEADLOCK_PRIORITY</code>, or, if none is set, the one that did the least work and is therefore cheapest to roll back.</p>
+          </div>
+        </div>
+      </figure>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the deadlock, step by step</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>-- Connection 1
+USE TSQLV6;
+BEGIN TRAN;
+  UPDATE Production.Products
+    SET unitprice += 1.00
+  WHERE productid = 2;
+
+-- Connection 2
+BEGIN TRAN;
+  UPDATE Sales.OrderDetails
+    SET unitprice += 1.00
+  WHERE productid = 2;
+
+-- Connection 1 (blocked: needs S on OrderDetails, C2 holds X)
+  SELECT orderid, productid, unitprice
+  FROM Sales.OrderDetails
+  WHERE productid = 2;
+COMMIT TRAN;
+
+-- Connection 2 (blocked: needs S on Products, C1 holds X) --&gt; deadlock
+  SELECT productid, unitprice
+  FROM Production.Products
+  WHERE productid = 2;
+COMMIT TRAN;
+-- Msg 1205, Level 13, State 51: Transaction (Process ID 52) was deadlocked
+-- on lock resources with another process and has been chosen as the
+-- deadlock victim. Rerun the transaction.</code></pre>
+      </div>
+
+      <h3 class="subhead">Four ways to see fewer deadlocks <span class="tag">p. 396</span></h3>
+      <div class="grid grid-2">
+        <div class="card"><div class="mini">1 · Shorter transactions</div><p>The longer a transaction runs, the longer it holds locks. Take out anything that is not logically part of the unit of work — and never write a transaction that waits for user input.</p></div>
+        <div class="card"><div class="mini">2 · Consistent access order</div><p>The “deadly embrace” above happens because the two transactions touch the same objects in inverse order. If both go Products → OrderDetails, this deadlock cannot occur.</p></div>
+        <div class="card"><div class="mini">3 · Better indexing</div><p>Often there is no real logical conflict at all — two transactions handle different rows. But without an index to support the filter, SQL Server scans and locks the whole table, and that is what deadlocks.</p></div>
+        <div class="card"><div class="mini">4 · Change isolation level</div><p>Under <code>READ COMMITTED SNAPSHOT</code> readers take no shared locks, which eliminates the whole class of deadlocks that revolve around shared locks.</p></div>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>UPDATE Production.Products
+  SET unitprice = 19.00
+WHERE productid = 2;
+
+UPDATE Sales.OrderDetails
+  SET unitprice = 19.00
+WHERE productid = 2
+  AND orderid &gt;= 10500;
+
+UPDATE Sales.OrderDetails
+  SET unitprice = 15.20
+WHERE productid = 2
+  AND orderid &lt; 10500;</code></pre>
+      </div>
+    </section>
+
+    <!-- 10.7 -->
+    <section class="section" id="ch10-practice">
+      <div class="section-head">
+        <div class="sec-num">10.7</div>
+        <div>
+          <div class="kicker">Practice</div>
+          <h2>Three lab exercises</h2>
+        </div>
+      </div>
+      <p class="lead">These exercises are different from the earlier chapters’: there is no separate Solutions section, because the instructions <em>are</em> the exercise. Exercises 1, 2, and 3 are independent of each other. Start every one with <code>USE TSQLV6;</code>.</p>
+
+      <details>
+        <summary>Exercise 1 · Troubleshoot a blocking chain (steps 1-1 to 1-6)</summary>
+        <div class="answer">
+          <p>Assumes the <code>READ COMMITTED</code> (locking) isolation level — the default in a box product. On Azure SQL Database, turn versioning off first.</p>
+          <p><strong>1-1</strong> · Open three connections. In Connection 1, open a transaction and update rows:</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Connection 1</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>BEGIN TRAN;
+  UPDATE Sales.OrderDetails
+    SET discount = 0.05
+  WHERE orderid = 10249;</code></pre>
+          </div>
+          <p><strong>1-2</strong> · In Connection 2, query the same rows. You will be blocked.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Connection 2</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT orderid, productid, unitprice, qty, discount
+FROM Sales.OrderDetails
+WHERE orderid = 10249;</code></pre>
+          </div>
+          <p><strong>1-3</strong> · In Connection 3, identify the locks and session IDs in the blocking chain.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Connection 3 · locks</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT -- use * to explore
+  request_session_id            AS sid,
+  resource_type                 AS restype,
+  resource_database_id          AS dbid,
+  resource_description          AS res,
+  resource_associated_entity_id AS resid,
+  request_mode                  AS mode,
+  request_status                AS status
+FROM sys.dm_tran_locks;</code></pre>
+          </div>
+          <p><strong>1-4</strong> · Substitute the session IDs you found for 52 and 53, and gather connection, session, and blocking information.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Connection 3 · connections, sessions, blocking</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>-- Connection info:
+SELECT -- use * to explore
+  session_id AS sid,
+  connect_time,
+  last_read,
+  last_write,
+  most_recent_sql_handle
+FROM sys.dm_exec_connections
+WHERE session_id IN(52, 53);
+
+-- Session info
+SELECT -- use * to explore
+  session_id AS sid,
+  login_time,
+  host_name,
+  program_name,
+  login_name,
+  nt_user_name,
+  last_request_start_time,
+  last_request_end_time
+FROM sys.dm_exec_sessions
+WHERE session_id IN(52, 53);
+
+-- Blocking
+SELECT -- use * to explore
+  session_id AS sid,
+  blocking_session_id,
+  command,
+  sql_handle,
+  database_id,
+  wait_type,
+  wait_time,
+  wait_resource
+FROM sys.dm_exec_requests
+WHERE blocking_session_id &gt; 0;</code></pre>
+          </div>
+          <p><strong>1-5</strong> · Get the SQL text of the sessions involved.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Connection 3 · the code they ran</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT session_id, text
+FROM sys.dm_exec_connections
+  CROSS APPLY sys.dm_exec_sql_text(most_recent_sql_handle) AS ST
+WHERE session_id IN(52, 53);</code></pre>
+          </div>
+          <p><strong>1-6</strong> · Roll back in Connection 1 and watch Connection 2 return the two rows, unmodified — discounts still 0.00.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">Connection 1</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>ROLLBACK TRAN;</code></pre>
+          </div>
+          <p class="fine" style="font-size:.84rem;color:var(--muted)">Remember: <code>KILL &lt;session_id&gt;</code> is your escape hatch when a blocker’s transaction cannot be closed any other way.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 2 · Feel each isolation level (steps 2-1 to 2-6)</summary>
+        <div class="answer">
+          <p>Each part is a two-connection script: modify in Connection 1, read in Connection 2, and note whether you are blocked and what you see.</p>
+          <p><strong>2-1 · READ UNCOMMITTED</strong> — Connection 2 sees the modified, uncommitted rows.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">2-1b Connection 1 / 2-1c Connection 2</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>-- Connection 1
+BEGIN TRAN;
+  UPDATE Sales.OrderDetails
+    SET discount += 0.05
+  WHERE orderid = 10249;
+  SELECT orderid, productid, unitprice, qty, discount
+  FROM Sales.OrderDetails
+  WHERE orderid = 10249;
+
+-- Connection 2
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SELECT orderid, productid, unitprice, qty, discount
+FROM Sales.OrderDetails
+WHERE orderid = 10249;      -- not blocked: dirty read
+
+-- Connection 1
+ROLLBACK TRAN;</code></pre>
+          </div>
+          <p><strong>2-2 · READ COMMITTED</strong> — the same script, but Connection 2 is blocked until Connection 1 commits, then sees the committed values.</p>
+          <p><strong>2-3 · REPEATABLE READ</strong> — Connection 1 sets the level, opens a transaction and reads (discount 0.00). Connection 2’s <code>UPDATE</code> is blocked; the second read in Connection 1 still returns 0.00; Connection 2 completes only after the commit.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">2-3a Connection 1 / 2-3b Connection 2</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>-- Connection 1
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN TRAN;
+  SELECT orderid, productid, unitprice, qty, discount
+  FROM Sales.OrderDetails
+  WHERE orderid = 10249;
+  -- read again: still 0.00, then
+COMMIT TRAN;
+
+-- Connection 2 (blocked until Connection 1 commits)
+UPDATE Sales.OrderDetails
+  SET discount += 0.05
+WHERE orderid = 10249;</code></pre>
+          </div>
+          <p><strong>2-4 · SERIALIZABLE</strong> — Connection 1 queries order 10249; Connection 2’s <code>INSERT</code> of a new row with that order ID is <strong>blocked</strong>, so the second read returns no phantoms. In every lower level that insert would succeed. Reset both connections with <code>SET TRANSACTION ISOLATION LEVEL READ COMMITTED;</code> afterwards.</p>
+          <p><strong>2-5 · SNAPSHOT</strong> — enable it with <code>ALTER DATABASE TSQLV6 SET ALLOW_SNAPSHOT_ISOLATION ON;</code>, then:</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">2-5b Connection 1 / 2-5c Connection 2</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>-- Connection 1
+BEGIN TRAN;
+  UPDATE Sales.OrderDetails
+    SET discount += 0.05
+  WHERE orderid = 10249;
+  SELECT orderid, productid, unitprice, qty, discount
+  FROM Sales.OrderDetails
+  WHERE orderid = 10249;
+
+-- Connection 2: NOT blocked — discount 0.00, the version at transaction start
+SET TRANSACTION ISOLATION LEVEL SNAPSHOT;
+BEGIN TRAN;
+  SELECT orderid, productid, unitprice, qty, discount
+  FROM Sales.OrderDetails
+  WHERE orderid = 10249;
+
+-- Connection 1: COMMIT TRAN;
+-- Connection 2, still in the same transaction: still 0.00
+-- Connection 2: COMMIT TRAN; then query again: now 0.05</code></pre>
+          </div>
+          <p><strong>2-6 · READ COMMITTED SNAPSHOT</strong> — turn on <code>ALTER DATABASE TSQLV6 SET READ_COMMITTED_SNAPSHOT ON;</code> and repeat. The difference: Connection 2 is still not blocked and still sees 0.00 on its first read, but after Connection 1 commits, the <em>second read in the same transaction</em> returns 0.05 — because the version is taken at statement start, not transaction start.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · restore the defaults afterwards</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>ALTER DATABASE TSQLV6 SET ALLOW_SNAPSHOT_ISOLATION OFF;
+ALTER DATABASE TSQLV6 SET READ_COMMITTED_SNAPSHOT OFF;
+-- in Azure SQL Database, the defaults are both ON</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 3 · Cause a deadlock, then prevent it (steps 3-1 to 3-6)</summary>
+        <div class="answer">
+          <p>Assumes versioning is turned off. Open two connections.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · the seven steps</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>-- Connection 1 (step 3-2)
+BEGIN TRAN;
+  UPDATE Production.Products
+    SET unitprice += 1.00
+  WHERE productid = 2;
+
+-- Connection 2 (step 3-3)
+BEGIN TRAN;
+  UPDATE Production.Products
+    SET unitprice += 1.00
+  WHERE productid = 3;
+
+-- Connection 1 (step 3-4): blocked
+  SELECT productid, unitprice
+  FROM Production.Products
+  WHERE productid = 3;
+COMMIT TRAN;
+
+-- Connection 2 (step 3-5): blocked too --&gt; deadlock error in one of them
+  SELECT productid, unitprice
+  FROM Production.Products
+  WHERE productid = 2;
+COMMIT TRAN;</code></pre>
+          </div>
+          <p><strong>3-6</strong> · How would you prevent it? Note that the two transactions modify <em>different</em> rows (products 2 and 3) — the conflict comes entirely from each one reading the row the other just changed, so each holds a lock the other needs. The fixes from the “Deadlocks” section all apply: keep the transactions as short as possible, have both sessions touch rows in the same order (lowest <code>productid</code> first), and consider <code>READ COMMITTED SNAPSHOT</code> so those <code>SELECT</code>s take no shared locks at all — which removes this whole class of deadlock. And if a filter were <em>not</em> supported by an index, each statement would scan and lock far more than it should, which is the other common cause of deadlocks with no real logical conflict.</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- 10.8 -->
+    <section class="section" id="ch10-recap">
+      <div class="section-head">
+        <div class="sec-num">10.8</div>
+        <div>
+          <div class="kicker">Takeaways</div>
+          <h2>Chapter 10 in ten bullets</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li><strong>A transaction is a unit of work</strong> whose boundaries you mark with <code>BEGIN TRAN</code>, <code>COMMIT TRAN</code>, and <code>ROLLBACK TRAN</code>; without them, each statement auto-commits.</li>
+        <li><strong>ACID:</strong> atomicity (all or nothing), consistency (one valid state to another), isolation (only consistent data), durability (a committed change survives).</li>
+        <li><strong>Writers always take exclusive locks and hold them to the end of the transaction</strong> — that part is not configurable. <code>@@TRANCOUNT</code> tells you whether you are in a transaction; <code>XACT_ABORT</code> makes every error roll back.</li>
+        <li><strong>Readers take shared locks</strong> under the locking-based levels. Exclusive blocks everything; shared blocks only exclusive.</li>
+        <li><strong>Intent locks</strong> (IS/IX) sit at higher granularity so SQL Server can detect conflicts cheaply; locks escalate to the table at 5,000 locks on one object.</li>
+        <li><strong>Troubleshoot blocking</strong> with <code>sys.dm_tran_locks</code> (who holds what), <code>sys.dm_exec_connections</code> and <code>sys.dm_exec_sessions</code> (who they are), and <code>sys.dm_exec_requests</code> filtered on <code>blocking_session_id &gt; 0</code>.</li>
+        <li><strong><code>LOCK_TIMEOUT</code> caps the wait with Msg 1222 — and does not roll back the transaction.</strong> <code>KILL</code> ends a blocker, rolling it back.</li>
+        <li><strong>Four locking levels climb a ladder:</strong> dirty reads → nonrepeatable reads → lost updates → phantoms, each rung fixed by holding locks longer or wider.</li>
+        <li><strong>Two row-versioning levels</strong> (<code>SNAPSHOT</code>, <code>READ COMMITTED SNAPSHOT</code>) let readers skip shared locks entirely: faster reads, extra copy cost on <code>UPDATE</code>/<code>DELETE</code>.</li>
+        <li><strong>Deadlocks</strong> are resolved by killing a victim (Msg 1205); prevent them with short transactions, a consistent access order, good indexing, and a suitable isolation level.</li>
+      </ul>
+
+      <h3 class="subhead">Chapter 10 key terms</h3>
+      <dl class="terms">
+        <div class="term"><dt>Transaction</dt><dd>A unit of work that may query and modify data and change the data definition.</dd></div>
+        <div class="term"><dt>Auto-commit</dt><dd>The default mode in which each individual statement is its own transaction.</dd></div>
+        <div class="term"><dt>ACID</dt><dd>Atomicity, consistency, isolation, durability — the four transaction properties.</dd></div>
+        <div class="term"><dt>Exclusive lock (X)</dt><dd>The lock a writer takes and holds to the end of the transaction; incompatible with every other mode.</dd></div>
+        <div class="term"><dt>Shared lock (S)</dt><dd>The lock a reader takes under a locking-based isolation level; compatible with other shared locks.</dd></div>
+        <div class="term"><dt>Intent lock</dt><dd>A lock taken at a higher level of granularity (IS/IX) so conflicting requests there can be detected cheaply.</dd></div>
+        <div class="term"><dt>Lock escalation</dt><dd>Replacing many fine-grained locks with a table lock, triggered at 5,000 locks on one object.</dd></div>
+        <div class="term"><dt>Blocking</dt><dd>A wait state entered when a requested lock is incompatible with one already granted.</dd></div>
+        <div class="term"><dt>Blocking chain</dt><dd>Two or more sessions linked by who is waiting for whom.</dd></div>
+        <div class="term"><dt>Dirty read</dt><dd>Reading uncommitted changes, possible only under <code>READ UNCOMMITTED</code>.</dd></div>
+        <div class="term"><dt>Nonrepeatable read</dt><dd>Getting a different value on a second read in the same transaction, because no lock was held in between.</dd></div>
+        <div class="term"><dt>Lost update</dt><dd>Two transactions read, calculate, and write, and the last writer silently overwrites the other.</dd></div>
+        <div class="term"><dt>Phantom read</dt><dd>A second read in the same transaction returning new rows that match the filter.</dd></div>
+        <div class="term"><dt>Version store</dt><dd>Where SQL Server keeps previous committed row versions — <code>tempdb</code>, or the user database when ADR is enabled.</dd></div>
+        <div class="term"><dt>Update conflict</dt><dd>Detected only by <code>SNAPSHOT</code> (Msg 3960) when another transaction modified the row between your read and your write.</dd></div>
+        <div class="term"><dt>Deadlock</dt><dd>Two or more sessions blocking each other; SQL Server kills one with Msg 1205.</dd></div>
+        <div class="term"><dt>DEADLOCK_PRIORITY</dt><dd>A session option from –10 to 10 that decides who becomes the deadlock victim.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 10.9 -->
+    <section class="section" id="ch10-quiz">
+      <div class="section-head">
+        <div class="sec-num">10.9</div>
+        <div>
+          <div class="kicker">Check yourself</div>
+          <h2>Six quick questions</h2>
+        </div>
+      </div>
+      <p class="lead">Try to answer before opening each one. If you can explain it in your own words, you’ve got the chapter.</p>
+
+      <details>
+        <summary>What are the four ACID properties, in one sentence each?</summary>
+        <div class="answer"><strong>Atomicity</strong> — all changes happen or none do. <strong>Consistency</strong> — the database moves from one state that satisfies all constraints to another. <strong>Isolation</strong> — transactions see only consistent data, which is what isolation levels control. <strong>Durability</strong> — once the commit is acknowledged, the change is guaranteed to persist.</div>
+      </details>
+      <details>
+        <summary>Which lock behaviour can you configure, and which can you not?</summary>
+        <div class="answer">You cannot change that a writer requests an <strong>exclusive</strong> lock, nor that it holds the lock <strong>until the end of the transaction</strong>. What you can control is how <em>readers</em> behave — whether they take shared locks at all and how long they keep them — by choosing an isolation level or a table hint.</div>
+      </details>
+      <details>
+        <summary>What do intent locks buy you?</summary>
+        <div class="answer">They let SQL Server detect incompatible lock requests at a higher level of granularity without scanning every lower-level lock. To lock a row exclusively, a transaction first takes IX locks on the page and the table; another transaction asking for an incompatible table-level lock is then refused immediately. Intent locks do not block requests at finer granularity.</div>
+      </details>
+      <details>
+        <summary>Which DMVs do you reach for when a query hangs, and what does each tell you?</summary>
+        <div class="answer"><code>sys.dm_tran_locks</code> shows granted and waiting locks with mode and status; <code>sys.dm_exec_connections</code> gives connect time, last read/write, and the most recent SQL handle; <code>sys.dm_exec_sessions</code> gives login, host, program, and last request times; and <code>sys.dm_exec_requests</code> filtered on <code>blocking_session_id &gt; 0</code> isolates the blocked requests with the wait type, wait time, and resource.</div>
+      </details>
+      <details>
+        <summary>READ COMMITTED versus REPEATABLE READ versus SERIALIZABLE: what does each add?</summary>
+        <div class="answer"><code>READ COMMITTED</code> prevents dirty reads by requiring a shared lock, but releases it as soon as the read is done — so nonrepeatable reads are possible. <code>REPEATABLE READ</code> holds shared locks to the end of the transaction, giving repeatable reads and preventing lost updates. <code>SERIALIZABLE</code> additionally locks the whole key range matching the filter, which blocks inserts and therefore prevents phantoms.</div>
+      </details>
+      <details>
+        <summary>SNAPSHOT versus READ COMMITTED SNAPSHOT — same mechanism, different semantics?</summary>
+        <div class="answer">Both serve readers from the version store so they take no shared locks. <code>SNAPSHOT</code> gives a <strong>transaction-level</strong> consistent view (taken at transaction start) and <strong>detects update conflicts</strong> with Msg 3960. <code>READ COMMITTED SNAPSHOT</code> gives a <strong>statement-level</strong> view and detects no conflicts, so it behaves like <code>READ COMMITTED</code> — including nonrepeatable reads. It is also enabled by a database flag that redefines <code>READ COMMITTED</code> itself.</div>
+      </details>
+    </section>
+
   </main>
 </div>
 
@@ -7900,12 +8994,12 @@ DROP TABLE dbo.DepartmentsHistory, dbo.Departments;</code></pre>
   <div class="footer-inner">
     <div>
       <h3>About this summary</h3>
-      <p>A study companion for <strong>Chapters 1–9</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292; Chapter 8, pages 293–342; Chapter 9, pages 343–366.</p>
-      <p class="fine">All fifteen figures and five tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, 5, and 8 have no figures or tables; six diagrams are original study aids rather than book artwork — the join-types, subquery-types, and table-expression diagrams, plus the Chapter 8 set (insert routes, identity vs. sequence, MERGE outcomes, OUTPUT flow), the Chapter 9 anatomy diagram, and the redrawn version of Figure 9-2. (The book’s Figure 9-2 is vector art that cannot be extracted as an image, so it was redrawn from its caption and predicates.) This page is an unofficial study aid; the book remains the authoritative source.</p>
+      <p>A study companion for <strong>Chapters 1–10</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292; Chapter 8, pages 293–342; Chapter 9, pages 343–366; Chapter 10, pages 367–408.</p>
+      <p class="fine">All sixteen figures and eight tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, 5, and 8 have no figures or tables; nine diagrams are original study aids rather than book artwork — the join-types, subquery-types, and table-expression diagrams, the four Chapter 8 diagrams (insert routes, identity vs. sequence, MERGE outcomes, OUTPUT flow), the Chapter 9 anatomy diagram, the redrawing of Figure 9-2, and the three Chapter 10 diagrams (lock duration by isolation level, locking vs. row versioning, and the deadlock embrace). The book’s Figure 9-2 is vector art that cannot be extracted as an image, so it was redrawn from its predicates. This page is an unofficial study aid; the book remains the authoritative source.</p>
     </div>
     <div>
       <h3>Navigate</h3>
-      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#ch8-insert" style="color:#9fe0d6">Chapter 8</a> · <a href="#ch9-intro" style="color:#9fe0d6">Chapter 9</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch9-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch9-quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#ch8-insert" style="color:#9fe0d6">Chapter 8</a> · <a href="#ch9-intro" style="color:#9fe0d6">Chapter 9</a> · <a href="#ch10-trans" style="color:#9fe0d6">Chapter 10</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch10-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch10-quiz" style="color:#9fe0d6">Quiz</a></p>
       <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
     </div>
   </div>
@@ -7918,9 +9012,9 @@ DROP TABLE dbo.DepartmentsHistory, dbo.Departments;</code></pre>
   "use strict";
 
   /* ---------- tiny T-SQL highlighter ---------- */
-  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP OUTPUT IDENTITY SEQUENCE EXEC PROC MATCHED BULK DECLARE GO USING PIVOT UNPIVOT APPLY CROSS OUTER INNER JOIN LEFT RIGHT FULL UNION EXCEPT INTERSECT WITH CUBE ROLLUP WHILE BREAK CONTINUE RETURN BEGIN CATCH NOCOUNT MINVALUE MAXVALUE CYCLE CACHE START INCREMENT NO GENERATED ALWAYS PERIOD SYSTEM_TIME SYSTEM_VERSIONING HISTORY_TABLE HISTORY_RETENTION_PERIOD HIDDEN TRAN COMMIT ROLLBACK CONTAINED ZONE CLUSTERED INDEX DAYS WEEKS MONTHS YEARS INFINITE").split(" "));
+  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP OUTPUT IDENTITY SEQUENCE EXEC PROC MATCHED BULK DECLARE GO USING PIVOT UNPIVOT APPLY CROSS OUTER INNER JOIN LEFT RIGHT FULL UNION EXCEPT INTERSECT WITH CUBE ROLLUP WHILE BREAK CONTINUE RETURN BEGIN CATCH NOCOUNT MINVALUE MAXVALUE CYCLE CACHE START INCREMENT NO GENERATED ALWAYS PERIOD SYSTEM_TIME SYSTEM_VERSIONING HISTORY_TABLE HISTORY_RETENTION_PERIOD HIDDEN TRAN COMMIT ROLLBACK CONTAINED ZONE CLUSTERED INDEX DAYS WEEKS MONTHS YEARS INFINITE KILL SERIALIZABLE SNAPSHOT UNCOMMITTED REPEATABLE XACT_ABORT IMPLICIT_TRANSACTIONS LOCK_ESCALATION NOLOCK HOLDLOCK READCOMMITTEDLOCK ALLOW_SNAPSHOT_ISOLATION").split(" "));
   var TYPES = new Set(["INT","VARCHAR","NVARCHAR","NCHAR","DATE","DATETIME","SMALLDATETIME","DATETIME2","DATETIMEOFFSET","TIME","MONEY","BIT","DECIMAL","NUMERIC","BIGINT","SMALLINT","TINYINT","FLOAT","TEXT","CHAR","VARBINARY","SQL_VARIANT","SYSNAME","ROWVERSION"]);
-  var FUNCS = new Set(["SYSDATETIME","GETDATE","GETUTCDATE","SYSUTCDATETIME","SYSDATETIMEOFFSET","COUNT","YEAR","MONTH","DAY","CAST","CONVERT","PARSE","TRY_CAST","TRY_CONVERT","TRY_PARSE","COALESCE","ISNULL","DATEADD","DATEDIFF","DATEDIFF_BIG","DATEPART","DATENAME","DATETRUNC","EOMONTH","GENERATE_SERIES","STRING_SPLIT","STRING_AGG","CONCAT","CONCAT_WS","SUBSTRING","LEFT","RIGHT","LEN","DATALENGTH","CHARINDEX","PATINDEX","REPLACE","TRANSLATE","STUFF","UPPER","LOWER","RTRIM","LTRIM","TRIM","FORMAT","COMPRESS","DECOMPRESS","ROW_NUMBER","SCOPE_IDENTITY","IDENT_CURRENT","NEWID","NEWSEQUENTIALID","OBJECT_ID","OBJECTPROPERTY","COLUMNPROPERTY","SERVERPROPERTY","DATABASEPROPERTYEX","SCHEMA_NAME","TYPE_NAME"]);
+  var FUNCS = new Set(["SYSDATETIME","GETDATE","GETUTCDATE","SYSUTCDATETIME","SYSDATETIMEOFFSET","COUNT","YEAR","MONTH","DAY","CAST","CONVERT","PARSE","TRY_CAST","TRY_CONVERT","TRY_PARSE","COALESCE","ISNULL","DATEADD","DATEDIFF","DATEDIFF_BIG","DATEPART","DATENAME","DATETRUNC","EOMONTH","GENERATE_SERIES","STRING_SPLIT","STRING_AGG","CONCAT","CONCAT_WS","SUBSTRING","LEFT","RIGHT","LEN","DATALENGTH","CHARINDEX","PATINDEX","REPLACE","TRANSLATE","STUFF","UPPER","LOWER","RTRIM","LTRIM","TRIM","FORMAT","COMPRESS","DECOMPRESS","ROW_NUMBER","DB_NAME","OBJECT_NAME","SPID","TRANCOUNT","SCOPE_IDENTITY","IDENT_CURRENT","NEWID","NEWSEQUENTIALID","OBJECT_ID","OBJECTPROPERTY","COLUMNPROPERTY","SERVERPROPERTY","DATABASEPROPERTYEX","SCHEMA_NAME","TYPE_NAME"]);
 
   function esc(s){
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
