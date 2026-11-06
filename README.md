@@ -122,6 +122,17 @@ Highlights per chapter:
 - Result sets reproduced as real HTML tables so they stay readable on small screens.
 - A combined cheat sheet and lightbox galleries of all 528 pages covered (497 chapter pages
   plus the 27 + 4 appendix pages).
-- Self-contained single file: no dependencies, dark mode and print-to-PDF built in.
+- **Truly self-contained**: every figure and every page image is embedded in the HTML as a
+  WebP data URI, so the file works alone — no `assets/` folder, no network, no external
+  CSS/JS/fonts. Dark mode and print-to-PDF built in.
 
-Images live in `assets/ch1/` … `assets/ch14/`, plus `assets/appa/` and `assets/appb/`.
+### About the embedded images
+
+The HTML is ~24 MB because the pictures are inside it: 320 figure crops are inlined losslessly
+(WebP lossless, pixel-identical to the PNGs) and all 528 page images are inlined as lossy WebP
+at 96 dpi — rendered straight from the PDF, so they stay legible in the lightbox. The gallery
+code only decodes a page when it scrolls near the viewport.
+
+`assets/ch1/` … `assets/ch14/`, `assets/appa/` and `assets/appb/` are kept as the source crops
+for anyone who wants to re-export them; **the page does not read them at runtime**, so it can be
+moved, emailed or opened from disk on its own.
