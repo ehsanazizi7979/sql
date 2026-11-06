@@ -7,8 +7,8 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1 through 13** — 125 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 118 syntax-highlighted,
+One self-contained HTML file covering **Chapters 1 through 14** — 132 figures embedded as inline
+base64 images (works offline, no server, no external assets) and 130 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -26,6 +26,7 @@ copyable T-SQL listings.
 | 11 | Transaction Log | 307–330 | 11-1 … 11-12 | 11-1 … 11-5 |
 | 12 | AlwaysOn Availability Groups | 331–356 | 12-1 … 12-10 | 12-1 … 12-6 |
 | 13 | Other Notable Wait Types | 357–370 | 13-1 … 13-2 | 13-1 … 13-7 |
+| 14 | Database Schema and Index Analysis | 371–403 | 14-1 … 14-7 | 14-1 … 14-12 |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -346,6 +347,31 @@ worker starvation, backups, batch-mode hash tables and preemptive calls.
 - Listing 13-5 — `THREADPOOL` wait: altering the table
 - Listing 13-6 — `THREADPOOL` wait: generating multiple sessions and blocking
 - Listing 13-7 — `THREADPOOL` wait: querying `sys.dm_os_waiting_tasks`
+
+### Chapter 14 — Database Schema and Index Analysis
+
+Catalog-view schema smells, identity-capacity risk, and the two DMVs that show
+which indexes are helping and which are pure write overhead.
+
+- Figure 14-1 — Catalog views
+- Figure 14-2 — Output from the `sys.dm_db_index_usage_stats` view
+- Figure 14-3 — Unused indexes
+- Figure 14-4 — Indexes with inefficient reads
+- Figure 14-5 — Inefficient clustered index
+- Figure 14-6 — Output from the `sys.dm_db_index_operational_stats` view
+- Figure 14-7 — `sp_Index_Analysis` output
+- Listing 14-1 — Obtaining heap tables in the database
+- Listing 14-2 — Detecting inefficient heap tables
+- Listing 14-3 — Getting indexes with uniqueidentifiers in the leftmost key column
+- Listing 14-4 — Detecting inefficient clustered indexes
+- Listing 14-5 — Selecting untrusted foreign key constraints
+- Listing 14-6 — Getting nonindexed foreign key constraints
+- Listing 14-7 — Locating potentially redundant indexes
+- Listing 14-8 — Examples of index consolidation
+- Listing 14-9 — Identifying identity columns with high utilization
+- Listing 14-10 — Using the `sys.dm_db_index_usage_stats` view
+- Listing 14-11 — Detecting queries that use the index
+- Listing 14-12 — Using the `sys.dm_db_index_operational_stats` view
 
 ## Viewing it
 
