@@ -7,8 +7,8 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1 through 6** — 59 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 52 syntax-highlighted,
+One self-contained HTML file covering **Chapters 1 through 7** — 71 figures embedded as inline
+base64 images (works offline, no server, no external assets) and 68 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -19,6 +19,7 @@ copyable T-SQL listings.
 | 4 | Inefficient Queries | 69–103 | 4-1 … 4-9 | 4-1 … 4-10 |
 | 5 | Data Storage and Query Tuning | 105–158 | 5-1 … 5-22 | 5-1 … 5-14 |
 | 6 | CPU Load | 159–183 | 6-1 … 6-9 | 6-1 … 6-16 |
+| 7 | Memory Issues | 185–218 | 7-1 … 7-12 | 7-1 … 7-16 |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -164,6 +165,40 @@ queries, compilation/plan caching (parameter sniffing, parameterization), and pa
 - Listing 6-14 — Auto-parameterization
 - Listing 6-15 — Applying forced parameterization through a plan guide
 - Listing 6-16 — Applying simple parameterization through a plan guide
+
+### Chapter 7 — Memory Issues
+
+How SQL Server allocates memory, the memory clerks that matter, query memory
+grants and spills, and why a `CHAR(8000)` column can inflate a grant 470×.
+
+- Figure 7-1 — Memory management components
+- Figure 7-2 — Memory usage on one of the production servers
+- Figure 7-3 — Plan cache content when Optimize for Ad-Hoc Workloads is disabled
+- Figure 7-4 — Plan cache content when Optimize for Ad-Hoc Workloads is enabled
+- Figure 7-5 — Plan cache content with parameterized query
+- Figure 7-6 — Memory grant information in SSMS
+- Figure 7-7 — Optimizing memory-intensive queries: query execution plan
+- Figure 7-8 — Same plan after the index has been created
+- Figure 7-9 — Execution plan with up-to-date statistics
+- Figure 7-10 — Cardinality estimation error and memory grant
+- Figure 7-11 — Memory grant after `UPDATE STATISTICS`
+- Figure 7-12 — Memory grant with `VARCHAR` data type
+- Listing 7-1 — Analyzing OS and SQL Server memory usage
+- Listing 7-2 — The `sp_server_diagnostics_component_result` event (partial)
+- Listing 7-3 — Analyzing memory usage
+- Listing 7-4 — Buffer pool usage on a per-database basis
+- Listing 7-5 — Running 1,000 ad-hoc queries and examining plan cache content
+- Listing 7-6 — Running a parameterized query and examining plan cache content
+- Listing 7-7 — Analyzing the plan cache
+- Listing 7-8 — Memory grant information
+- Listing 7-9 — Optimizing memory-intensive queries: table creation
+- Listing 7-10 — Optimizing memory-intensive queries: test query 1
+- Listing 7-11 — Optimizing memory-intensive queries: test query 2
+- Listing 7-12 — Optimizing memory-intensive queries: outdating statistics
+- Listing 7-13 — A hypothetical query (`MIN_GRANT_PERCENT` / `MAX_GRANT_PERCENT`)
+- Listing 7-14 — Limiting the amount of memory for In-Memory OLTP
+- Listing 7-15 — Analyzing memory consumption of memory-optimized tables
+- Listing 7-16 — Detecting the 10 oldest In-Memory OLTP transactions
 
 ## Viewing it
 
