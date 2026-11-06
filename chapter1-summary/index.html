@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapters 1–9 · SQL Fundamentals, Joins, Sets, Grouping and Subqueries — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Chapters 1–10 · SQL Fundamentals, Grouping, Subqueries and Joins — Simple Summary (Learning SQL, 3rd Ed.)</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -211,7 +211,7 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapters 1–9, in plain English</h1>
+  <h1>Chapters 1–10, in plain English</h1>
   <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
   and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
   data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
@@ -222,12 +222,13 @@
   <b>Ch. 6 — Working with Sets:</b> combining, comparing and subtracting query results.
   <b>Ch. 7 — Data Generation, Manipulation, and Conversion:</b> working with strings, numbers and dates.
   <b>Ch. 8 — Grouping and Aggregates:</b> turning individual rows into useful summaries.
-  <b>Ch. 9 — Subqueries:</b> using one query inside another to filter, calculate and build data sets.</p>
+  <b>Ch. 9 — Subqueries:</b> using one query inside another to filter, calculate and build data sets.
+  <b>Ch. 10 — Joins Revisited:</b> preserving unmatched rows and building combinations.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–186 (PDF pp. 19–204)</span>
-    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14</span>
+    <span><b>Book pages:</b> 1–200 (PDF pp. 19–218)</span>
+    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14 + 10</span>
     <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8, Figures 6-1…6-4</span>
-    <span><b>Reading time:</b> ~122 min</span>
+    <span><b>Reading time:</b> ~134 min</span>
   </div>
   <div class="jump">
     <a href="#tldr">↓ Chapter 1 · A Little Background</a>
@@ -239,6 +240,7 @@
     <a href="#ch7">↓ Chapter 7 · Data and Functions</a>
     <a href="#ch8">↓ Chapter 8 · Grouping and Aggregates</a>
     <a href="#ch9">↓ Chapter 9 · Subqueries</a>
+    <a href="#ch10">↓ Chapter 10 · Joins Revisited</a>
   </div>
 </header>
 
@@ -366,6 +368,18 @@
     <li><a href="#ch9-cte">Common table expressions</a></li>
     <li><a href="#ch9-expressions">Scalar values in SELECT and ORDER BY</a></li>
     <li><a href="#ch9-exercises">Exercises &amp; recap</a></li>
+  </ol>
+  <div class="brand" style="margin-top:18px">Chapter 10 · Joins revisited</div>
+  <ol>
+    <li><a href="#ch10-intro">The chapter in one paragraph</a></li>
+    <li><a href="#ch10-outer">Outer joins &amp; missing matches</a></li>
+    <li><a href="#ch10-count">Counting optional matches</a></li>
+    <li><a href="#ch10-direction">Left versus right</a></li>
+    <li><a href="#ch10-three">Three-way outer joins</a></li>
+    <li><a href="#ch10-cross">Cross joins</a></li>
+    <li><a href="#ch10-calendar">Building a calendar</a></li>
+    <li><a href="#ch10-natural">Natural joins</a></li>
+    <li><a href="#ch10-exercises">Exercises &amp; recap</a></li>
   </ol>
 </nav>
 
@@ -4784,17 +4798,261 @@ FROM actor a
   <tr><td>Relationship exists?</td><td>EXISTS / NOT EXISTS with the correct correlation.</td></tr>
   <tr><td>Reusable step</td><td>Derived table or CTE; identify the grain and inspect the plan.</td></tr>
   </tbody></table>
-  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 10, <em>Joins Revisited</em>,
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p><a href="#ch10">Chapter 10, <em>Joins Revisited</em></a>,
   looks beyond inner joins at other ways to combine tables.</p></div>
+</section>
+<div class="chap" id="ch10">
+  <div class="kicker">Chapter 10 · book pages 187–200 (PDF pp. 205–218)</div>
+  <h2><span class="num">10.0</span>Joins Revisited</h2>
+  <p>Keep rows even without a match, deliberately build combinations, and understand why implicit join conditions can surprise you.</p>
+</div>
+<section id="ch10-intro">
+  <h2><span class="num">10.1</span>The chapter in one paragraph</h2>
+  <p class="lede">The join type determines what happens when rows do—or do not—match.</p>
+  <p>An inner join keeps matching pairs. A <strong>left outer join</strong> keeps every left-side row,
+  adding NULLs for the right-side columns when no match exists. A right outer join does the mirror image.
+  A <strong>cross join</strong> generates every combination, which can be useful for making a calendar.
+  A <strong>natural join</strong> infers conditions from all shared column names, making it easy to join
+  on columns you didn't intend.</p>
+  <div class="simple"><span class="tag">Original diagram · preserved rows</span>
+  film → LEFT JOIN inventory → LEFT JOIN rental &nbsp; | &nbsp; no match → NULLs on the optional side
+  </div>
+  <p>Preserving rows does not mean one output row per input row: multiple matches can multiply rows.</p>
+</section>
+<section id="ch10-outer">
+  <h2><span class="num">10.2</span>Outer joins keep unmatched rows</h2>
+  <p>The book's Sakila sample contains 1,000 films, but only 958 have inventory. The inner-join query
+  omits the 42 films without copies:</p>
+  <div class="code"><div class="bar"><span>Book example · inner join</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT f.film_id, f.title, count(*) num_copies
+FROM film f
+  INNER JOIN inventory i
+  ON f.film_id = i.film_id
+GROUP BY f.film_id, f.title;</code></pre></div>
+  <p>Filtering to IDs 13–15 reveals four inventory rows for ALI FOREVER (13), none for ALICE FANTASIA
+  (14), and six for ALIEN CENTER (15). The inner join produces ten rows; the left outer join adds the
+  missing film as an eleventh, with a NULL inventory ID.</p>
+  <div class="code"><div class="bar"><span>Book example · include films without inventory</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT f.film_id, f.title, i.inventory_id
+FROM film f
+  LEFT OUTER JOIN inventory i
+  ON f.film_id = i.film_id
+WHERE f.film_id BETWEEN 13 AND 15;</code></pre></div>
+  <table><thead><tr><th>Film ID</th><th>Title</th><th>Inventory IDs in book result</th></tr></thead><tbody>
+  <tr><td>13</td><td>ALI FOREVER</td><td>67, 68, 69, 70</td></tr>
+  <tr><td>14</td><td>ALICE FANTASIA</td><td>NULL (no matching inventory)</td></tr>
+  <tr><td>15</td><td>ALIEN CENTER</td><td>71, 72, 73, 74, 75, 76</td></tr></tbody></table>
+  <div class="note"><span class="tag">ON versus WHERE</span>A condition in ON controls which optional
+  rows can match. A WHERE condition on the optional side can eliminate the NULL-extended row: for example,
+  WHERE i.store_id = 1 drops films with no matching inventory. Put a match restriction in ON if those films
+  must still appear. Conditions on preserved rows can also filter them after the join.</div>
+</section>
+<section id="ch10-count">
+  <h2><span class="num">10.3</span>Count matches, not the placeholder row</h2>
+  <p>After a left join, the film with no inventory still has one NULL-extended result row. Therefore
+  COUNT(*) would count that row as 1. Count a non-NULL key on the optional side instead:</p>
+  <div class="code"><div class="bar"><span>Book example · count copies</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT f.film_id, f.title, count(i.inventory_id) num_copies
+FROM film f
+  LEFT OUTER JOIN inventory i
+  ON f.film_id = i.film_id
+GROUP BY f.film_id, f.title;</code></pre></div>
+  <p>The book gets 1,000 groups, including 42 zeroes. Counting the inventory primary key works because
+  an actual inventory row has a non-NULL key. Later one-to-many joins can duplicate inventory rows;
+  reassess the grain or use a suitable distinct count when that happens.</p>
+</section>
+<section id="ch10-direction">
+  <h2><span class="num">10.4</span>Left versus right</h2>
+  <p>LEFT preserves the left input; RIGHT preserves the right input. Swap the table order and direction
+  to express the same relationship. This book query has the same 11 rows as the earlier LEFT JOIN:</p>
+  <div class="code"><div class="bar"><span>Book example · equivalent right join</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT f.film_id, f.title, i.inventory_id
+FROM inventory i
+  RIGHT OUTER JOIN film f
+  ON f.film_id = i.film_id
+WHERE f.film_id BETWEEN 13 AND 15;</code></pre></div>
+  <p><span class="inline">OUTER</span> is optional in this syntax. Left joins are often easier to read
+  consistently; supported join types and syntax vary by engine and version.</p>
+</section>
+<section id="ch10-three">
+  <h2><span class="num">10.5</span>Three-way outer joins</h2>
+  <p>Add rentals after inventory while keeping films with no inventory, and inventory with no rentals:</p>
+  <div class="code"><div class="bar"><span>Book example · chain left joins</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT f.film_id, f.title, i.inventory_id, r.rental_date
+FROM film f
+  LEFT OUTER JOIN inventory i
+  ON f.film_id = i.film_id
+  LEFT OUTER JOIN rental r
+  ON i.inventory_id = r.inventory_id
+WHERE f.film_id BETWEEN 13 AND 15;</code></pre></div>
+  <p>The book returns 32 rows. ALICE FANTASIA appears once with NULL inventory ID and rental date;
+  copies with multiple rentals appear more than once. Replacing the second LEFT JOIN with an inner join
+  can remove the unmatched film again, so think through each stage.</p>
+</section>
+<section id="ch10-cross">
+  <h2><span class="num">10.6</span>Cross joins: all combinations</h2>
+  <p>A cross join pairs each row from one input with every row from the other. The book combines
+  16 categories and 6 languages to produce <strong>96 rows</strong>:</p>
+  <div class="code"><div class="bar"><span>Book example · Cartesian product</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.name category_name, l.name language_name
+FROM category c
+  CROSS JOIN language l;</code></pre></div>
+  <p>This is useful when the combinations themselves are wanted, but row counts multiply quickly.
+  If either input is empty, the product is empty. Accidental cross joins are a common source of inflated results.</p>
+</section>
+<section id="ch10-calendar">
+  <h2><span class="num">10.7</span>Generate a calendar, then fill the gaps</h2>
+  <p>The book fabricates ones, tens, and hundreds and cross-joins them: 10 × 10 × 4 = 400 distinct
+  offsets from 0 through 399. Add each offset to January 1, then keep dates before the next year.
+  For leap year 2020, that yields 366 days (offsets 0–365), including February 29.</p>
+  <div class="code"><div class="bar"><span>Book example · 2020 calendar in MySQL</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT DATE_ADD('2020-01-01',
+  INTERVAL (ones.num + tens.num + hundreds.num) DAY) dt
+FROM
+ (SELECT 0 num UNION ALL
+  SELECT 1 num UNION ALL
+  SELECT 2 num UNION ALL
+  SELECT 3 num UNION ALL
+  SELECT 4 num UNION ALL
+  SELECT 5 num UNION ALL
+  SELECT 6 num UNION ALL
+  SELECT 7 num UNION ALL
+  SELECT 8 num UNION ALL
+  SELECT 9 num) ones
+  CROSS JOIN
+ (SELECT 0 num UNION ALL
+  SELECT 10 num UNION ALL
+  SELECT 20 num UNION ALL
+  SELECT 30 num UNION ALL
+  SELECT 40 num UNION ALL
+  SELECT 50 num UNION ALL
+  SELECT 60 num UNION ALL
+  SELECT 70 num UNION ALL
+  SELECT 80 num UNION ALL
+  SELECT 90 num) tens
+  CROSS JOIN
+ (SELECT 0 num UNION ALL
+  SELECT 100 num UNION ALL
+  SELECT 200 num UNION ALL
+  SELECT 300 num) hundreds
+WHERE DATE_ADD('2020-01-01',
+  INTERVAL (ones.num + tens.num + hundreds.num) DAY) &lt; '2021-01-01'
+ORDER BY 1;</code></pre></div>
+  <p>The book then preserves every generated 2005 date with a RIGHT OUTER JOIN and counts matching
+  rental IDs. Its output has 365 days, including zero-rental days. This combines the chapter's two ideas:</p>
+  <div class="code"><div class="bar"><span>Book example · daily rentals including zeroes</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT days.dt, COUNT(r.rental_id) num_rentals
+FROM rental r
+  RIGHT OUTER JOIN
+ (SELECT DATE_ADD('2005-01-01',
+    INTERVAL (ones.num + tens.num + hundreds.num) DAY) dt
+  FROM
+   (SELECT 0 num UNION ALL
+    SELECT 1 num UNION ALL
+    SELECT 2 num UNION ALL
+    SELECT 3 num UNION ALL
+    SELECT 4 num UNION ALL
+    SELECT 5 num UNION ALL
+    SELECT 6 num UNION ALL
+    SELECT 7 num UNION ALL
+    SELECT 8 num UNION ALL
+    SELECT 9 num) ones
+    CROSS JOIN
+   (SELECT 0 num UNION ALL
+    SELECT 10 num UNION ALL
+    SELECT 20 num UNION ALL
+    SELECT 30 num UNION ALL
+    SELECT 40 num UNION ALL
+    SELECT 50 num UNION ALL
+    SELECT 60 num UNION ALL
+    SELECT 70 num UNION ALL
+    SELECT 80 num UNION ALL
+    SELECT 90 num) tens
+    CROSS JOIN
+   (SELECT 0 num UNION ALL
+    SELECT 100 num UNION ALL
+    SELECT 200 num UNION ALL
+    SELECT 300 num) hundreds
+  WHERE DATE_ADD('2005-01-01',
+    INTERVAL (ones.num + tens.num + hundreds.num) DAY)
+      &lt; '2006-01-01'
+ ) days
+  ON days.dt = date(r.rental_date)
+GROUP BY days.dt
+ORDER BY 1;</code></pre></div>
+  <p>The book shows 8 rentals on 2005-05-24 and zero on 2005-06-01. COUNT(r.rental_id), not COUNT(*),
+  is what makes an unmatched date show zero. Date functions and calendar-generation techniques vary by engine.</p>
+</section>
+<section id="ch10-natural">
+  <h2><span class="num">10.8</span>Natural joins infer more than you might expect</h2>
+  <p>A NATURAL JOIN uses every shared column name to infer equality conditions. In the book's sample,
+  customer and rental share both customer_id <em>and</em> last_update, so this query unexpectedly
+  returns an empty set:</p>
+  <div class="code"><div class="bar"><span>Book example · unintended match conditions</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.first_name, c.last_name, date(r.rental_date)
+FROM customer c
+  NATURAL JOIN rental r;</code></pre></div>
+  <p>The book shows that restricting the customer columns in a derived table removes the unintended
+  shared last_update column; its revised query returns 16,044 rows:</p>
+  <div class="code"><div class="bar"><span>Book example · restrict the shared columns</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT cust.first_name, cust.last_name, date(r.rental_date)
+FROM
+ (SELECT customer_id, first_name, last_name
+  FROM customer
+ ) cust
+  NATURAL JOIN rental r;</code></pre></div>
+  <p>The clearer choice is an explicit join on the intended key. A new shared column can silently
+  change a natural join's behavior, so the book recommends avoiding it.</p>
+</section>
+<section id="ch10-exercises">
+  <h2><span class="num">10.9</span>Exercises &amp; recap</h2>
+  <p class="lede">Try the book's exercises before opening these independently worked answers.
+  The book's solutions are in Appendix B.</p>
+  <h3>10-1 · All customers and their payments</h3>
+  <p>Using the book's exercise tables, include every customer even without a payment:</p>
+  <table><thead><tr><th>Customer_id</th><th>Name</th></tr></thead><tbody>
+  <tr><td>1</td><td>John Smith</td></tr><tr><td>2</td><td>Kathy Jones</td></tr>
+  <tr><td>3</td><td>Greg Oliver</td></tr></tbody></table>
+  <table><thead><tr><th>Payment_id</th><th>Customer_id</th><th>Amount</th></tr></thead><tbody>
+  <tr><td>101</td><td>1</td><td>8.99</td></tr><tr><td>102</td><td>3</td><td>4.99</td></tr>
+  <tr><td>103</td><td>1</td><td>7.99</td></tr></tbody></table>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · LEFT JOIN</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.customer_id, c.name, COALESCE(SUM(p.amount), 0) AS total_paid
+FROM Customer c
+  LEFT OUTER JOIN Payment p ON p.customer_id = c.customer_id
+GROUP BY c.customer_id, c.name
+ORDER BY c.customer_id;</code></pre></div>
+  <p>John: 16.98; Kathy: 0; Greg: 4.99. Without COALESCE, SUM for Kathy is NULL. Here zero is an
+  explicit reporting choice; if real payment amounts can be NULL, distinguish “no payments” from
+  “payments with unknown amounts” before treating both as zero.</p></details>
+  <h3>10-2 · The other outer join</h3>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · RIGHT JOIN</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.customer_id, c.name, COALESCE(SUM(p.amount), 0) AS total_paid
+FROM Payment p
+  RIGHT OUTER JOIN Customer c ON p.customer_id = c.customer_id
+GROUP BY c.customer_id, c.name
+ORDER BY c.customer_id;</code></pre></div>
+  <p>Swapping the inputs and preserving Customer on the right gives the same three totals.</p></details>
+  <h3>10-3 · Generate 1 through 100</h3>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · two digit sets</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT tens.n * 10 + ones.n + 1 AS n
+FROM
+ (SELECT 0 n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+  UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) tens
+CROSS JOIN
+ (SELECT 0 n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+  UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) ones
+ORDER BY n;</code></pre></div>
+  <p>Each digit set has ten rows: 10 × 10 combinations give offsets 0–99, then adding 1 gives 1–100.</p></details>
+  <h3>Quick reference</h3>
+  <table><thead><tr><th>Join</th><th>What it does</th></tr></thead><tbody>
+  <tr><td>INNER</td><td>Returns matching row pairs only.</td></tr>
+  <tr><td>LEFT OUTER</td><td>Preserves left rows, NULL-extending missing right matches.</td></tr>
+  <tr><td>RIGHT OUTER</td><td>Preserves right rows, NULL-extending missing left matches.</td></tr>
+  <tr><td>CROSS</td><td>Returns every combination of the inputs.</td></tr>
+  <tr><td>NATURAL</td><td>Matches all shared names automatically; schema changes can alter the join.</td></tr>
+  </tbody></table>
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 11, <em>Conditional Logic</em>,
+  uses CASE expressions to make decisions within SQL.</p></div>
 </section>
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–9 of <i>Learning SQL: Generate,
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–10 of <i>Learning SQL: Generate,
   Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
   ISBN 9781492057611). Figures 1-1…1-3 and 6-1…6-4 and the Table 2-6…2-8 crops are reproduced from
   the PDF in this repository for personal study; please buy the book if you like it. SQL snippets include
-  the book's teaching examples. Exercise answers for Chapters 3–9 are worked here, not copied from the book —
+  the book's teaching examples. Exercise answers for Chapters 3–10 are worked here, not copied from the book —
   its own solutions live in Appendix B. Diagrams marked <i>original</i> are drawn for this page.</p>
 </footer>
 </div>
