@@ -7,9 +7,10 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **the complete book — Chapters 1 through 16** — 153 figures
-embedded as inline base64 images (works offline, no server, no external assets) and 131
-syntax-highlighted, copyable T-SQL listings.
+One self-contained HTML file covering **the entire book** — all 16 chapters, Appendix A
+(Wait Types) and the back-of-book index. 153 figures embedded as inline base64 images (works
+offline, no server, no external assets), 131 syntax-highlighted copyable T-SQL listings, and
+the complete index (700 main entries + 357 sub-entries) keyed to the book's own page numbers.
 
 | Chapter | Topic | Book pages | Figures | Listings |
 | --- | --- | --- | --- | --- |
@@ -29,6 +30,8 @@ syntax-highlighted, copyable T-SQL listings.
 | 14 | Database Schema and Index Analysis | 371–403 | 14-1 … 14-7 | 14-1 … 14-12 |
 | 15 | SQL Server in Virtualized Environments | 405–426 | 15-1 … 15-8 | 15-1 … 15-1 |
 | 16 | SQL Server in the Cloud | 427–447 | 16-1 … 16-13 | — |
+| App. A | Wait Types | 449–461 | — | — |
+| — | Index | 463–477 | — | — |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -410,6 +413,20 @@ and the three managed platforms (Azure SQL, Amazon RDS, Google Cloud SQL).
 - Figure 16-11 — Performance Insights database load, sliced by wait
 - Figure 16-12 — Performance Insights top SQL
 - Figure 16-13 — Google Cloud SQL read/write ops limits
+
+### Appendix A — Wait Types
+
+A reference for the waits you actually meet, regrouped by symptom rather than alphabetically:
+storage and I/O (PAGEIOLATCH, ASYNC_IO_COMPLETION, IO_COMPLETION, WRITE_COMPLETION, WRITELOG,
+LOGBUFFER, BACKUPIO, the PREEMPTIVE_OS file waits), CPU and parallelism (THREADPOOL, CXPACKET,
+RESOURCE_SEMAPHORE, QDS*), blocking (the full `LCK_M_*` family, `LATCH_*`, PAGELATCH,
+BTREE_INSERT_FLOW_CONTROL, HADR_SYNC_COMMIT, the parallel-redo waits) and the long tail
+(ASYNC_NETWORK_IO, OLEDB, PREEMPTIVE_OS_AUTH*, HTBUILD). No figures, no code listings.
+
+### Index
+
+All 25 letter groups from the back of the book — 700 main entries and 357 sub-entries, with
+the book's original page references, so any term can be traced back to the printed page.
 
 ## Viewing it
 

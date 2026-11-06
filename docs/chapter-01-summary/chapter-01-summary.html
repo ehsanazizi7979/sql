@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Complete Book — All 16 Chapters of SQL Server Advanced Troubleshooting (Simple Summary)</title>
+<title>The Complete Book — SQL Server Advanced Troubleshooting: 16 Chapters, Appendix A, and the Index</title>
 <style>
   :root{
     --ink:#14171f;
@@ -336,18 +336,29 @@
   }
   hr.soft{border:none;border-top:1px solid var(--line);margin:38px 0}
   .top{font-size:13px;color:var(--muted);text-decoration:none}
+
+  /* ---------- appendix / index extras ---------- */
+  .idx-letter{margin:0 0 26px;border-left:3px solid var(--line);padding-left:16px}
+  .idx-letter h3{margin:0 0 8px;font-size:20px;font-weight:800;color:var(--blue);display:flex;align-items:baseline;gap:10px}
+  .idx-letter h3 .idx-count{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  ul.idx-list{margin:0;padding:0;list-style:none;font-size:15px}
+  ul.idx-list li.main{margin:0 0 2px;border-bottom:1px solid #f2f4f7;padding:5px 0 6px}
+  ul.idx-list li.main b{color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums}
+  .idx-sub{display:block;padding:1px 0 1px 20px;color:var(--muted);font-size:14px;border-left:2px dotted #dfe4ea;margin-left:2px}
+  .idx-sub b{color:#8a94a3;font-weight:600;font-variant-numeric:tabular-nums}
+  .idx-see{font-style:italic;color:var(--muted);font-size:14px}
 </style>
 </head>
 <body id="top">
 
 <header class="hero">
   <div class="inner">
-    <span class="kicker">Chapters 1–16 · The Complete Book</span>
-    <h1>The Complete Book — All 16 Chapters in Plain English</h1>
-    <p class="sub">A plain-English walk through <em>SQL Server Advanced Troubleshooting and Performance Tuning</em> — from hardware, settings, and database options in Chapter 1, to schedulers and Wait Statistics in Chapter 2, the full I/O stack and checkpoint tuning in Chapter 3, four ways to hunt down inefficient queries in Chapter 4, the B-Tree, statistics and join-algorithm fundamentals that let you fix them in Chapter 5, CPU load — parameter sniffing, plan caching and parallelism — in Chapter 6, memory clerks, memory grants and spills in Chapter 7, locks, blocking, deadlocks and isolation levels in Chapter 8, tempdb — temporary objects, spills and allocation contention — in Chapter 9, latches and the hotspots that cap throughput in Chapter 10, the transaction log — write-ahead logging, VLFs and log-full emergencies — in Chapter 11, AlwaysOn Availability Groups in Chapter 12, the remaining notable wait types in Chapter 13, schema and index analysis in Chapter 14, SQL Server inside virtual machines in Chapter 15, and running it in the cloud in Chapter 16. <strong>Every figure and every code listing from the whole book, in one page.</strong></p>
+    <span class="kicker">The Complete Book · 16 Chapters + Appendix + Index</span>
+    <h1>The Complete Book — Every Chapter, the Wait-Type Appendix, and the Index</h1>
+    <p class="sub">A plain-English walk through <em>SQL Server Advanced Troubleshooting and Performance Tuning</em> — from hardware, settings, and database options in Chapter 1, to schedulers and Wait Statistics in Chapter 2, the full I/O stack and checkpoint tuning in Chapter 3, four ways to hunt down inefficient queries in Chapter 4, the B-Tree, statistics and join-algorithm fundamentals that let you fix them in Chapter 5, CPU load — parameter sniffing, plan caching and parallelism — in Chapter 6, memory clerks, memory grants and spills in Chapter 7, locks, blocking, deadlocks and isolation levels in Chapter 8, tempdb — temporary objects, spills and allocation contention — in Chapter 9, latches and the hotspots that cap throughput in Chapter 10, the transaction log — write-ahead logging, VLFs and log-full emergencies — in Chapter 11, AlwaysOn Availability Groups in Chapter 12, the remaining notable wait types in Chapter 13, schema and index analysis in Chapter 14, SQL Server inside virtual machines in Chapter 15, running it in the cloud in Chapter 16, and the <strong>wait-type appendix and the full index</strong> as the back matter. <strong>Every figure, every code listing and every index entry from the whole book, in one page.</strong></p>
     <div class="book">
       From <strong>SQL Server Advanced Troubleshooting and Performance Tuning</strong> · Dmitri Korotkevitch · O'Reilly Media, 2022<br>
-      This summary covers <strong>the entire book — all 16 chapters</strong>: 153 figures and 131 code listings. Use the chapter list below to jump anywhere.
+      This summary covers <strong>the entire book</strong> — all 16 chapters, Appendix A, and the 1,056-entry index: 153 figures and 131 code listings. Use the chapter list below to jump anywhere.
     </div>
   </div>
 </header>
@@ -593,6 +604,26 @@
       <li><a href="#c16-rds">Amazon SQL Server RDS</a></li>
       <li><a href="#c16-gcp">Google Cloud SQL</a></li>
       <li><a href="#c16-takeaways">Key takeaways</a></li>
+    </ol>
+  </div>
+
+  <div class="group">
+    <h3>Appendix A — Wait Types</h3>
+    <ol>
+      <li><a href="#ca-howto">How to use this list</a></li>
+      <li><a href="#ca-io">Storage and I/O waits</a></li>
+      <li><a href="#ca-cpu">CPU, parallelism and workers</a></li>
+      <li><a href="#ca-locking">Blocking and locking waits</a></li>
+      <li><a href="#ca-memory-misc">Client, network and long tail</a></li>
+      <li><a href="#ca-takeaways">Key takeaways</a></li>
+    </ol>
+  </div>
+
+  <div class="group">
+    <h3>Book Index</h3>
+    <ol>
+      <li><a href="#cindex-howto">About this index</a></li>
+      <li><a href="#cindex-entries">The index, A–Z</a></li>
     </ol>
   </div>
 </nav>
@@ -11107,8 +11138,2096 @@ WHERE type = 1;'</span>;
 </div><!-- /.chapter-body -->
 <!-- ====================== CHAPTER 16 ENDS ====================== -->
 
+<!-- ============================================================ -->
+<!-- ================== APPENDIX A BEGINS ======================= -->
+<!-- ============================================================ -->
+
+<div class="chapter-head" id="appendix-a">
+  <div class="chapter-head-inner">
+    <span class="chapter-label">Appendix A</span>
+    <h2>Wait Types</h2>
+    <p>The book's field guide to the waits you will actually meet: what each one means, what usually causes it, and the first thing to check. Grouped by symptom, not alphabetically.</p>
+    <p class="pages">Book pages 449–461 · no figures · no code listings</p>
+  </div>
+</div>
+
+<div class="chapter-body">
+
+<!-- ============================ A.1 ============================ -->
+<section id="ca-howto">
+  <h2 class="sec"><span class="num">1</span>How to use this list</h2>
+
+  <p>A wait type is the thread's way of telling you where it is stuck. The name is the <em>symptom</em>, never the diagnosis. The appendix is explicit that it is not a replacement for Microsoft's documentation or the SQLSkills Wait Types Library — it is the author's shortlist, with the one or two things that actually matter for each.</p>
+
+  <div class="callout">
+    <span class="lbl">The three questions every wait raises</span>
+    <p><strong>1. Is it normal?</strong> Many waits (CXPACKET, WRITELOG, PAGEIOLATCH) are present in <em>every</em> healthy system. Presence proves nothing; a large <em>percentage</em> of total wait time, or a large <em>average duration</em>, is what earns attention. <strong>2. What is the rate?</strong> A wait accumulating 300 seconds over a week is noise; the same 300 seconds in one minute is an outage. Always divide by elapsed time. <strong>3. Who is waiting?</strong> Join to <code class="inline">sys.dm_exec_requests</code> and <code class="inline">sys.dm_os_waiting_tasks</code> to attach the wait to a session, a query and a resource.</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="lbl">The classic misread</span>
+    <p>Waits are cumulative since the last restart and are <strong>not</strong> a snapshot of "now". A server that has been up for a year shows a year of history. Either measure a delta over a known window, or use <code class="inline">sys.dm_exec_session_wait_stats</code> if you want per-session numbers. Reporting "our top wait is CXPACKET" from a lifetime counter tells you what happened in the past, not what is happening on your shift.</p>
+  </div>
+
+  <p>Below, the waits are grouped the way you would actually triage them — by the resource that is in short supply. Each entry carries the causes the author calls out and the first check to make, with cross-references to the chapter that covers the deep version.</p>
+</section>
+
+<hr class="soft">
+
+<!-- ============================ A.2 ============================ -->
+<section id="ca-io">
+  <h2 class="sec"><span class="num">2</span>Storage and I/O waits</h2>
+
+  <h3><span class="tag">reads from disk</span>PAGEIOLATCH*</h3>
+  <p>SQL Server is reading data pages from disk, and the buffer pool does not have them. Six variants exist for different buffer-pool operations — <strong>always analyse all of them together</strong> to estimate the cumulative impact.</p>
+  <ul class="body-list">
+    <li>Two root causes: an <strong>under-provisioned server</strong> whose active data does not fit in memory, or <strong>nonoptimised queries</strong> that scan unnecessary data and flush the buffer pool on the way through.</li>
+    <li>Cross-check with Page Life Expectancy — how long pages actually survive in the buffer pool.</li>
+    <li>A substantial share always deserves troubleshooting, even on low-latency flash: it means data growth will push the disk subsystem over the limit sooner or later.</li>
+  </ul>
+  <div class="callout ok">
+    <span class="lbl">First checks</span>
+    <p>Latency per file from <code class="inline">sys.dm_io_virtual_file_stats</code> (Listing 3-1). Then look for I/O bursts in the performance counters and tune the checkpoint process if that is the trigger. Then analyse the whole I/O stack before touching queries — and only then hunt the most I/O-intensive queries (Chapters 4 and 5) and the indexes behind them (Chapter 14). See Chapters 3 and 15.</p>
+  </div>
+
+  <h3><span class="tag">other async I/O</span>ASYNC_IO_COMPLETION</h3>
+  <p>Asynchronous I/O that is <strong>not</strong> buffer-pool related. The usual suspects:</p>
+  <ul class="body-list">
+    <li>A regular checkpoint.</li>
+    <li>An internal checkpoint, triggered when you start a backup or run <code class="inline">DBCC CHECKDB</code>.</li>
+    <li>Reading GAM pages from data files.</li>
+    <li>Reading data pages during a backup — which unfortunately skews the average wait time and makes this harder to read.</li>
+  </ul>
+  <p>A noticeable percentage means the I/O subsystem is overloaded, especially when it appears alongside other I/O waits. Troubleshoot the I/O system as for PAGEIOLATCH. See Chapter 3.</p>
+
+  <h3><span class="tag">synchronous I/O</span>IO_COMPLETION</h3>
+  <p>Synchronous reads and writes to data files, plus some transaction-log reads:</p>
+  <ul class="body-list">
+    <li>Reading allocation map pages from a database.</li>
+    <li>Reading the transaction log during database recovery.</li>
+    <li>Writing to <strong>tempdb during sort spills</strong>.</li>
+  </ul>
+  <p>Same conclusion as above — overloaded I/O subsystem — but pay specific attention to <strong>tempdb latency and throughput</strong>: bad tempdb performance is one of the most common reasons for this wait. See Chapters 3 and 9.</p>
+
+  <h3><span class="tag">snapshots</span>WRITE_COMPLETION</h3>
+  <p>Synchronous writes to data and log files. In the author's experience it is <strong>most common with database snapshots</strong> — and remember that some internal processes, like <code class="inline">DBCC CHECKDB</code>, create internal snapshots of their own. If it shows up beside other I/O waits, run the full I/O troubleshooting. See Chapter 3.</p>
+
+  <h3><span class="tag">the log</span>WRITELOG and LOGBUFFER</h3>
+  <p>WRITELOG is SQL Server writing log records to the transaction log. It is <strong>normal</strong> in every system, but a significant percentage <em>or</em> a long average wait time means a transaction-log bottleneck. It usually travels with <strong>LOGBUFFER</strong>, which fires when SQL Server is waiting for an available log buffer to write records into — another sign of insufficient log throughput.</p>
+  <p>Troubleshoot by looking at average wait time and log write latency in <code class="inline">sys.dm_io_virtual_file_stats</code>, then the log itself (Chapter 11) and the I/O stack. See Chapters 3 and 11.</p>
+
+  <h3><span class="tag">backups</span>BACKUPIO, BACKUPBUFFER</h3>
+  <p>Insufficient backup/restore throughput — slow or overloaded network and/or disk. On disk problems it commonly appears next to other I/O waits. Tune the backup process itself: backup compression, striped backups, and the backup options generally. See Chapter 13.</p>
+
+  <h3><span class="tag">preemptive</span>PREEMPTIVE_OS_WRITEFILE, PREEMPTIVE_OS_WRITEFILEGATHER</h3>
+  <p><strong>WRITEFILE</strong> points at a bottleneck in synchronous file writes. Check for multiple SQL Traces or SQL audits writing to files, and for database snapshots.</p>
+  <p><strong>WRITEFILEGATHER</strong> is the zero-initialisation process — which means it is really a question about instant file initialization. Enable IFI by granting <code class="inline">SE_MANAGE_VOLUME_NAME</code> (Perform Volume Maintenance Tasks) to the SQL Server startup account. Also review the log's auto-growth settings and make sure nothing is regularly shrinking the log. See Chapter 13.</p>
+</section>
+
+<hr class="soft">
+
+<!-- ============================ A.3 ============================ -->
+<section id="ca-cpu">
+  <h2 class="sec"><span class="num">3</span>CPU, parallelism and worker waits</h2>
+
+  <h3><span class="tag">no workers available</span>THREADPOOL</h3>
+  <p>A <strong>dangerous</strong> wait: SQL Server has no available workers to hand a new request to. It must be investigated, not tolerated. The usual causes:</p>
+  <ul class="body-list">
+    <li>An incorrect <strong>max worker threads</strong> setting.</li>
+    <li>Insufficient SQL Server memory (check both the OS and SQL Server configuration).</li>
+    <li>Long blocking chains holding workers hostage.</li>
+    <li>Excessive memory pressure.</li>
+    <li>A large number of connected clients.</li>
+    <li>A workload with too many parallel queries, each consuming several workers.</li>
+  </ul>
+  <p>In cloud environments, THREADPOOL often means the database is running on an <strong>under-provisioned service</strong> that cannot handle the load. See Chapters 13 and 16.</p>
+
+  <h3><span class="tag">parallelism</span>CXPACKET, CXCONSUMER, EXCHANGE</h3>
+  <p>All three occur while a query with a parallel plan runs. They are <strong>completely normal and expected</strong>, especially in data-warehouse and reporting workloads. In OLTP systems an excessive number may deserve a look — but remember they are not the problem themselves, they are a sign of <em>expensive queries that happen to go parallel</em>.</p>
+  <div class="callout warn">
+    <span class="lbl">Do not set MAXDOP = 1</span>
+    <p>The book is blunt about this: forcing serial plans just hides the problem and leaves you with a slower server. Detect the queries (Chapter 4), fix them (Chapter 5), and tune the parallelism settings sensibly. See Chapter 6.</p>
+  </div>
+
+  <h3><span class="tag">memory for queries</span>RESOURCE_SEMAPHORE</h3>
+  <p>Queries are queued waiting for a <strong>memory grant</strong>. This one is always worth investigating when it becomes noticeable.</p>
+  <ul class="body-list">
+    <li>Analyse memory usage and check memory clerks for signs of internal and external memory pressure.</li>
+    <li>In virtualised environments, check the <strong>balloon driver</strong>.</li>
+    <li>Validate the server is properly provisioned and SQL Server correctly configured for the load.</li>
+    <li>It can also be triggered by specific queries — inspect grant sizes with <code class="inline">sys.dm_exec_query_memory_grants</code> and optimise them.</li>
+  </ul>
+  <p>See Chapter 7.</p>
+
+  <h3><span class="tag">memory for compiles</span>RESOURCE_SEMAPHORE_QUERY_COMPILE</h3>
+  <p>Not enough memory to <em>compile</em> queries — treat it like RESOURCE_SEMAPHORE and investigate. Check for excessive compilation with the <em>SQL Compilations/sec</em> and <em>SQL Recompilations/sec</em> counters, and reduce it by parameterising queries (Chapter 6).</p>
+  <p>The author has also seen it from a very active table held under a Sch-M lock during a prolonged offline index rebuild: SQL Server tried to recompile the large number of queries hitting that table in parallel, the compilations blocked, and the backlog consumed enough memory that other compilation requests had to queue behind this wait. See Chapter 7.</p>
+
+  <h3><span class="tag">query store</span>QDS*</h3>
+  <p>Query Store overhead. <strong>Ignore QDS_PERSIST_TASK_MAIN_LOOP_SLEEP and QDS_ASYNC_QUEUE</strong> — they are benign. For the others, check Query Store settings: do not use <code class="inline">QUERY_CAPTURE_MODE=ALL</code>, reduce the Query Store size if it is large, and enable trace flags T7745 and T7752. See Chapter 4.</p>
+</section>
+
+<hr class="soft">
+
+<!-- ============================ A.4 ============================ -->
+<section id="ca-locking">
+  <h2 class="sec"><span class="num">4</span>Blocking and locking waits</h2>
+
+  <p>Every lock type has a matching wait, and every <code class="inline">LCK_M_</code> wait means the same underlying thing: analyse <em>when</em> that lock type is taken, then find and fix the root cause of the blocking rather than the symptom.</p>
+
+  <table>
+    <thead><tr><th>Wait</th><th>What it means</th><th>Typical cause and first move</th></tr></thead>
+    <tbody>
+      <tr><td><code>LCK_M_I*</code></td><td>Intent locks, at table and page level</td><td>At table level: incompatibility with schema-modification locks (you will usually also see <code>LCK_M_SCH_S</code> / <code>LCK_M_SCH_M</code>), or a full incompatible table lock from another session — typically lock escalation or <code>TABLOCK</code>/<code>TABLOCKX</code> hints. At page level: nonoptimised queries and scans. Use the Blocking Monitoring Framework and <code>sys.dm_db_index_operational_stats</code> (Chapter 14).</td></tr>
+      <tr><td><code>LCK_M_R*</code></td><td>Range locks</td><td>Acquired under SERIALIZABLE, or because a nonclustered index has <code>IGNORE_DUP_KEY=ON</code>. Avoid that option on nonclustered indexes; do not use SERIALIZABLE unless absolutely necessary.</td></tr>
+      <tr><td><code>LCK_M_S</code></td><td>Shared locks</td><td>Taken by SELECTs in READ COMMITTED, REPEATABLE READ and SERIALIZABLE. Nonoptimised SELECTs are the most common case → optimise the query (Chapter 5). Under READ COMMITTED, consider <code>READ_COMMITTED_SNAPSHOT</code> to remove reader/writer blocking — knowing it hides rather than solves the bad query.</td></tr>
+      <tr><td><code>LCK_M_U</code></td><td>Update locks</td><td>Update scans from nonoptimised writers (UPDATE, DELETE, MERGE). Often appears alongside <code>PAGEIOLATCH*</code> and <code>CXPACKET</code>. Optimise the query (Chapter 5).</td></tr>
+      <tr><td><code>LCK_M_X</code></td><td>Exclusive locks</td><td>Artificial serialisation points (counters tables), excessive REPEATABLE READ / SERIALIZABLE, long-running or badly managed transactions, and <code>TABLOCKX</code>. Analyse individual blocking cases.</td></tr>
+      <tr><td><code>LCK_M_SCH_M</code></td><td>Schema-modification locks</td><td>Sessions cannot get exclusive object locks. Revisit your deployment strategy, and your index/partition maintenance — both take table locks. Consider low-priority locks during index rebuild and partition switching where supported. Check how often it happens: often it is one-off deployment mistakes.</td></tr>
+      <tr><td><code>LCK_M_SCH_S</code></td><td>Schema-stability locks</td><td>Blocking during schema modification, when other sessions hold Sch-M locks. Same strategy as <code>LCK_M_SCH_M</code>.</td></tr>
+    </tbody>
+  </table>
+  <p>See Chapter 8 for all of them.</p>
+
+  <h3><span class="tag">non-buffer-pool latches</span>LATCH_*</h3>
+  <p>Latches unrelated to the buffer pool; SQL Server emits different LATCH waits by latch type (shared, exclusive, and so on). Use <code class="inline">sys.dm_os_latch_stats</code> for statistics and to find the bottleneck. See Chapter 10.</p>
+
+  <h3><span class="tag">buffer pool latches</span>PAGELATCH</h3>
+  <p>Threads contending for buffer-pool pages while accessing or modifying data and allocation-map pages. Two main cases: <strong>tempdb system-page contention</strong> and <strong>hotspots in ever-increasing indexes</strong>.</p>
+  <ul class="body-list">
+    <li>Work out whether it is tempdb by reading <code class="inline">wait_resource</code> in <code class="inline">sys.dm_os_waiting_tasks</code>, or capture the <code class="inline">sqlserver.latch_suspend_end</code> xEvent.</li>
+    <li>For tempdb: configure tempdb correctly, reduce its load, and enable memory-optimised tempdb metadata where supported.</li>
+    <li>For index hotspots: find them with <code class="inline">sys.dm_db_index_operational_stats</code>. On SQL Server 2019+ enable <code class="inline">OPTIMIZE_FOR_SEQUENTIAL_KEY</code>; otherwise refactor the schema, hash-partition, or use In-Memory OLTP.</li>
+  </ul>
+  <p>See Chapters 9 and 10.</p>
+
+  <h3><span class="tag">same thing, new name</span>BTREE_INSERT_FLOW_CONTROL</h3>
+  <p>Indexes with ever-increasing keys creating hotspots — the wait that <em>replaces</em> some PAGELATCH waits once <code class="inline">OPTIMIZE_FOR_SEQUENTIAL_KEY</code> is enabled. Troubleshoot exactly as for PAGELATCH. See Chapter 10.</p>
+
+  <h3><span class="tag">availability groups</span>HADR_SYNC_COMMIT, HADR_GROUP_COMMIT</h3>
+  <p><strong>HADR_SYNC_COMMIT</strong>: the primary is waiting for synchronous secondaries to harden log records. Always present when synchronous replication is used — so judge it by <em>average duration</em>. In the same datacenter it should stay in the low milliseconds; more than that means look at network latency and throughput, disk performance and the general load on the replicas. Because the transaction keeps its locks until the commit is confirmed on the secondaries, a high HADR_SYNC_COMMIT contributes directly to blocking.</p>
+  <p><strong>HADR_GROUP_COMMIT</strong>: the primary is batching multiple commit records before shipping them — an optimisation. It rarely becomes a problem; if throughput suffers, troubleshoot replication as above. Group commit can be disabled with trace flag T9546. See Chapter 12.</p>
+
+  <h3><span class="tag">parallel redo</span>DIRTY_PAGE_TABLE_LOCK, DPT_ENTRY_LOCK, PARALLEL_REDO_FLOW_CONTROL, PARALLEL_REDO_TRAN_TURN</h3>
+  <p>These occur on <strong>readable secondaries</strong> and a large number points at trouble with the parallel redo process. You will see them in <code class="inline">sys.dm_os_waiting_tasks</code> and <code class="inline">sys.dm_exec_requests</code> alongside elevated CPU and a growing redo queue. The author's only known mitigations: patch SQL Server, and/or disable parallel redo with trace flag T3459. See Chapter 12.</p>
+</section>
+
+<hr class="soft">
+
+<!-- ============================ A.5 ============================ -->
+<section id="ca-memory-misc">
+  <h2 class="sec"><span class="num">5</span>Client, network and the long tail</h2>
+
+  <h3><span class="tag">client too slow</span>ASYNC_NETWORK_IO</h3>
+  <p>SQL Server is waiting for a <strong>client</strong> to consume data. Three common triggers:</p>
+  <ul class="body-list">
+    <li>A slow network — typical when clients reach the database across a datacenter or from the cloud.</li>
+    <li>Client applications on under-provisioned VMs or overloaded servers.</li>
+    <li>Application design that processes results row by row.</li>
+  </ul>
+  <p>It does not always indicate a problem on the server — but insufficient client consumption ties up workers and other resources, so a significant percentage is worth chasing: check server network performance, find the client applications generating the waits (Listing 2-3, or short profiling with the <code class="inline">wait_completed</code> xEvent capturing <code class="inline">sqlserver.client_host</code> and <code class="inline">client_app_name</code>), then review the application code and the application servers. See Chapters 13 and 16.</p>
+
+  <h3><span class="tag">external providers</span>OLEDB</h3>
+  <p>Waiting on an OLE DB provider. Most often: linked servers, some SSIS packages, <code class="inline">DBCC CHECKDB</code> operations, and queries against DMVs. These may not represent a real problem — establish what triggered them and judge the impact. See Chapter 13.</p>
+
+  <h3><span class="tag">authentication</span>PREEMPTIVE_OS_AUTH*, PREEMPTIVE_OS_LOOKUPACCOUNTSID, PREEMPTIVE_OS_ACCEPTSECURITYCONTEXT</h3>
+  <p>User authentication. A significant percentage means check your <strong>domain controllers</strong> — and make sure SQL Server is not authenticating against AD controllers in a remote datacenter. Also look for code running under <code class="inline">EXECUTE AS OWNER</code> or <code class="inline">EXECUTE AS USER</code>, which triggers authentication calls. See Chapter 13.</p>
+
+  <h3><span class="tag">columnstore</span>HTBUILD, HTDELETE, HTMEMO, HTREINIT, HTREPARTITION</h3>
+  <p>Internal hash table management during batch-mode execution. With columnstore indexes these suggest <strong>poorly maintained indexes</strong>: large delta stores and/or unevenly sized rowgroups. Inspect rowgroup state with <code class="inline">sys.column_store_row_group</code> and rebuild as needed. See Chapter 13.</p>
+
+  <div class="callout">
+    <span class="lbl">Preemptive waits are not SQL Server's fault</span>
+    <p>Anything prefixed <strong>PREEMPTIVE_</strong> means SQL Server handed the thread to the OS and is waiting on a Windows call. The wait is real, but the fix lives outside the engine — in Active Directory, the file system, or the security stack. Do not go looking for a SQL Server configuration answer to a preemptive wait.</p>
+  </div>
+</section>
+
+<hr class="soft">
+
+<!-- ============================ A.6 ============================ -->
+<section id="ca-takeaways">
+  <h2 class="sec"><span class="num">6</span>Key takeaways</h2>
+
+  <ul class="body-list">
+    <li><strong>A wait is a symptom.</strong> The name tells you which resource the thread is queued on, not why the system is slow. Always attach it to a query, a session and a resource before acting.</li>
+    <li><strong>Percentage and duration, not raw totals.</strong> Cumulative counters since restart mislead. Measure a delta, and read average wait time alongside total.</li>
+    <li><strong>Normal waits exist.</strong> CXPACKET, WRITELOG, PAGEIOLATCH and HADR_SYNC_COMMIT are present in healthy systems. Investigate when the share is large or the duration is long.</li>
+    <li><strong>Never MAXDOP = 1.</strong> It hides parallelism waits and leaves you slower. Fix the query.</li>
+    <li><strong>THREADPOOL is an emergency.</strong> It means requests have no worker — escalate it, in the cloud especially, where it usually means the service tier is too small.</li>
+    <li><strong>Follow the chapter, not the alphabet.</strong> Almost every entry here points back into the book: I/O to Chapters 3 and 15, blocking to 8, latches to 9 and 10, the log to 11, AG waits to 12, cloud-specific waits to 16.</li>
+  </ul>
+
+  <div class="callout ok">
+    <span class="lbl">The end of the book</span>
+    <p>With the appendix, every page of <em>SQL Server Advanced Troubleshooting and Performance Tuning</em> is now covered in this summary — 16 chapters plus the reference list. The only thing after this is the index.</p>
+  </div>
+
+  <p style="text-align:center;margin-top:26px"><a class="top" href="#top">↑ Back to top</a></p>
+</section>
+
+</div><!-- /.chapter-body -->
+<!-- ====================== APPENDIX A ENDS ====================== -->
+
+
+<!-- ============================================================ -->
+<!-- ====================== INDEX BEGINS ======================== -->
+<!-- ============================================================ -->
+
+<div class="chapter-head" id="book-index">
+  <div class="chapter-head-inner">
+    <span class="chapter-label">Back Matter</span>
+    <h2>Book Index</h2>
+    <p>The complete back-of-book index: 700 main entries plus 357 indented sub-entries across 25 letter groups, keyed to the book's own page numbers — so any term here can be traced straight back to the printed page.</p>
+    <p class="pages">Book pages 463–477 · no figures · no code listings</p>
+  </div>
+</div>
+
+<div class="chapter-body">
+
+<!-- ============================ INDEX.1 ============================ -->
+<section id="cindex-howto">
+  <h2 class="sec"><span class="num">1</span>About this index</h2>
+
+  <p>Every index entry from the back of the book, reproduced with its original page references and its original sub-entries. Page numbers here are <strong>book pages</strong>, not PDF pages — the same numbering used in every chapter header on this page, so <em>PAGEIOLATCH, 457</em> points at Appendix A, and <em>AlwaysOn Availability Groups, 331–356</em> points at Chapter 12.</p>
+
+  <p>Indented sub-entries belong to the bolded entry above them; they are the terms the index groups under that topic rather than giving their own heading. Where the book's index says <em>see</em> instead of giving pages, that cross-reference is kept as-is.</p>
+
+  <div class="callout">
+    <span class="lbl">Read it as a map of the book</span>
+    <p>This is a surprisingly good revision aid. Pick any term you half-remember — <em>tipping point</em>, <em>balloon driver</em>, <em>OPTIMIZE_FOR_SEQUENTIAL_KEY</em> — and the index gives you every page that touches it, which is usually a chapter you should re-read rather than a single paragraph.</p>
+  </div>
+
+  <div class="badge-row">
+    <span class="badge">1,056 index lines</span>
+    <span class="badge">25 letter groups</span>
+    <span class="badge">700 main · 357 sub-entries</span>
+    <span class="badge">book pages 463–477</span>
+  </div>
+
+  <p style="margin-top:22px"><strong>Jump to:</strong> <a href="#idx-symbols">Symbols</a> · <a href="#idx-a">A</a> · <a href="#idx-b">B</a> · <a href="#idx-c">C</a> · <a href="#idx-d">D</a> · <a href="#idx-e">E</a> · <a href="#idx-f">F</a> · <a href="#idx-g">G</a> · <a href="#idx-h">H</a> · <a href="#idx-i">I</a> · <a href="#idx-j">J</a> · <a href="#idx-k">K</a> · <a href="#idx-l">L</a> · <a href="#idx-m">M</a> · <a href="#idx-n">N</a> · <a href="#idx-o">O</a> · <a href="#idx-p">P</a> · <a href="#idx-q">Q</a> · <a href="#idx-r">R</a> · <a href="#idx-s">S</a> · <a href="#idx-t">T</a> · <a href="#idx-u">U</a> · <a href="#idx-v">V</a> · <a href="#idx-w">W</a> · <a href="#idx-x">X</a></p>
+</section>
+
+<hr class="soft">
+
+<!-- ============================ INDEX.2 ============================ -->
+<section id="cindex-entries">
+  <h2 class="sec"><span class="num">2</span>The index, A–Z</h2>
+<div class="idx-letter" id="idx-symbols"><h3>Symbols<span class="idx-count">1 entries</span></h3><ul class="idx-list">
+<li class="main">## or # in temporary table names <b>264</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-a"><h3>A<span class="idx-count">62 entries</span></h3><ul class="idx-list">
+<li class="main">ACCESS_METHODS_HOBT_COUNT latch <b>305</b>
+</li>
+<li class="main">ACCESS_METHODS_HOBT_VIRTUAL_ROOT latch <b>304</b>
+</li>
+<li class="main">ACID (atomicity, consistency, isolation, durability) <b>220</b>
+</li>
+<li class="main">Active Temp Tables performance counter <b>282</b>
+</li>
+<li class="main">ACTIVE_BACKUP_OR_RESTORE log reuse wait <b>326</b>
+</li>
+<li class="main">ACTIVE_TRANSACTION log reuse wait <b>323</b>
+</li>
+<li class="main">ADR (accelerated database recovery), transaction log <b>326</b>
+</li>
+<li class="main">affinity I/O mask, setting <b>46</b>
+</li>
+<li class="main">affinity mask, setting <b>13</b>
+</li>
+<li class="main">allocation maps <b>18</b>
+</li>
+<li class="main">allocation order scan, index <b>111</b>
+</li>
+<li class="main">allocation units <b>107</b>
+</li>
+<li class="main">ALLOW_BATCH_MODE query hint <b>133</b>
+</li>
+<li class="main">ALLOW_SNAPSHOT_ISOLATION database option <b>245</b>
+</li>
+<li class="main">ALTER DATABASE SCOPED CONFIGURATION SET MAXDOP command <b>14</b>
+</li>
+<li class="main">ALTER DATABASE SET ACCELERATED_DATABASE_RECOVERY database option <b>327</b>
+</li>
+<li class="main">ALTER DATABASE SET ALLOW_SNAPSHOT_ISOLATION ON command <b>245</b>
+</li>
+<li class="main">ALTER DATABASE SET AUTOMATIC_TUNING (FORCE_LAST_GOOD_PLAN = ON) statement <b>168</b>
+</li>
+<li class="main">ALTER DATABASE SET PARAMETERIZATION FORCED command <b>177</b>
+</li>
+<li class="main">ALTER DATABASE SET READ_COMMITTED_SNAPSHOT ON/OFF command <b>245</b>
+</li>
+<li class="main">ALTER DATABASE SET TARGET_RECOVERY_TIME command <b>62</b>
+</li>
+<li class="main">ALTER INDEX REBUILD command <b>123</b>
+</li>
+<li class="main">ALTER INDEX REORGANIZE command <b>122</b>
+</li>
+<li class="main">ALTER TABLE REBUILD statement <b>374</b>
+</li>
+<li class="main">ALTER TABLE SET LOCK_ESCALATION statement <b>256</b>
+</li>
+<li class="main">ALTER TABLE WITH CHECK CHECK CONSTRAINT command <b>379</b>
+</li>
+<li class="main">AlwaysOn Availability Groups <b>331–356</b>
+<span class="idx-sub">asynchronous replication <b>345–349, 442</b></span>
+<span class="idx-sub">Availability Group queues <b>333–337</b></span>
+<span class="idx-sub">compression <b>344</b></span>
+<span class="idx-sub">failover event troubleshooting <b>351–355</b></span>
+<span class="idx-sub">monitoring code <b>334–337</b></span>
+<span class="idx-sub">parallel redo process <b>350–351</b></span>
+<span class="idx-sub">readable secondaries <b>346–349, 433</b></span>
+<span class="idx-sub">separate network for <b>4, 416</b></span>
+<span class="idx-sub">synchronous replication <b>337–345, 433, 445</b></span>
+</li>
+<li class="main">AlwaysOn Failover Clusters, separate network for <b>5</b>
+</li>
+<li class="main">AlwaysOn_health xEvent session, failover troubleshooting <b>353</b>
+</li>
+<li class="main">Amazon SQL Server RDS <b>441–445</b>
+</li>
+<li class="main">antivirus software <b>6</b>
+</li>
+<li class="main">asynchronous replication, Availability Groups <b>345–349, 442</b>
+</li>
+<li class="main">ASYNC_IO_COMPLETION wait <b>64, 449</b>
+</li>
+<li class="main">ASYNC_NETWORK_IO wait <b>357–359, 450</b>
+<span class="idx-sub">cloud environment <b>431</b></span>
+</li>
+<li class="main">atomicity, transaction <b>220</b>
+</li>
+<li class="main">authentication-related waits <b>367, 434</b>
+</li>
+<li class="main">Auto Close database setting <b>16</b>
+</li>
+<li class="main">Auto Create Statistics database option <b>126</b>
+</li>
+<li class="main">Auto Shrink database setting <b>15, 17</b>
+</li>
+<li class="main">Auto Update Statistics Asynchronously database option <b>127</b>
+</li>
+<li class="main">Auto Update Statistics database option <b>126</b>
+</li>
+<li class="main">auto-committed transactions <b>225, 313–315</b>
+</li>
+<li class="main">auto-growing of data files <b>10, 18</b>
+</li>
+<li class="main">auto-parameterization <b>176</b>
+</li>
+<li class="main">AUTOGROW_ALL_FILES option <b>18</b>
+</li>
+<li class="main">automatic checkpoints <b>61</b>
+</li>
+<li class="main">automatic plan correction <b>168</b>
+</li>
+<li class="main">Availability Group Listener <b>332</b>
+</li>
+<li class="main">Availability Groups (see AlwaysOn Availability Groups)
+</li>
+<li class="main">AZs (availability zones), cloud <b>429, 433</b>
+</li>
+<li class="main">Azure Data Studio <b>133</b>
+</li>
+<li class="main">Azure SQL Database <b>12, 73, 88, 123, 169, 327, 436</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-b"><h3>B<span class="idx-count">26 entries</span></h3><ul class="idx-list">
+<li class="main">B-Tree indexes <b>109–120</b>
+</li>
+<li class="main">backup chain <b>319</b>
+</li>
+<li class="main">backup compression <b>364</b>
+</li>
+<li class="main">backup tools, virtualized environments <b>417</b>
+</li>
+<li class="main">backup-related waits <b>364–366, 450</b>
+</li>
+<li class="main">BACKUPBUFFER wait <b>364, 450</b>
+</li>
+<li class="main">BACKUPIO wait <b>364, 450</b>
+</li>
+<li class="main">batch mode execution model <b>366</b>
+</li>
+<li class="main">Batch Requests/sec performance counter <b>175</b>
+</li>
+<li class="main">BATCH_MODE_ON_ROWSTORE database option <b>133</b>
+</li>
+<li class="main">blocked process reports <b>234–238</b>
+</li>
+<li class="main">blocked process threshold <b>234</b>
+</li>
+<li class="main">blocking <b>228–238</b>
+<span class="idx-sub">event notifications <b>238</b></span>
+<span class="idx-sub">with RCSI level <b>248</b></span>
+<span class="idx-sub">real-time blocking troubleshooting <b>230–234</b></span>
+<span class="idx-sub">schema locks <b>248–250</b></span>
+<span class="idx-sub">transaction isolation levels <b>226</b></span>
+<span class="idx-sub">transaction logging <b>308</b></span>
+</li>
+<li class="main">blocking chains <b>232</b>
+</li>
+<li class="main">Blocking Monitoring Framework <b>238, 243</b>
+</li>
+<li class="main">BTREE_INSERT_FLOW_CONTROL <b>299, 451</b>
+</li>
+<li class="main">buffer (buffer structure) <b>45</b>
+</li>
+<li class="main">buffer pool <b>45, 49, 193</b>
+</li>
+<li class="main">BUFFERCOUNT option <b>365</b>
+</li>
+<li class="main">BULK-LOGGED recovery model, logging <b>319</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-c"><h3>C<span class="idx-count">78 entries</span></h3><ul class="idx-list">
+<li class="main">CACHESTORE_OBJCP memory clerk <b>194–200</b>
+</li>
+<li class="main">CACHESTORE_PHDR memory clerk <b>194–200</b>
+</li>
+<li class="main">CACHESTORE_SQLCP memory clerk <b>194–200</b>
+</li>
+<li class="main">cardinality estimation <b>123–130</b>
+<span class="idx-sub">and excessive key lookups <b>151</b></span>
+<span class="idx-sub">impact of not indexing temporary tables <b>139</b></span>
+<span class="idx-sub">memory grant impact of <b>210</b></span>
+<span class="idx-sub">temporary tables versus table variables <b>265–270</b></span>
+<span class="idx-sub">updating the model <b>16, 128–130</b></span>
+</li>
+<li class="main">cardinality estimation feedback <b>130</b>
+</li>
+<li class="main">CFTP (cost threshold for parallelism) <b>181–182</b>
+</li>
+<li class="main">CHECKPOINT command <b>61</b>
+</li>
+<li class="main">checkpoint tuning <b>61–64</b>
+</li>
+<li class="main">classifier function, Resource Governor <b>42</b>
+</li>
+<li class="main">classifying capacity for virtualization <b>407–408</b>
+</li>
+<li class="main">cloud region <b>429</b>
+</li>
+<li class="main">cloud, SQL Server in <b>427–447</b>
+<span class="idx-sub">accessing database instance <b>430</b></span>
+<span class="idx-sub">Amazon SQL Server RDS <b>441–445</b></span>
+<span class="idx-sub">cloud VMs <b>431–434</b></span>
+<span class="idx-sub">connectivity considerations <b>430–431</b></span>
+<span class="idx-sub">Google Cloud SQL <b>445–446</b></span>
+<span class="idx-sub">Microsoft Azure SQL <b>435–441</b></span>
+<span class="idx-sub">platform reliability <b>428</b></span>
+<span class="idx-sub">throttling factor <b>429</b></span>
+<span class="idx-sub">topology of <b>429</b></span>
+<span class="idx-sub">transient error handling <b>430</b></span>
+</li>
+<li class="main">CloudWatch, Amazon SQL Server RDS <b>442–442</b>
+</li>
+<li class="main">CLR (Common language Runtime), memory impact <b>201</b>
+</li>
+<li class="main">cluster log, failover troubleshooting <b>354</b>
+</li>
+<li class="main">clustered indexes avoiding hotspots in tables <b>299–303</b>
+<span class="idx-sub">data storage <b>107–114</b></span>
+<span class="idx-sub">in deadlock troubleshooting <b>244</b></span>
+<span class="idx-sub">inefficient <b>395</b></span>
+<span class="idx-sub">and inefficient heaps <b>395</b></span>
+<span class="idx-sub">in schema analysis <b>376–378</b></span>
+<span class="idx-sub">turning heap tables into <b>373</b></span>
+</li>
+<li class="main">column-based storage and columnstore indexes <b>105, 189, 190</b>
+</li>
+<li class="main">Common language Runtime (see CLR)
+</li>
+<li class="main">compensation operations, transaction logging <b>311</b>
+</li>
+<li class="main">compiled plan stubs <b>196</b>
+</li>
+<li class="main">composite indexes <b>114, 382</b>
+</li>
+<li class="main">concurrency model <b>219–260</b>
+<span class="idx-sub">blocking issues <b>228–238</b></span>
+<span class="idx-sub">deadlocks <b>238–245</b></span>
+<span class="idx-sub">lock escalation <b>251–256</b></span>
+<span class="idx-sub">lock types and locking behavior <b>220–228</b></span>
+<span class="idx-sub">locking-related waits <b>256–259</b></span>
+<span class="idx-sub">optimistic isolation levels <b>226, 245–249</b></span>
+<span class="idx-sub">schema locks <b>249–250</b></span>
+<span class="idx-sub">synchronous commit mode for Availability Groups <b>337</b></span>
+</li>
+<li class="main">consistency, transaction <b>220</b>
+</li>
+<li class="main">constraints versus indexes <b>109</b>
+</li>
+<li class="main">CONVERT_IMPLICIT function <b>114</b>
+</li>
+<li class="main">cost threshold for parallelism (see CFTP)
+</li>
+<li class="main">covering indexes, removing key lookups <b>152–154</b>
+</li>
+<li class="main">CPU load <b>159</b>
+<span class="idx-sub">and HADR_SYNC_COMMIT wait <b>339</b></span>
+<span class="idx-sub">inefficient T-SQL code <b>160</b></span>
+<span class="idx-sub">nonoptimized queries <b>70, 159, 163</b></span>
+<span class="idx-sub">parallelism <b>180–182</b></span>
+<span class="idx-sub">parameterization <b>175–180</b></span>
+<span class="idx-sub">query compilation <b>164–180</b></span>
+<span class="idx-sub">query CPU time versus duration <b>160</b></span>
+<span class="idx-sub">capturing CPU-intensive queries <b>84–85</b></span>
+<span class="idx-sub">readable secondary effects on <b>349</b></span>
+<span class="idx-sub">scripts for troubleshooting high CPU loads <b>161–162</b></span>
+<span class="idx-sub">sys.dm_exec_text_query_plan function’s burden on <b>39</b></span>
+<span class="idx-sub">virtualized environments <b>419–422</b></span>
+</li>
+<li class="main">CPUs hardware licensing cost and performance <b>2</b>
+<span class="idx-sub">NUMA nodes <b>13</b></span>
+<span class="idx-sub">scheduling <b>409</b></span>
+<span class="idx-sub">scheduling and I/O <b>30–32, 46–47</b></span>
+<span class="idx-sub">tempdb setup <b>10</b></span>
+<span class="idx-sub">virtualized environments <b>6, 408–422</b></span>
+</li>
+<li class="main">cross-region latency, cloud considerations <b>434–434</b>
+</li>
+<li class="main">CXCONSUMER wait <b>181, 451</b>
+</li>
+<li class="main">CXPACKET wait <b>181, 451</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-d"><h3>D<span class="idx-count">56 entries</span></h3><ul class="idx-list">
+<li class="main">DAS (direct-attached storage) <b>51, 61, 328</b>
+</li>
+<li class="main">data reads <b>47–49</b>
+</li>
+<li class="main">data storage (see storage and access patterns)
+</li>
+<li class="main">data warehouse queries <b>23</b>
+</li>
+<li class="main">data writes <b>49</b>
+</li>
+<li class="main">Database Recovery Model setting <b>16, 318–320</b>
+</li>
+<li class="main">Database Replica performance object <b>337</b>
+</li>
+<li class="main">database snapshots <b>65</b>
+</li>
+<li class="main">databases <b>22</b>
+<span class="idx-sub">(see also indexes and indexing; schema analysis) accelerated recovery <b>326</b></span>
+<span class="idx-sub">access errors in cloud-based services <b>430</b></span>
+<span class="idx-sub">configuration <b>15–18</b></span>
+<span class="idx-sub">consolidation <b>22, 406</b></span>
+<span class="idx-sub">partial backups <b>365</b></span>
+</li>
+<li class="main">DATABASE_MIRRORING log reuse wait <b>325</b>
+</li>
+<li class="main">DATA_FLUSH_INTERVAL_SECONDS setting, Query Store <b>91</b>
+</li>
+<li class="main">datetimeoffset data type <b>98</b>
+</li>
+<li class="main">DBCC CHECKDB operation <b>367</b>
+</li>
+<li class="main">DBCC CLONEDATABASE command <b>101</b>
+</li>
+<li class="main">DBCC FREEPROCCACHE command <b>75</b>
+</li>
+<li class="main">DBCC FREESYSTEMCACHE. command <b>199, 200</b>
+</li>
+<li class="main">DBCC LOGINFO command <b>17, 320</b>
+</li>
+<li class="main">DBCC MEMORYSTATUS command <b>202</b>
+</li>
+<li class="main">DBCC SHOW_STATISTICS command <b>124–124</b>
+</li>
+<li class="main">DBCC SQLPERF() command <b>38, 287, 303</b>
+</li>
+<li class="main">DBCC TRACESTATUS command <b>10</b>
+</li>
+<li class="main">deadlock graph <b>11, 240–243</b>
+</li>
+<li class="main">Deadlock graph SQL Trace event <b>240</b>
+</li>
+<li class="main">deadlock victim <b>239</b>
+</li>
+<li class="main">deadlocks <b>11, 238–245</b>
+</li>
+<li class="main">delayed durability, transaction log <b>316–317</b>
+</li>
+<li class="main">density vector, index statistics <b>124</b>
+</li>
+<li class="main">destroy (DT) latch <b>294</b>
+</li>
+<li class="main">direct-attached storage (see DAS)
+</li>
+<li class="main">dirty pages <b>46, 311</b>
+</li>
+<li class="main">dirty reads, consistency phenomenon <b>226</b>
+</li>
+<li class="main">DIRTY_PAGE_TABLE_LOCK wait <b>350, 451</b>
+</li>
+<li class="main">DISABLE_BATCH_MODE_MEMORY_GRANT_FEEDBACK query hint <b>212</b>
+</li>
+<li class="main">DISABLE_PARAMETER_SNIFFING query hint <b>170</b>
+</li>
+<li class="main">DISABLE_ROW_MODE_MEMORY_GRANT_FEEDBACK query hint <b>212</b>
+</li>
+<li class="main">DISALLOW_BATCH_MODE query hint <b>133</b>
+</li>
+<li class="main">disk subsystem <b>45–67</b>
+<span class="idx-sub">checkpoint tuning <b>61–64</b></span>
+<span class="idx-sub">hardware installation considerations <b>3</b></span>
+<span class="idx-sub">I/O subsystem <b>45–50</b></span>
+<span class="idx-sub">I/O waits <b>64–66</b></span>
+<span class="idx-sub">storage (see storage subsystem) virtualized environments <b>414–416, 424–425</b></span>
+</li>
+<li class="main">DISKSPD utility <b>51, 416</b>
+</li>
+<li class="main">Distributed Availability Groups <b>433</b>
+</li>
+<li class="main">DNS service in cloud <b>433</b>
+</li>
+<li class="main">DONE state, task <b>31</b>
+</li>
+<li class="main">DOP feedback <b>182</b>
+</li>
+<li class="main">DPT_ENTRY_LOCK wait <b>350, 451</b>
+</li>
+<li class="main">durability, transaction <b>220</b>
+</li>
+<li class="main">dynamic SQL implementation of parameter-value independence <b>172–173</b>
+<span class="idx-sub">and table-valued parameters <b>272</b></span>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-e"><h3>E<span class="idx-count">31 entries</span></h3><ul class="idx-list">
+<li class="main">Enterprise Edition versus Standard Edition <b>7</b>
+<span class="idx-sub">batch mode execution <b>133</b></span>
+<span class="idx-sub">CPU model <b>2</b></span>
+<span class="idx-sub">index rebuild <b>123</b></span>
+<span class="idx-sub">memory capacity <b>3</b></span>
+<span class="idx-sub">memory utilization <b>190, 193</b></span>
+<span class="idx-sub">tempdb database <b>10, 286, 290</b></span>
+<span class="idx-sub">virtualized environments <b>406, 412</b></span>
+</li>
+<li class="main">error log analysis <b>11, 19–22, 49</b>
+</li>
+<li class="main">ESXTOP utility <b>60, 421–425</b>
+</li>
+<li class="main">ETL (extract, transform, load) processes <b>274</b>
+</li>
+<li class="main">Event Notifications and blocking monitoring <b>238</b>
+</li>
+<li class="main">EXCHANGE wait <b>181, 452</b>
+</li>
+<li class="main">exchange_spill xEvent <b>278–281</b>
+</li>
+<li class="main">exclusive (EX) latch <b>45, 294</b>
+</li>
+<li class="main">exclusive (X) lock <b>221, 224, 258</b>
+</li>
+<li class="main">EXECUTE WITH RECOMPILE clause <b>169</b>
+</li>
+<li class="main">execution plan analyzing <b>130–133</b>
+<span class="idx-sub">and lock behavior <b>223</b></span>
+<span class="idx-sub">and memory grants <b>202–213</b></span>
+<span class="idx-sub">operators in <b>131–133</b></span>
+<span class="idx-sub">plan stub <b>12, 196</b></span>
+<span class="idx-sub">query compilation <b>164–173</b></span>
+<span class="idx-sub">removing plan from plan cache <b>199</b></span>
+<span class="idx-sub">statistics profiling <b>134–135</b></span>
+</li>
+<li class="main">explicit transactions <b>225, 313–315, 324</b>
+</li>
+<li class="main">extended events (see xEvents)
+</li>
+<li class="main">extents <b>108</b>
+</li>
+<li class="main">external index fragmentation <b>121</b>
+</li>
+<li class="main">external languages, memory impact <b>201</b>
+</li>
+<li class="main">external memory pressure <b>185</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-f"><h3>F<span class="idx-count">14 entries</span></h3><ul class="idx-list">
+<li class="main">failover event troubleshooting, Availability Groups <b>351–355</b>
+</li>
+<li class="main">FGCB_ADD_REMOVE latch <b>305</b>
+</li>
+<li class="main">filegroups, database layout <b>17–18</b>
+</li>
+<li class="main">FILLFACTOR index property, index rebuild <b>123</b>
+</li>
+<li class="main">filtered indexes <b>127</b>
+</li>
+<li class="main">Force Plan, Query Store <b>88, 168</b>
+</li>
+<li class="main">FORCED parameterization <b>177–180</b>
+</li>
+<li class="main">foreign keys, untrusted and nonindexed <b>378–382</b>
+</li>
+<li class="main">forwarded records, heap tables <b>373</b>
+</li>
+<li class="main">forwarding pointers, heap tables <b>120, 373</b>
+</li>
+<li class="main">Free Space in tempdb (KB) performance counter <b>277</b>
+</li>
+<li class="main">free space monitoring, importance of <b>18, 287–290</b>
+</li>
+<li class="main">full lock <b>222</b>
+</li>
+<li class="main">FULL recovery model, logging <b>319</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-g"><h3>G<span class="idx-count">5 entries</span></h3><ul class="idx-list">
+<li class="main">gang scheduling, VMs <b>409</b>
+</li>
+<li class="main">ghost cleanup lag, Availability Group <b>336, 349</b>
+</li>
+<li class="main">global temporary tables <b>264</b>
+</li>
+<li class="main">Google Cloud SQL <b>445–446</b>
+</li>
+<li class="main">Granted Workspace Memory performance counter <b>204</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-h"><h3>H<span class="idx-count">44 entries</span></h3><ul class="idx-list">
+<li class="main">HA (High Availability) strategy automatic failover <b>351</b>
+<span class="idx-sub">Availability Groups (see AlwaysOn Availability Groups) in cloud setups <b>433</b></span>
+<span class="idx-sub">and virtualization <b>406</b></span>
+<span class="idx-sub">Windows versus Linux <b>5</b></span>
+</li>
+<li class="main">HADR_GROUP_COMMIT wait <b>452</b>
+</li>
+<li class="main">HADR_SYNC_COMMIT wait <b>337–345, 437, 452</b>
+</li>
+<li class="main">Hallengren, Ola <b>123</b>
+</li>
+<li class="main">hardened log records <b>309</b>
+</li>
+<li class="main">hardware and OS considerations <b>2–6</b>
+<span class="idx-sub">CPU <b>2</b></span>
+<span class="idx-sub">disk subsystem <b>3</b></span>
+<span class="idx-sub">memory <b>2</b></span>
+<span class="idx-sub">network <b>4</b></span>
+<span class="idx-sub">operating systems and applications <b>5</b></span>
+<span class="idx-sub">virtualization and clouds <b>6</b></span>
+</li>
+<li class="main">hash (## or #) in temporary table names <b>264</b>
+</li>
+<li class="main">hash join <b>146–147, 149</b>
+</li>
+<li class="main">hash partitioning, page latches <b>300–303</b>
+</li>
+<li class="main">hash table management in batch-mode execution <b>366</b>
+</li>
+<li class="main">hash_warning xEvent <b>278–281</b>
+</li>
+<li class="main">heap tables forwarding pointers <b>120, 123, 373</b>
+<span class="idx-sub">versus clustered indexes <b>107</b></span>
+<span class="idx-sub">inefficient <b>395</b></span>
+<span class="idx-sub">schema analysis <b>372–374</b></span>
+</li>
+<li class="main">High Availability (see HA)
+</li>
+<li class="main">high identity values, schema analysis <b>385–388</b>
+</li>
+<li class="main">histogram, index statistics <b>124–126</b>
+</li>
+<li class="main">hosting for SQL Server <b>5</b>
+</li>
+<li class="main">hotspots, and page latching <b>296–303</b>
+</li>
+<li class="main">HTBUILD wait <b>366, 453</b>
+</li>
+<li class="main">HTDELETE wait <b>366, 453</b>
+</li>
+<li class="main">HTMEMO wait <b>366, 453</b>
+</li>
+<li class="main">HTREINIT wait <b>366, 453</b>
+</li>
+<li class="main">HTREPARTITION wait <b>366, 453</b>
+</li>
+<li class="main">Hyper-V analyzing CPU metrics in <b>419</b>
+<span class="idx-sub">memory pressure analysis <b>423</b></span>
+<span class="idx-sub">scheduling CPU time <b>409</b></span>
+<span class="idx-sub">virtual disks (vhdx) <b>414</b></span>
+</li>
+<li class="main">Hyper-V Dynamic Memory Balancer\Available Memory performance counter <b>423</b>
+</li>
+<li class="main">Hyper-V Hypervisor Logical Processor performance object <b>420</b>
+</li>
+<li class="main">Hyper-V Hypervisor Virtual Processor\% Total Run Time performance counter <b>420</b>
+</li>
+<li class="main">Hyper-V Hypervisor Virtual Processor\CPU Wait Time Per Dispatch performance counter <b>420</b>
+</li>
+<li class="main">Hyper-V Live Migration <b>6</b>
+</li>
+<li class="main">hyperthreading, VMs <b>410</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-i"><h3>I<span class="idx-count">78 entries</span></h3><ul class="idx-list">
+<li class="main">I/O subsystem <b>45–50</b>
+<span class="idx-sub">in cloud environments <b>432–433, 442</b></span>
+<span class="idx-sub">data reads <b>47–49</b></span>
+<span class="idx-sub">data writes <b>49</b></span>
+<span class="idx-sub">error types <b>49</b></span>
+<span class="idx-sub">hardware considerations <b>3–4</b></span>
+<span class="idx-sub">I/O request structure <b>46</b></span>
+<span class="idx-sub">performance on secondary nodes <b>339</b></span>
+<span class="idx-sub">and scheduling <b>46–47</b></span>
+<span class="idx-sub">SQL Server’s intensive use of <b>45</b></span>
+<span class="idx-sub">sys.dm_db_index_operational_stats view <b>400</b></span>
+<span class="idx-sub">in virtualized environments <b>60, 415</b></span>
+<span class="idx-sub">waits <b>64–66</b></span>
+</li>
+<li class="main">IAMs (Index Allocation Maps) <b>111</b>
+</li>
+<li class="main">identical queries <b>174</b>
+</li>
+<li class="main">identity columns with high utilization, detecting <b>386–388</b>
+</li>
+<li class="main">IFI (instant file initialization) <b>7–9</b>
+</li>
+<li class="main">implicit transactions <b>225, 324</b>
+</li>
+<li class="main">In-Memory OLTP <b>28, 106</b>
+<span class="idx-sub">memory allocations for <b>201</b></span>
+<span class="idx-sub">memory usage and troubleshooting <b>190, 214–217</b></span>
+<span class="idx-sub">page latches, addressing hotspots <b>302</b></span>
+<span class="idx-sub">transaction logging <b>317</b></span>
+</li>
+<li class="main">incorrect join type, query tuning <b>143–151</b>
+</li>
+<li class="main">Index Allocation Maps (see IAMs)
+</li>
+<li class="main">index analysis for query optimization <b>388–401</b>
+</li>
+<li class="main">index defragmentation <b>122</b>
+</li>
+<li class="main">index rebuild method <b>122–123</b>
+</li>
+<li class="main">index reorganize method <b>122</b>
+</li>
+<li class="main">index scan <b>110–112</b>
+</li>
+<li class="main">index seek <b>112–114, 140–143</b>
+</li>
+<li class="main">indexes and indexing B-Tree indexes <b>109–120</b>
+<span class="idx-sub">clustered indexes (see clustered indexes) column-based storage and columnstore indexes <b>105, 189</b></span>
+<span class="idx-sub">versus constraints <b>109</b></span>
+<span class="idx-sub">covering indexes, removing key lookups <b>152–154</b></span>
+<span class="idx-sub">design best practices for indexing data <b>154–156</b></span>
+<span class="idx-sub">detecting indexes with high maintenance costs <b>393–394</b></span>
+<span class="idx-sub">filtered indexes <b>127</b></span>
+<span class="idx-sub">foreign keys <b>379–382</b></span>
+<span class="idx-sub">versus heap tables <b>107</b></span>
+<span class="idx-sub">index fragmentation <b>120–123, 190, 247, 375–376</b></span>
+<span class="idx-sub">indexes with included columns <b>107</b></span>
+<span class="idx-sub">latching analysis <b>300, 399</b></span>
+<span class="idx-sub">and locks <b>244, 399</b></span>
+<span class="idx-sub">nonclustered indexes <b>115–120, 152, 244</b></span>
+<span class="idx-sub">optimizing memory-intensive queries <b>206–211</b></span>
+<span class="idx-sub">redundant indexes <b>382–385</b></span>
+<span class="idx-sub">statistics <b>123–127, 388–401</b></span>
+<span class="idx-sub">transaction log impact on <b>327</b></span>
+<span class="idx-sub">with uniqueidentifier data type <b>375–376</b></span>
+</li>
+<li class="main">indirect checkpoints <b>61</b>
+</li>
+<li class="main">inefficient code and CPU load <b>160</b>
+</li>
+<li class="main">inefficient code, query tuning <b>137–140</b>
+</li>
+<li class="main">inefficient queries <b>69–103</b>
+<span class="idx-sub">impact of <b>69–70</b></span>
+<span class="idx-sub">plan cache-based execution statistics <b>70–82</b></span>
+<span class="idx-sub">Query Store <b>88–101</b></span>
+<span class="idx-sub">third-party tools <b>101–102</b></span>
+<span class="idx-sub">xEvents and SQL traces <b>82–88</b></span>
+</li>
+<li class="main">instant file initialization (see IFI)
+</li>
+<li class="main">insufficient queue depth, I/O in virtualized environment <b>60</b>
+</li>
+<li class="main">Intelligent Query Processing (see IQP)
+</li>
+<li class="main">intent exclusive (IX) lock <b>221</b>
+</li>
+<li class="main">intent locks <b>221–223, 224, 259</b>
+</li>
+<li class="main">intent shared (IS) lock <b>221</b>
+</li>
+<li class="main">intent update (IU) lock <b>221</b>
+</li>
+<li class="main">Interleaved Execution, IQP <b>138</b>
+</li>
+<li class="main">intermediate levels, B-Tree index <b>110</b>
+</li>
+<li class="main">internal checkpoints <b>61</b>
+</li>
+<li class="main">internal fragmentation, heap tables <b>374</b>
+</li>
+<li class="main">internal index fragmentation <b>121</b>
+</li>
+<li class="main">internal memory pressure <b>186</b>
+</li>
+<li class="main">IN_ROW_DATA allocation unit pages <b>108</b>
+</li>
+<li class="main">IO_COMPLETION wait type <b>64, 453</b>
+</li>
+<li class="main">IQP (Intelligent Query Processing) <b>90, 138, 146, 147, 182</b>
+</li>
+<li class="main">IsAlive and IsHealthy check for cluster resources <b>351, 422</b>
+</li>
+<li class="main">isolation level, transaction <b>226–228, 245–249, 346</b>
+</li>
+<li class="main">isolation, transaction <b>220</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-j"><h3>J<span class="idx-count">3 entries</span></h3><ul class="idx-list">
+<li class="main">join comparison <b>147–151</b>
+</li>
+<li class="main">Join operator <b>143–151</b>
+</li>
+<li class="main">JSON support, and CPU load <b>160</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-k"><h3>K<span class="idx-count">4 entries</span></h3><ul class="idx-list">
+<li class="main">keep (KP) latch <b>294</b>
+</li>
+<li class="main">Key Lookup operations <b>117, 151–154, 244, 395</b>
+</li>
+<li class="main">Korotkevitch, Dmitri Expert SQL Server Transaction and Locking <b>219</b>
+<span class="idx-sub">Pro SQL Server Internals <b>106</b></span>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-l"><h3>L<span class="idx-count">68 entries</span></h3><ul class="idx-list">
+<li class="main">Large Page Allocations setting <b>189</b>
+</li>
+<li class="main">LAST_QUERY_PLAN_STATS database option <b>73</b>
+</li>
+<li class="main">latches <b>45, 293–306</b>
+<span class="idx-sub">accessing latch statistics <b>303–305</b></span>
+<span class="idx-sub">page latches <b>295–303</b></span>
+<span class="idx-sub">parallelism-related latches <b>304</b></span>
+<span class="idx-sub">shared <b>45</b></span>
+<span class="idx-sub">sys.dm_db_index_operational_stats view <b>398</b></span>
+<span class="idx-sub">system page contention in tempdb <b>284–285</b></span>
+<span class="idx-sub">wait type <b>295, 453</b></span>
+</li>
+<li class="main">LATCH_* wait type <b>295, 453</b>
+</li>
+<li class="main">latency <b>345</b>
+<span class="idx-sub">data collection for AlwaysOn Availability Groups</span>
+<span class="idx-sub">I/O requests <b>51, 53</b></span>
+<span class="idx-sub">transaction log write latency <b>4, 327–329</b></span>
+</li>
+<li class="main">lazy writer process <b>46, 50</b>
+</li>
+<li class="main">LCK_M_* wait type <b>256, 454</b>
+</li>
+<li class="main">LCK_M_I* wait type <b>259, 454</b>
+</li>
+<li class="main">LCK_M_R* wait type <b>259, 454</b>
+</li>
+<li class="main">LCK_M_S wait type <b>230, 257, 455</b>
+</li>
+<li class="main">LCK_M_SCH_M wait type <b>258, 455</b>
+</li>
+<li class="main">LCK_M_SCH_S wait type <b>258, 455</b>
+</li>
+<li class="main">LCK_M_U wait type <b>257, 455</b>
+</li>
+<li class="main">LCK_M_X wait type <b>258, 456</b>
+</li>
+<li class="main">leaf level, B-Tree index <b>110</b>
+</li>
+<li class="main">lease mechanism, Availability Group node <b>351</b>
+</li>
+<li class="main">LeaseTimeOut, Availability Group health <b>351</b>
+</li>
+<li class="main">legacy cardinal estimation model <b>128–130</b>
+</li>
+<li class="main">LEGACY_CARDINALITY_ESTIMATION database option <b>16, 129</b>
+</li>
+<li class="main">licensing costs of virtualization <b>406</b>
+</li>
+<li class="main">Linux version of SQL Server <b>5, 29, 57, 353</b>
+</li>
+<li class="main">Live Query Statistics, execution statistics profiling <b>133–135</b>
+</li>
+<li class="main">LOB_DATA allocation unit pages <b>108</b>
+</li>
+<li class="main">local temporary tables <b>264, 274</b>
+</li>
+<li class="main">Lock Manager <b>221</b>
+</li>
+<li class="main">Lock Pages In Memory (see LPIM)
+</li>
+<li class="main">locks and locking blocking issues (see blocks and blocking)
+<span class="idx-sub">compatibility <b>224, 232–234</b></span>
+<span class="idx-sub">deadlocks <b>11, 238–245</b></span>
+<span class="idx-sub">escalation <b>251–256</b></span>
+<span class="idx-sub">index operational statistics <b>399</b></span>
+<span class="idx-sub">lock types <b>221–224</b></span>
+<span class="idx-sub">locking-related waits <b>256–259, 451, 454–456</b></span>
+<span class="idx-sub">low-priority locks <b>250</b></span>
+<span class="idx-sub">OBJECTSTORE_LOCK_MANAGER memory clerk <b>200</b></span>
+<span class="idx-sub">optimistic isolation levels <b>226, 247–249</b></span>
+<span class="idx-sub">schema locks <b>249–250</b></span>
+<span class="idx-sub">transaction isolation levels <b>226–228</b></span>
+<span class="idx-sub">types <b>249–250</b></span>
+</li>
+<li class="main">log blocks <b>308</b>
+</li>
+<li class="main">log buffers <b>308</b>
+</li>
+<li class="main">Log Bytes Flushed/sec performance counter <b>328</b>
+</li>
+<li class="main">log file, tempdb <b>287</b>
+</li>
+<li class="main">Log Flush Waits/sec performance counter <b>328</b>
+</li>
+<li class="main">Log Flush Write Time(ms) performance counter <b>328</b>
+</li>
+<li class="main">Log Flushes/sec performance counter <b>328</b>
+</li>
+<li class="main">Log Reader agent <b>325</b>
+</li>
+<li class="main">log record <b>46, 307, 339</b>
+</li>
+<li class="main">LOGBUFFER wait <b>312, 328, 456</b>
+</li>
+<li class="main">logical Core (lCore) <b>409</b>
+</li>
+<li class="main">logical read <b>46</b>
+</li>
+<li class="main">logs and logging (see transaction log)
+</li>
+<li class="main">LOG_BACKUP log reuse wait <b>323</b>
+</li>
+<li class="main">LOG_MANAGER latch <b>304</b>
+</li>
+<li class="main">Longest Transaction Running Time performance counter <b>277</b>
+</li>
+<li class="main">loop join <b>144–145, 149</b>
+</li>
+<li class="main">low-priority locks <b>250</b>
+</li>
+<li class="main">LPIM (Lock Pages In Memory) permission <b>189, 414</b>
+</li>
+<li class="main">LSN (Log Sequence Number) <b>307</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-m"><h3>M<span class="idx-count">49 entries</span></h3><ul class="idx-list">
+<li class="main">manual checkpoints <b>61</b>
+</li>
+<li class="main">MAXDOP <b>14, 181</b>
+</li>
+<li class="main">Maximum Server Memory setting <b>13, 188, 189</b>
+</li>
+<li class="main">Maximum Workspace Memory performance counter <b>204, 213</b>
+</li>
+<li class="main">MAXTRANSFERSIZE option <b>365</b>
+</li>
+<li class="main">MAX_GRANT_PERCENT query hint <b>212</b>
+</li>
+<li class="main">memory <b>185–217</b>
+<span class="idx-sub">allocations <b>190–202</b></span>
+<span class="idx-sub">configuration <b>188–190</b></span>
+<span class="idx-sub">DBCC MEMORYSTATUS command <b>202</b></span>
+<span class="idx-sub">hardware and OS considerations <b>2</b></span>
+<span class="idx-sub">In-Memory OLTP (see In-Memory OLTP) memory clerks <b>191–202</b></span>
+<span class="idx-sub">memory grants and query execution <b>202–213</b></span>
+<span class="idx-sub">utilization of <b>185–188, 190</b></span>
+<span class="idx-sub">virtualized environments <b>414, 422–424</b></span>
+</li>
+<li class="main">memory allocator <b>190</b>
+</li>
+<li class="main">memory broker <b>191</b>
+</li>
+<li class="main">memory grant feedback <b>146, 211, 278</b>
+</li>
+<li class="main">memory grants and query execution <b>202–213</b>
+<span class="idx-sub">controlling memory grant size <b>212–213</b></span>
+<span class="idx-sub">MEMORYCLERK_SQLQERESERVATIONS memory clerk <b>200</b></span>
+<span class="idx-sub">optimizing memory-intensive queries <b>206–211</b></span>
+<span class="idx-sub">properties <b>203</b></span>
+</li>
+<li class="main">Memory Grants Outstanding performance counter <b>204</b>
+</li>
+<li class="main">Memory Grants Pending performance counter <b>204</b>
+</li>
+<li class="main">Memory Management performance object <b>204</b>
+</li>
+<li class="main">Memory Manager <b>186</b>
+</li>
+<li class="main">memory nodes <b>190</b>
+</li>
+<li class="main">memory objects <b>191</b>
+</li>
+<li class="main">Memory Usage by Memory Optimized Objects report <b>215</b>
+</li>
+<li class="main">memory-optimized tables (see In-Memory OLTP)
+</li>
+<li class="main">memory-optimized tempdb metadata <b>286</b>
+</li>
+<li class="main">MEMORYCLERK_SQLBUFFERPOOL memory clerk <b>193–193</b>
+</li>
+<li class="main">MEMORYCLERK_SQLCLR memory clerk <b>201</b>
+</li>
+<li class="main">MEMORYCLERK_SQLCLRASSEMBLY memory clerk <b>201</b>
+</li>
+<li class="main">MEMORYCLERK_SQLCONNECTIONPOOL memory clerk <b>201</b>
+</li>
+<li class="main">MEMORYCLERK_SQLEXTENSIBILITY memory clerk <b>201</b>
+</li>
+<li class="main">MEMORYCLERK_SQLQERESERVATIONS memory clerk <b>200, 204</b>
+</li>
+<li class="main">MEMORYCLERK_XTP memory clerk <b>201, 215</b>
+</li>
+<li class="main">Memory\Available Mbytes performance counter <b>423</b>
+</li>
+<li class="main">merge join <b>145, 149</b>
+</li>
+<li class="main">Microsoft Azure SQL managed services <b>435–441</b>
+</li>
+<li class="main">Minimum Server Memory setting <b>188</b>
+</li>
+<li class="main">MIN_GRANT_PERCENT query hint <b>212</b>
+</li>
+<li class="main">mixed extents <b>11, 108</b>
+</li>
+<li class="main">MIXED_PAGE_ALLOCATION database option <b>108</b>
+</li>
+<li class="main">multitenant systems inefficient index seek in <b>141–143</b>
+<span class="idx-sub">redundant indexes <b>382–385</b></span>
+</li>
+<li class="main">mutual exclusion concept <b>293</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-n"><h3>N<span class="idx-count">18 entries</span></h3><ul class="idx-list">
+<li class="main">NAS (network-attached storage) <b>290</b>
+</li>
+<li class="main">nested loop join (see loop join)
+</li>
+<li class="main">network <b>4</b>
+<span class="idx-sub">(see also virtualized environments) HADR_SYNC_COMMIT wait and performance of <b>339</b></span>
+<span class="idx-sub">hardware and OS considerations <b>4</b></span>
+<span class="idx-sub">virtualized environments <b>6, 416</b></span>
+<span class="idx-sub">waits <b>357–359, 450</b></span>
+</li>
+<li class="main">NEWSEQUENTIALID() function <b>376</b>
+</li>
+<li class="main">noisy neighbors problem, I/O in virtualized environment <b>60</b>
+</li>
+<li class="main">NOLOCK query hint <b>227</b>
+</li>
+<li class="main">non-buffer-pool latches <b>303–305</b>
+</li>
+<li class="main">Nonclustered Index Seek operation <b>115–120</b>
+</li>
+<li class="main">nonclustered indexes <b>107, 115–120, 152, 244</b>
+</li>
+<li class="main">nonindexed foreign keys <b>379–382</b>
+</li>
+<li class="main">nonoptimized queries, and CPU load <b>159, 163</b>
+</li>
+<li class="main">nonparameterized ad-hoc client queries <b>176</b>
+</li>
+<li class="main">nonSARGable predicates <b>137</b>
+</li>
+<li class="main">NUMA (non-uniform memory access) nodes <b>13, 30, 41, 190, 410–414</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-o"><h3>O<span class="idx-count">24 entries</span></h3><ul class="idx-list">
+<li class="main">Object Relational Mapping (ORM) frameworks (see ORM)
+</li>
+<li class="main">OBJECTSTORE_LOCK_MANAGER memory clerk <b>200</b>
+</li>
+<li class="main">observer effect, setup and configuration <b>23–25</b>
+</li>
+<li class="main">ODS (operational data store) <b>181</b>
+</li>
+<li class="main">OLEDB wait type <b>368, 456</b>
+</li>
+<li class="main">OLTP (Online Transactional Process) systems <b>2, 23</b>
+<span class="idx-sub">(see also In-Memory OLTP) buffer pool and memory allocations <b>193</b></span>
+<span class="idx-sub">column-based storage and columnstore indexes <b>106</b></span>
+<span class="idx-sub">compilations in <b>175</b></span>
+<span class="idx-sub">parallelism in <b>180–182</b></span>
+</li>
+<li class="main">operating systems and applications <b>5</b>
+<span class="idx-sub">Linux version of SQL Server <b>5, 29, 57, 353</b></span>
+<span class="idx-sub">storage subsystem performance counters <b>55–59</b></span>
+<span class="idx-sub">Windows version of SQL Server <b>5, 29, 55</b></span>
+</li>
+<li class="main">optimistic transaction isolation levels <b>226, 245–249, 347</b>
+</li>
+<li class="main">Optimize for Ad-Hoc Workloads configuration setting <b>12, 196</b>
+</li>
+<li class="main">OPTIMIZE FOR query hint <b>169</b>
+</li>
+<li class="main">OPTIMIZE FOR UNKNOWN query hint <b>170</b>
+</li>
+<li class="main">OPTIMIZE_FOR_AD_HOC_WORKLOADS database scoped configuration <b>12, 196</b>
+</li>
+<li class="main">OPTIMIZE_FOR_SEQUENTIAL_KEY index option <b>299, 451</b>
+</li>
+<li class="main">OPTION (RECOMPILE) query hint <b>169, 172</b>
+</li>
+<li class="main">ordered scan, index <b>111</b>
+</li>
+<li class="main">ORM (Object Relational Mapping) frameworks <b>140</b>
+</li>
+<li class="main">Overall Resource Consumption report <b>95</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-p"><h3>P<span class="idx-count">56 entries</span></h3><ul class="idx-list">
+<li class="main">Pacemaker <b>5, 353</b>
+</li>
+<li class="main">page latches <b>295–303</b>
+</li>
+<li class="main">Page Life Expectancy performance counter <b>53, 66, 193</b>
+</li>
+<li class="main">page split operation and index fragmentation <b>120</b>
+</li>
+<li class="main">Page Verify option, database settings <b>16</b>
+</li>
+<li class="main">PAGEIOLATCH wait <b>47, 53, 64, 65–66, 193, 295, 400, 457</b>
+</li>
+<li class="main">PAGEIOLATCH_EX wait <b>65</b>
+</li>
+<li class="main">PAGEIOLATCH_SH wait <b>65</b>
+</li>
+<li class="main">PAGEIOLATCH_UP wait <b>65</b>
+</li>
+<li class="main">PAGELATCH wait <b>284–285, 295, 451, 457</b>
+</li>
+<li class="main">PAL (Platform Abstraction Layer) <b>29</b>
+</li>
+<li class="main">parallel redo process, Availability Groups <b>350–351</b>
+</li>
+<li class="main">parallelism <b>14, 180–182, 304</b>
+</li>
+<li class="main">PARALLEL_REDO_FLOW_CONTROL wait <b>350, 451</b>
+</li>
+<li class="main">PARALLEL_REDO_TRAN_TURN wait <b>350, 451</b>
+</li>
+<li class="main">parameter-sensitive plans (parameter sniffing) <b>149</b>
+<span class="idx-sub">forced parameterization impact on <b>178</b></span>
+<span class="idx-sub">query compilation and CPU load <b>165–171</b></span>
+<span class="idx-sub">statement-level recompile <b>169</b></span>
+</li>
+<li class="main">parameter-value independence <b>171–173</b>
+</li>
+<li class="main">parameterization <b>174–180</b>
+<span class="idx-sub">and CPU load <b>175–180</b></span>
+<span class="idx-sub">for inefficient queries <b>100</b></span>
+<span class="idx-sub">optimization power of <b>174</b></span>
+<span class="idx-sub">running query to tune memory <b>197–200</b></span>
+</li>
+<li class="main">PARAMETERIZATION FORCED query hint <b>178</b>
+</li>
+<li class="main">PARAMETER_SNIFFING database option <b>170</b>
+</li>
+<li class="main">partial database backups <b>365</b>
+</li>
+<li class="main">partitions hash partitioning, page latches <b>300–303</b>
+<span class="idx-sub">index or heap <b>107</b></span>
+<span class="idx-sub">SQL Server memory allocations <b>190</b></span>
+</li>
+<li class="main">PENDING state, task <b>31</b>
+</li>
+<li class="main">Perform Volume Maintenance Task permission <b>8</b>
+</li>
+<li class="main">persisted version store (see PVS)
+</li>
+<li class="main">pessimistic transaction isolation levels <b>226</b>
+</li>
+<li class="main">physical Core (pCore) <b>409</b>
+</li>
+<li class="main">physical CPU (pCPU) <b>409</b>
+</li>
+<li class="main">physical read <b>46</b>
+</li>
+<li class="main">plan cache <b>164</b>
+<span class="idx-sub">Auto Close database setting <b>16</b></span>
+<span class="idx-sub">cache-based execution statistics <b>70–82</b></span>
+<span class="idx-sub">and memory usage <b>194–200</b></span>
+<span class="idx-sub">plan stub <b>12, 196</b></span>
+<span class="idx-sub">and query compilation <b>164–173</b></span>
+</li>
+<li class="main">Platform Abstraction Layer (see PAL)
+</li>
+<li class="main">point-lookup operation, index seek <b>113</b>
+</li>
+<li class="main">preemptive waits <b>366–368, 456, 458–459</b>
+</li>
+<li class="main">PREEMPTIVE_OS_ACCEPTSECURITYCONTEXT wait <b>367, 458</b>
+</li>
+<li class="main">PREEMPTIVE_OS_AUTH* wait <b>367, 458</b>
+</li>
+<li class="main">PREEMPTIVE_OS_LOOKUPACCOUNTSID wait <b>367, 458</b>
+</li>
+<li class="main">PREEMPTIVE_OS_WRITEFILE wait <b>367, 459</b>
+</li>
+<li class="main">PREEMPTIVE_OS_WRITEFILEGATHER wait <b>367, 459</b>
+</li>
+<li class="main">Pro SQL Server Internals (Korotkevitch) <b>106</b>
+</li>
+<li class="main">Proportional Fill algorithm <b>18</b>
+</li>
+<li class="main">Protocol layer <b>27</b>
+</li>
+<li class="main">PVS (persisted version store) <b>327</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-q"><h3>Q<span class="idx-count">41 entries</span></h3><ul class="idx-list">
+<li class="main">QDS* wait type <b>90, 459</b>
+</li>
+<li class="main">QDS_ASYNC_QUEUE wait <b>90</b>
+</li>
+<li class="main">QDS_LOADDB wait <b>91</b>
+</li>
+<li class="main">QDS_PERSIST_TASK_MAIN_LOOP_SLEEP wait <b>90</b>
+</li>
+<li class="main">QoS (Quality of Service) for storage in virtualized environments <b>416</b>
+</li>
+<li class="main">Queries with Forced Plans report <b>96</b>
+</li>
+<li class="main">Queries with High Valuation report <b>96</b>
+</li>
+<li class="main">queries, consolidating and optimizing <b>88, 105–157</b>
+<span class="idx-sub">(see also execution plan; inefficient queries) blocking issues <b>234</b></span>
+<span class="idx-sub">data storage and access (see storage and access patterns) detecting inefficient indexes <b>393–394</b></span>
+<span class="idx-sub">excessive key lookups <b>151–154</b></span>
+<span class="idx-sub">execution plan analysis <b>130–135</b></span>
+<span class="idx-sub">incorrect join type <b>143–151</b></span>
+<span class="idx-sub">index analysis for optimization of <b>388–401</b></span>
+<span class="idx-sub">indexing data <b>154–156</b></span>
+<span class="idx-sub">inefficient code <b>137–140</b></span>
+<span class="idx-sub">inefficient index seek <b>140–143</b></span>
+<span class="idx-sub">Key Lookup operations <b>117, 151–154, 244, 395</b></span>
+<span class="idx-sub">optimizing memory-intensive <b>206–211</b></span>
+<span class="idx-sub">parallelism <b>180–182</b></span>
+<span class="idx-sub">parameterization and ad-hoc queries <b>174–180</b></span>
+<span class="idx-sub">plan cache analysis <b>164–173, 198–200</b></span>
+<span class="idx-sub">plan cache and compilation of <b>164–173</b></span>
+<span class="idx-sub">statistics and cardinality estimation <b>123–130</b></span>
+</li>
+<li class="main">Query Interop component <b>28</b>
+</li>
+<li class="main">Query Optimizer <b>11, 128, 133</b>
+</li>
+<li class="main">Query Processor layer <b>28</b>
+</li>
+<li class="main">Query Store <b>88–101</b>
+<span class="idx-sub">in cardinality estimation upgrade <b>128–130</b></span>
+<span class="idx-sub">detecting indexes with high-maintenance cost <b>393</b></span>
+<span class="idx-sub">DMVs <b>96–101</b></span>
+<span class="idx-sub">Force Plan feature <b>168</b></span>
+<span class="idx-sub">memory grant information persistence <b>212</b></span>
+<span class="idx-sub">processing pipeline <b>88</b></span>
+<span class="idx-sub">SSMS reports <b>92–96</b></span>
+</li>
+<li class="main">Query Wait Statistics report <b>96</b>
+</li>
+<li class="main">QUERY_CAPTURE_MODE setting, Query Store <b>90</b>
+</li>
+<li class="main">query_hash and query_plan_hash <b>75–77, 83</b>
+</li>
+<li class="main">query_memory_grant_usage event <b>206</b>
+</li>
+<li class="main">QUERY_OPTIMIZER_HOTFIXES database option <b>11, 129</b>
+</li>
+<li class="main">queues, Availability Group <b>333–337</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-r"><h3>R<span class="idx-count">43 entries</span></h3><ul class="idx-list">
+<li class="main">range locks <b>227, 259</b>
+</li>
+<li class="main">range scan operation, index seek <b>113</b>
+</li>
+<li class="main">RCSI (READ COMMITTED SNAPSHOT) isolation level <b>227, 245, 247–248, 347</b>
+</li>
+<li class="main">READ COMMITTED isolation level <b>227, 245</b>
+</li>
+<li class="main">READ UNCOMMITTED isolation level <b>226, 248</b>
+</li>
+<li class="main">readable secondaries, Availability Groups <b>346–349, 433</b>
+</li>
+<li class="main">READPAST query hint <b>228</b>
+</li>
+<li class="main">reads, inefficient <b>395</b>
+</li>
+<li class="main">real-time blocking, troubleshooting <b>230–234</b>
+</li>
+<li class="main">recovery point (see RPO)
+</li>
+<li class="main">redo queue, Availability Group nodes <b>334–337</b>
+</li>
+<li class="main">redundant indexes <b>382–385</b>
+</li>
+<li class="main">Regressed Queries Report <b>92–93</b>
+</li>
+<li class="main">regular lock <b>222</b>
+</li>
+<li class="main">relaxed co-scheduling, VMs <b>409</b>
+</li>
+<li class="main">REPEATABLE READ isolation level <b>227</b>
+</li>
+<li class="main">replication lag, Availability Group <b>336</b>
+</li>
+<li class="main">REPLICATION log reuse wait <b>325</b>
+</li>
+<li class="main">REQUIRED_SYNCHRONIZED_SECONDARIES_TO_COMMIT Availability Group setting <b>337</b>
+</li>
+<li class="main">resource consumption reports <b>94</b>
+</li>
+<li class="main">Resource Governor feature <b>42–44, 214</b>
+</li>
+<li class="main">resource pools <b>42–44</b>
+</li>
+<li class="main">resource reservation, VMs <b>414</b>
+</li>
+<li class="main">resource versus signal waits <b>37</b>
+</li>
+<li class="main">resources IsAlive and IsHealthy check for clusters <b>351</b>
+<span class="idx-sub">locks on <b>221</b></span>
+<span class="idx-sub">Overall Resource Consumption report <b>95</b></span>
+<span class="idx-sub">Top Resource Consuming Queries report <b>94</b></span>
+<span class="idx-sub">utilization in cloud <b>439–441</b></span>
+</li>
+<li class="main">RESOURCE_SEMAPHORE wait <b>204, 459</b>
+</li>
+<li class="main">RESOURCE_SEMAPHORE_QUERY_COMPILE wait <b>460</b>
+</li>
+<li class="main">RID lookup operations, nonclustered indexes <b>120, 151</b>
+</li>
+<li class="main">root level, B-Tree index <b>110</b>
+</li>
+<li class="main">row mode and batch mode execution <b>130–133</b>
+</li>
+<li class="main">row versioning <b>245, 275</b>
+</li>
+<li class="main">row-based storage tables
+<span class="idx-sub">data storage and access patterns <b>105, 106–108</b></span>
+<span class="idx-sub">row size, impact on memory grant <b>210</b></span>
+</li>
+<li class="main">ROW_MODE_MEMORY_GRANT_FEEDBACK setting <b>212</b>
+</li>
+<li class="main">ROW_OVERFLOW_DATA allocation unit pages <b>108</b>
+</li>
+<li class="main">RUNNABLE state, task <b>31–32</b>
+</li>
+<li class="main">RUNNING state, task <b>31–32</b>
+</li>
+<li class="main">runtime Query Store statistics <b>98</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-s"><h3>S<span class="idx-count">177 entries</span></h3><ul class="idx-list">
+<li class="main">SARGable (Search Argument-able) predicates <b>114, 114, 137</b>
+</li>
+<li class="main">SA_MANAGE_VOLUME_NAME permission <b>8</b>
+</li>
+<li class="main">scalar user-defined functions <b>82, 137</b>
+</li>
+<li class="main">scheduling <b>30–32, 409</b>
+</li>
+<li class="main">scheduling and I/O <b>46–47</b>
+</li>
+<li class="main">schema analysis <b>371–403</b>
+<span class="idx-sub">catalog views <b>371</b></span>
+<span class="idx-sub">heap tables <b>372–374</b></span>
+<span class="idx-sub">high identity values <b>385–388</b></span>
+<span class="idx-sub">indexes with the uniqueidentifier data type <b>375–376</b></span>
+<span class="idx-sub">nonindexed foreign keys <b>379–382</b></span>
+<span class="idx-sub">redundant indexes <b>382–385</b></span>
+<span class="idx-sub">untrusted foreign keys <b>378</b></span>
+<span class="idx-sub">wide and nonunique clustered indexes <b>376–378</b></span>
+</li>
+<li class="main">schema locks <b>249–250</b>
+</li>
+<li class="main">schema modification (SCH-M) locks <b>249, 258</b>
+</li>
+<li class="main">schema stability (SCH-S) locks <b>249, 258</b>
+</li>
+<li class="main">security and choosing third-party query optimization tools <b>102</b>
+<span class="idx-sub">database consolidation considerations <b>23</b></span>
+<span class="idx-sub">USERSTORE_TOKENPERM memory clerk <b>200</b></span>
+</li>
+<li class="main">Security Policy (secpol.msc) <b>8, 189</b>
+</li>
+<li class="main">seek predicate <b>142</b>
+</li>
+<li class="main">SELECT statements, avoiding unnecessary column retrieval with <b>108</b>
+</li>
+<li class="main">send queue, Availability Group nodes <b>334–334</b>
+</li>
+<li class="main">SERIALIZABLE isolation level <b>227</b>
+</li>
+<li class="main">serialization, system pages <b>283</b>
+</li>
+<li class="main">server configuration <b>7–15</b>
+</li>
+<li class="main">SET DEADLOCK_PRIORITY statement <b>239</b>
+</li>
+<li class="main">SET LOCK_TIMEOUT statement <b>228</b>
+</li>
+<li class="main">SET options, queries <b>174</b>
+</li>
+<li class="main">SET TRANSACTION ISOLATION LEVEL SNAPSHOT statement <b>248</b>
+</li>
+<li class="main">SET TRANSACTION ISOLATION LEVEL statement <b>226</b>
+</li>
+<li class="main">shared (S) locks <b>221, 224, 226–228, 257</b>
+</li>
+<li class="main">shared (SH) latch <b>45, 294</b>
+</li>
+<li class="main">Shared Memory protocol <b>351, 358</b>
+</li>
+<li class="main">shared versus dedicated virtualized environments <b>5, 408, 409</b>
+</li>
+<li class="main">shell queries <b>176</b>
+</li>
+<li class="main">signal versus resource waits <b>37</b>
+</li>
+<li class="main">SIMPLE parameterization <b>177</b>
+</li>
+<li class="main">SIMPLE recovery model <b>274</b>
+</li>
+<li class="main">SIMPLE recovery model, logging <b>319</b>
+</li>
+<li class="main">small-query resource semaphore <b>204</b>
+</li>
+<li class="main">SNAPSHOT isolation level <b>227, 245, 248, 346</b>
+</li>
+<li class="main">SolarWinds Plan Explorer <b>134</b>
+</li>
+<li class="main">sort_warning xEvent <b>278–281</b>
+</li>
+<li class="main">spills <b>146, 149, 278–281, 282</b>
+</li>
+<li class="main">SPINLOOP state, task <b>31</b>
+</li>
+<li class="main">split brain <b>351</b>
+</li>
+<li class="main">sp_create_plan_guide stored procedure <b>178–180</b>
+</li>
+<li class="main">sp_get_query_template stored procedure <b>178</b>
+</li>
+<li class="main">sp_Index_Analysis stored procedure <b>401</b>
+</li>
+<li class="main">SP_PREPEXECRPC stored procedure calls <b>201</b>
+</li>
+<li class="main">sp_query_store_set_hints stored procedure <b>89</b>
+</li>
+<li class="main">sp_recompile stored procedure <b>168</b>
+</li>
+<li class="main">sp_server_diagnostics stored procedure <b>352</b>
+</li>
+<li class="main">sp_server_diagnostics_component_result event <b>187</b>
+</li>
+<li class="main">SQL Compilations/sec performance counter <b>175</b>
+</li>
+<li class="main">SQL Managed Instances <b>327</b>
+</li>
+<li class="main">SQL Re-Compilations/sec performance counter <b>175</b>
+</li>
+<li class="main">SQL Server in cloud VMs <b>431–434</b>
+<span class="idx-sub">components <b>27–29</b></span>
+<span class="idx-sub">execution model <b>27–44</b></span>
+<span class="idx-sub">DMVs <b>36–42</b></span>
+<span class="idx-sub">Resource Governor feature <b>42–44, 214</b></span>
+<span class="idx-sub">SQLOS <b>28, 29–32, 190</b></span>
+<span class="idx-sub">Wait Statistics <b>32–36</b></span>
+<span class="idx-sub">I/O subsystem <b>45–50</b></span>
+<span class="idx-sub">memory usage and configuration <b>2, 185–190</b></span>
+<span class="idx-sub">monitoring strategy <b>23–25</b></span>
+<span class="idx-sub">setup and configuration <b>1–25</b></span>
+<span class="idx-sub">consolidating instances and databases <b>22</b></span>
+<span class="idx-sub">database configuration <b>15–18</b></span>
+<span class="idx-sub">error log analysis <b>19–22</b></span>
+<span class="idx-sub">hardware and OS considerations <b>2–6</b></span>
+<span class="idx-sub">observer effect <b>23–25</b></span>
+<span class="idx-sub">server configuration <b>7–15</b></span>
+<span class="idx-sub">upgrade considerations <b>7</b></span>
+<span class="idx-sub">virtualized environment configuration <b>407–416</b></span>
+</li>
+<li class="main">SQL Server log, failover troubleshooting <b>354</b>
+</li>
+<li class="main">SQL Server: SQL Statistics performance counters <b>175</b>
+</li>
+<li class="main">SQL Trace events <b>82–88</b>
+</li>
+<li class="main">SQL Traces and Extended Events <b>82</b>
+</li>
+<li class="main">SQLDIAG files, failover troubleshooting <b>354</b>
+</li>
+<li class="main">SQLOS layer <b>28, 29–32, 190</b>
+</li>
+<li class="main">sqlserver.attention SQL Trace event <b>83</b>
+</li>
+<li class="main">SQLServer:Access Methods\Worktables Created/sec performance counter <b>282</b>
+</li>
+<li class="main">SQLServer:Cursor Manager By Type\Cursor worktable usage performance counter <b>282</b>
+</li>
+<li class="main">SQLSkills Wait Types Library <b>369</b>
+</li>
+<li class="main">SSMS (SQL Server Management Studio) reports <b>5</b>
+<span class="idx-sub">data collection for latency data <b>345</b></span>
+<span class="idx-sub">error log <b>19</b></span>
+<span class="idx-sub">Memory Usage by Memory Optimized Objects report <b>215</b></span>
+<span class="idx-sub">Query Store, inefficient queries <b>92–96</b></span>
+<span class="idx-sub">Shared Memory protocol <b>351, 358</b></span>
+<span class="idx-sub">for tempdb spills <b>281</b></span>
+</li>
+<li class="main">staging tables, page latch contention <b>302</b>
+</li>
+<li class="main">stalls, I/O requests <b>51, 53</b>
+</li>
+<li class="main">statement-level consistency, with RCSI <b>248</b>
+</li>
+<li class="main">statistics and cardinality estimation <b>123–130</b>
+</li>
+<li class="main">statistics maintenance <b>11, 123–127</b>
+</li>
+<li class="main">statistics profiling <b>134–135</b>
+</li>
+<li class="main">STATISTICS_NORECOMPUTE option <b>126</b>
+</li>
+<li class="main">storage and access patterns <b>105–120</b>
+<span class="idx-sub">B-Tree indexes <b>109–120</b></span>
+<span class="idx-sub">composite indexes <b>114</b></span>
+<span class="idx-sub">nonclustered indexes <b>115–120</b></span>
+<span class="idx-sub">row-based storage tables <b>106–108</b></span>
+</li>
+<li class="main">Storage Engine component <b>28</b>
+</li>
+<li class="main">storage subsystem <b>50–61</b>
+<span class="idx-sub">cloud environment <b>432</b></span>
+<span class="idx-sub">configuration check in troubleshooting <b>59</b></span>
+<span class="idx-sub">performance counters and OS metrics <b>55–59</b></span>
+<span class="idx-sub">tempdb configuration <b>290</b></span>
+<span class="idx-sub">tempdb, running out of space <b>287–290</b></span>
+<span class="idx-sub">virtualized environments <b>59–61, 414–416</b></span>
+</li>
+<li class="main">stored procedures and ORM frameworks <b>140</b>
+</li>
+<li class="main">striped backups <b>365</b>
+</li>
+<li class="main">SUSPENDED state, task <b>31–32, 37</b>
+</li>
+<li class="main">synchronization health and state, Availability Group <b>336</b>
+</li>
+<li class="main">synchronous replication, Availability Groups <b>337–345, 433, 445</b>
+</li>
+<li class="main">sys.column_store_row_group view <b>366</b>
+</li>
+<li class="main">sys.configurations view <b>14</b>
+</li>
+<li class="main">sys.database_files view <b>287</b>
+</li>
+<li class="main">sys.dm_db_file_space_usage view <b>288</b>
+</li>
+<li class="main">sys.dm_db_index_operational_stats function <b>256, 298, 389, 396–401</b>
+</li>
+<li class="main">sys.dm_db_index_physical_stats function <b>122, 123, 374</b>
+</li>
+<li class="main">sys.dm_db_index_usage_stats view <b>389–396</b>
+</li>
+<li class="main">sys.dm_db_log_info view <b>320</b>
+</li>
+<li class="main">sys.dm_db_resource_stats view <b>439</b>
+</li>
+<li class="main">sys.dm_db_session_space_usage view <b>288</b>
+</li>
+<li class="main">sys.dm_db_task_space_usage view <b>288</b>
+</li>
+<li class="main">sys.dm_db_wait_stats view <b>440</b>
+</li>
+<li class="main">sys.dm_exec_function_stats view <b>82</b>
+</li>
+<li class="main">sys.dm_exec_procedure_stats view <b>79–80</b>
+</li>
+<li class="main">sys.dm_exec_query_memory_grants view <b>205</b>
+</li>
+<li class="main">sys.dm_exec_query_plan function <b>71</b>
+</li>
+<li class="main">sys.dm_exec_query_plan_stats function <b>73</b>
+</li>
+<li class="main">sys.dm_exec_query_resource_semaphores view <b>205</b>
+</li>
+<li class="main">sys.dm_exec_query_statistics_xml function <b>135</b>
+</li>
+<li class="main">sys.dm_exec_query_stats view <b>71, 73, 75–77, 206, 237</b>
+</li>
+<li class="main">sys.dm_exec_requests view <b>39–41, 135, 163, 230</b>
+</li>
+<li class="main">sys.dm_exec_session_wait_stats view <b>38</b>
+</li>
+<li class="main">sys.dm_exec_text_query_plan function <b>71–73</b>
+</li>
+<li class="main">sys.dm_exec_trigger_stats view <b>82</b>
+</li>
+<li class="main">sys.dm_io_pending_io_requests view <b>47</b>
+</li>
+<li class="main">sys.dm_io_virtual_file_stats view <b>51–55, 59, 281, 329, 415, 440</b>
+</li>
+<li class="main">sys.dm_os_latch_stats view <b>303</b>
+</li>
+<li class="main">sys.dm_os_memory_brokers view <b>191</b>
+</li>
+<li class="main">sys.dm_os_memory_clerks view <b>192</b>
+</li>
+<li class="main">sys.dm_os_memory_nodes view <b>190</b>
+</li>
+<li class="main">sys.dm_os_memory_objects view <b>191</b>
+</li>
+<li class="main">sys.dm_os_performance_counters view <b>57–59, 66, 186</b>
+</li>
+<li class="main">sys.dm_os_process_memory view <b>186</b>
+</li>
+<li class="main">sys.dm_os_schedulers view <b>41, 412</b>
+</li>
+<li class="main">sys.dm_os_sys_memory view <b>186</b>
+</li>
+<li class="main">sys.dm_os_waiting_tasks view <b>38, 230, 362</b>
+</li>
+<li class="main">sys.dm_os_wait_stats view <b>32, 37–38</b>
+</li>
+<li class="main">sys.dm_server_services view <b>8</b>
+</li>
+<li class="main">sys.dm_tran_active_snapshot_database_transactions view <b>276–277</b>
+</li>
+<li class="main">sys.dm_tran_locks view <b>230, 254</b>
+</li>
+<li class="main">sys.dm_xe_session_targets view <b>88</b>
+</li>
+<li class="main">sys.fn_xe_file_target_read_file function <b>85</b>
+</li>
+<li class="main">sys.query_context_setting view <b>97</b>
+</li>
+<li class="main">sys.query_store_plan view <b>97</b>
+</li>
+<li class="main">sys.query_store_query view <b>97</b>
+</li>
+<li class="main">sys.query_store_query_text view <b>97</b>
+</li>
+<li class="main">sys.query_store_runtime_stats_interval view <b>98</b>
+</li>
+<li class="main">sys.query_store_wait_stats view <b>98</b>
+</li>
+<li class="main">sys.resource_stats view <b>440</b>
+</li>
+<li class="main">sys.server_resource_stats view <b>440</b>
+</li>
+<li class="main">sys.sp_query_store_force_plan stored procedure <b>93</b>
+</li>
+<li class="main">sys.sp_query_store_unforce_plan stored procedure <b>93</b>
+</li>
+<li class="main">sys.sp_xtp_bind_db_resource_pool stored procedure <b>214</b>
+</li>
+<li class="main">sys.sp_xtp_unbind_db_resource_pool stored procedure <b>214</b>
+</li>
+<li class="main">system logs, failover troubleshooting <b>354</b>
+</li>
+<li class="main">system page contention <b>283–287</b>
+</li>
+<li class="main">system_health xEvent session <b>187, 354</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-t"><h3>T<span class="idx-count">89 entries</span></h3><ul class="idx-list">
+<li class="main">T-SQL modules cached execution plans and metrics from <b>80–82</b>
+<span class="idx-sub">recompiling <b>168</b></span>
+<span class="idx-sub">and table-valued parameters <b>272–274</b></span>
+<span class="idx-sub">and temporary tables <b>265</b></span>
+</li>
+<li class="main">T1117 trace flag <b>11, 18, 291</b>
+</li>
+<li class="main">T1118 trace flag <b>11, 108, 287, 291</b>
+</li>
+<li class="main">T1211 trace flag <b>256</b>
+</li>
+<li class="main">T1222 trace flag <b>11, 240</b>
+</li>
+<li class="main">T1224 trace flag <b>256</b>
+</li>
+<li class="main">T1462 trace flag <b>344</b>
+</li>
+<li class="main">T174 trace flag <b>198</b>
+</li>
+<li class="main">T2371 trace flag <b>11, 126</b>
+</li>
+<li class="main">T3226 trace flag <b>11</b>
+</li>
+<li class="main">T3459 trace flag <b>350</b>
+</li>
+<li class="main">T4136 trace flag <b>170</b>
+</li>
+<li class="main">T4199 trace flag <b>11, 129</b>
+</li>
+<li class="main">T7412 trace flag <b>12</b>
+</li>
+<li class="main">T7745 trace flag <b>91</b>
+</li>
+<li class="main">T7752 trace flag <b>91</b>
+</li>
+<li class="main">T834 trace flag <b>189</b>
+</li>
+<li class="main">T876 trace flag <b>189</b>
+</li>
+<li class="main">T9481 trace flag <b>16</b>
+</li>
+<li class="main">T9567 trace flag <b>344</b>
+</li>
+<li class="main">T9592 trace flag <b>344</b>
+</li>
+<li class="main">table-valued parameters <b>272–274</b>
+</li>
+<li class="main">tables and table variables, temporary <b>139, 264–270</b>
+</li>
+<li class="main">Target Server Memory (KB) performance counter <b>186, 213</b>
+</li>
+<li class="main">tasks <b>30, 31</b>
+</li>
+<li class="main">TDE (Transparent Data Encryption) <b>23, 365</b>
+</li>
+<li class="main">TDS (Tabular Data Stream) <b>27</b>
+</li>
+<li class="main">Temp Tables Creation Rate performance counter <b>282</b>
+</li>
+<li class="main">tempdb <b>263–291</b>
+<span class="idx-sub">configuration <b>290–291</b></span>
+<span class="idx-sub">importance of I/O throughput for <b>4</b></span>
+<span class="idx-sub">internal consumers <b>275–281</b></span>
+<span class="idx-sub">and IO_COMPLETION waits <b>65</b></span>
+<span class="idx-sub">and page latch contention <b>296</b></span>
+<span class="idx-sub">running out of space <b>10, 287–290</b></span>
+<span class="idx-sub">server configuration <b>9</b></span>
+<span class="idx-sub">spills into from hash join <b>146, 149</b></span>
+<span class="idx-sub">system page contention <b>283–287</b></span>
+<span class="idx-sub">temporary objects <b>263–275</b></span>
+<span class="idx-sub">regular tables and transaction logging <b>274–275</b></span>
+<span class="idx-sub">table-valued parameters <b>272–274</b></span>
+<span class="idx-sub">temporary object caching <b>270–272</b></span>
+<span class="idx-sub">temporary tables and table variables <b>139, 264–270</b></span>
+<span class="idx-sub">version store <b>245</b></span>
+</li>
+<li class="main">temporary object caching <b>270–272</b>
+</li>
+<li class="main">thick provisioning, virtual disk management <b>417</b>
+</li>
+<li class="main">thin provisioning, virtual disk management <b>417</b>
+</li>
+<li class="main">THREADPOOL wait <b>359–363, 430, 460</b>
+</li>
+<li class="main">throttling factor for SQL Server in cloud <b>429</b>
+</li>
+<li class="main">time quantum <b>29</b>
+</li>
+<li class="main">tipping point, storage system <b>51</b>
+</li>
+<li class="main">Top Resource Consuming Queries report <b>94</b>
+</li>
+<li class="main">Total Server Memory (KB) performance counter <b>186</b>
+</li>
+<li class="main">trace flags <b>10–12</b>
+</li>
+<li class="main">TRACE_CONTROLLER latch <b>305</b>
+</li>
+<li class="main">Tracked Queries report <b>96</b>
+</li>
+<li class="main">transaction isolation levels <b>226–228, 245–249, 346</b>
+</li>
+<li class="main">transaction log <b>307–330</b>
+<span class="idx-sub">blocking <b>308</b></span>
+<span class="idx-sub">configuration <b>17, 321</b></span>
+<span class="idx-sub">data modifications and <b>308–312</b></span>
+<span class="idx-sub">delayed durability <b>316–317</b></span>
+<span class="idx-sub">explicit and auto-committed transactions effects <b>313–315</b></span>
+<span class="idx-sub">In-Memory OLTP <b>317</b></span>
+<span class="idx-sub">instant file initialization (IFI) <b>8</b></span>
+<span class="idx-sub">local temporary tables <b>274</b></span>
+<span class="idx-sub">log reuse waits <b>323–326</b></span>
+<span class="idx-sub">monitoring activity in real time <b>328</b></span>
+<span class="idx-sub">multiple log files <b>321</b></span>
+<span class="idx-sub">regular tables in tempdb <b>274–275</b></span>
+<span class="idx-sub">SQL Server use of <b>46</b></span>
+<span class="idx-sub">throughput <b>327–329</b></span>
+<span class="idx-sub">truncation issues <b>318–320, 321–326</b></span>
+<span class="idx-sub">virtual log files <b>317–320</b></span>
+<span class="idx-sub">wait types <b>461</b></span>
+<span class="idx-sub">write latency consideration <b>4</b></span>
+</li>
+<li class="main">transaction-level consistency, SNAPSHOT isolation level <b>248</b>
+</li>
+<li class="main">transactions <b>220</b>
+<span class="idx-sub">auto-committed <b>225, 313–315</b></span>
+<span class="idx-sub">explicit <b>225, 313–315, 324</b></span>
+<span class="idx-sub">implicit <b>225, 324</b></span>
+<span class="idx-sub">isolation levels <b>226–228, 245–249, 346</b></span>
+</li>
+<li class="main">transient error handling in cloud <b>430</b>
+</li>
+<li class="main">Transparent Data Encryption (see TDE)
+</li>
+<li class="main">triggers <b>82</b>
+</li>
+<li class="main">TRY_CONVERT function <b>71</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-u"><h3>U<span class="idx-count">11 entries</span></h3><ul class="idx-list">
+<li class="main">UDFs (user-defined functions) <b>138</b>
+</li>
+<li class="main">UMS (User Mode Scheduler) <b>29</b>
+</li>
+<li class="main">uniform extents <b>108</b>
+</li>
+<li class="main">uniqueidentifier data type <b>375–376</b>
+</li>
+<li class="main">untrusted foreign keys <b>378</b>
+</li>
+<li class="main">unused indexes in sys.dm_db_index_usage_stats view <b>392</b>
+</li>
+<li class="main">update (U) locks <b>223, 224</b>
+</li>
+<li class="main">update (UP) latch <b>294</b>
+</li>
+<li class="main">UPDATE STATISTICS WITH FULLSCAN statement <b>127</b>
+</li>
+<li class="main">UPDATE STATISTICS WITH SAMPLE statement <b>127</b>
+</li>
+<li class="main">USERSTORE_TOKENPERM memory clerk <b>200</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-v"><h3>V<span class="idx-count">34 entries</span></h3><ul class="idx-list">
+<li class="main">variables, temporary table <b>139, 264–270</b>
+</li>
+<li class="main">Version Cleanup rate (KB/s) performance counter <b>277</b>
+</li>
+<li class="main">Version Cleanup rate performance counter <b>282</b>
+</li>
+<li class="main">Version Generation rate (KB/s) performance counter <b>277</b>
+</li>
+<li class="main">Version Generation rate performance counter <b>282</b>
+</li>
+<li class="main">version pointers <b>245</b>
+</li>
+<li class="main">version store <b>245, 275–278</b>
+</li>
+<li class="main">Version Store Size (KB) performance counter <b>275, 277</b>
+</li>
+<li class="main">version, SQL Server <b>5</b>
+<span class="idx-sub">and Availability Groups <b>332, 339</b></span>
+<span class="idx-sub">database compatibility level settings <b>16</b></span>
+<span class="idx-sub">memory grant feedback settings <b>212</b></span>
+<span class="idx-sub">and mixed extents <b>108</b></span>
+<span class="idx-sub">and parallel redo <b>350</b></span>
+<span class="idx-sub">Query Store <b>88</b></span>
+</li>
+<li class="main">Virtual Core (vCore) <b>410</b>
+</li>
+<li class="main">Virtual CPU (vCPU) <b>410</b>
+</li>
+<li class="main">virtual disks (vmdk or vhdx) <b>414</b>
+</li>
+<li class="main">virtual network (vNIC) adapters <b>416</b>
+</li>
+<li class="main">Virtual Socket (vSocket) <b>410</b>
+</li>
+<li class="main">virtualized environments <b>6, 405–426</b>
+<span class="idx-sub">(see also cloud) backup strategy and tools <b>417</b></span>
+<span class="idx-sub">benefits and costs of <b>6, 405</b></span>
+<span class="idx-sub">configuration in <b>407–416</b></span>
+<span class="idx-sub">CPUs <b>6, 408–422</b></span>
+<span class="idx-sub">disk management <b>417</b></span>
+<span class="idx-sub">networking consideration <b>6, 416</b></span>
+<span class="idx-sub">storage subsystem <b>59–61, 414–416</b></span>
+<span class="idx-sub">troubleshooting of <b>418–425</b></span>
+</li>
+<li class="main">VLFs (Virtual Log Files) <b>17, 317–320</b>
+</li>
+<li class="main">VM (virtual machine) (see virtualized environments)
+</li>
+<li class="main">VMware ESXi <b>60, 414, 420–422</b>
+</li>
+<li class="main">VMware vSphere <b>414, 420</b>
+</li>
+<li class="main">VMware vSphere vMotion migration <b>6</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-w"><h3>W<span class="idx-count">31 entries</span></h3><ul class="idx-list">
+<li class="main">Wait Statistics <b>32–36, 440</b>
+</li>
+<li class="main">waits <b>364–369, 449–461</b>
+<span class="idx-sub">Availability Groups <b>338–345, 452</b></span>
+<span class="idx-sub">backup-related <b>364–366, 450</b></span>
+<span class="idx-sub">BTREE_INSERT_FLOW_CONTROL wait <b>299, 451</b></span>
+<span class="idx-sub">CXCONSUMER <b>181, 451</b></span>
+<span class="idx-sub">CXPACKET <b>181, 451</b></span>
+<span class="idx-sub">DMVs <b>36–38</b></span>
+<span class="idx-sub">EXCHANGE <b>181, 451</b></span>
+<span class="idx-sub">execution model and statistics for <b>32–36</b></span>
+<span class="idx-sub">hash table management in batch-mode execution <b>366</b></span>
+<span class="idx-sub">I/O <b>64–66, 357–359, 449–450, 453</b></span>
+<span class="idx-sub">latch-related <b>451, 453, 457</b></span>
+<span class="idx-sub">lock-related <b>256–259, 451, 454–456</b></span>
+<span class="idx-sub">parallel redo <b>451</b></span>
+<span class="idx-sub">preemptive <b>366–368, 456, 458–459</b></span>
+<span class="idx-sub">Query Store <b>459</b></span>
+<span class="idx-sub">Query Wait Statistics report <b>96</b></span>
+<span class="idx-sub">resource versus signal waits <b>37</b></span>
+<span class="idx-sub">RESOURCE_SEMAPHORE <b>460</b></span>
+<span class="idx-sub">THREADPOOL <b>359–363, 430, 460</b></span>
+<span class="idx-sub">transaction logging <b>456, 461</b></span>
+</li>
+<li class="main">WAL (Write-Ahead Logging) <b>17, 308</b>
+</li>
+<li class="main">Windows Server Failover Cluster (see WSFC)
+</li>
+<li class="main">Windows version of SQL Server <b>5, 29, 55</b>
+</li>
+<li class="main">worker (worker threads) <b>30</b>
+</li>
+<li class="main">workload groups, Resource Governor <b>42–44</b>
+</li>
+<li class="main">Write-Ahead Logging (see WAL)
+</li>
+<li class="main">WRITELOG wait <b>65, 312, 328, 461</b>
+</li>
+<li class="main">WRITE_COMPLETION wait <b>65, 461</b>
+</li>
+<li class="main">WSFC (Windows Server Failover Cluster) <b>5, 351–353, 433</b>
+</li>
+</ul></div>
+<div class="idx-letter" id="idx-x"><h3>X<span class="idx-count">13 entries</span></h3><ul class="idx-list">
+<li class="main">XEL files <b>187</b>
+</li>
+<li class="main">xEvents (extended events) with cloud services <b>441</b>
+<span class="idx-sub">detecting inefficient queries <b>82–88</b></span>
+<span class="idx-sub">drawbacks of <b>24–25</b></span>
+<span class="idx-sub">Live Query Statistics <b>135</b></span>
+<span class="idx-sub">lock escalation tracking <b>254</b></span>
+<span class="idx-sub">query_memory_grant_usage xEvent <b>206</b></span>
+<span class="idx-sub">synchronous replication in Availability Groups <b>340–345</b></span>
+<span class="idx-sub">system_health xEvent session <b>187</b></span>
+<span class="idx-sub">tempdb spill-tracking <b>278–281</b></span>
+</li>
+<li class="main">XML support, and CPU load <b>160</b>
+</li>
+<li class="main">xml_deadlock_report xEvent <b>240</b>
+</li>
+<li class="main">xp_readerrorlog system stored procedure <b>19</b>
+</li>
+</ul></div>
+  <p style="text-align:center;margin-top:26px"><a class="top" href="#top">↑ Back to top</a></p>
+</section>
+
+</div><!-- /.chapter-body -->
+<!-- ======================== INDEX ENDS ======================== -->
+
+
 <footer>
-  <p><strong>Summary of the complete book, Chapters 1–16</strong> — "SQL Server Setup and Configuration", "SQL Server Execution Model and Wait Statistics", "Disk Subsystem Performance", "Inefficient Queries", "Data Storage and Query Tuning", "CPU Load", "Memory Issues", "Locking, Blocking, and Concurrency", "tempdb Usage and Performance", "Latches", "Transaction Log", "AlwaysOn Availability Groups", "Other Notable Wait Types", "Database Schema and Index Analysis", "SQL Server in Virtualized Environments", and "SQL Server in the Cloud" — from <em>SQL Server Advanced Troubleshooting and Performance Tuning</em> by Dmitri Korotkevitch (O'Reilly Media, 2022). Figures 1-1 through 16-13 and Listings 1-1 through 15-1 are reproduced for study and reference purposes. All rights remain with the author and publisher.</p>
+  <p><strong>Summary of the complete book — 16 chapters, Appendix A and the index</strong> — "SQL Server Setup and Configuration", "SQL Server Execution Model and Wait Statistics", "Disk Subsystem Performance", "Inefficient Queries", "Data Storage and Query Tuning", "CPU Load", "Memory Issues", "Locking, Blocking, and Concurrency", "tempdb Usage and Performance", "Latches", "Transaction Log", "AlwaysOn Availability Groups", "Other Notable Wait Types", "Database Schema and Index Analysis", "SQL Server in Virtualized Environments", and "SQL Server in the Cloud", plus the "Wait Types" appendix and the book index — from <em>SQL Server Advanced Troubleshooting and Performance Tuning</em> by Dmitri Korotkevitch (O'Reilly Media, 2022). Figures 1-1 through 16-13 and Listings 1-1 through 15-1 are reproduced for study and reference purposes. All rights remain with the author and publisher.</p>
   <p style="margin-top:10px;color:#8b939e">Summarised in plain language · code listings preserved as published · 153 figures embedded in this file.</p>
 </footer>
 
