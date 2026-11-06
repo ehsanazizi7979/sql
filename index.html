@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapter 1 — Introducing the Execution Plan | Simple Summary</title>
+<title>SQL Server Execution Plans — Plain-English Chapter Summaries</title>
 <style>
   :root{
     --bg:#f6f7fb;
@@ -169,6 +169,54 @@
   .check{padding-left:0}
 
   footer.foot{color:var(--muted);font-size:13.5px;text-align:center;padding:0 0 50px}
+
+  /* ---------- chapter banner ---------- */
+  .chapterbar{
+    display:flex;gap:18px;align-items:flex-start;
+    background:linear-gradient(135deg,#16233d,#2b4677);
+    color:#fff;border-radius:var(--radius);padding:22px 26px;margin:0 0 26px;
+    scroll-margin-top:16px
+  }
+  .chapterbar .cnum{
+    flex:none;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+    padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;white-space:nowrap
+  }
+  .chapterbar h2{margin:0 0 4px;font-size:24px;letter-spacing:-.01em}
+  .chapterbar p{margin:0;color:#cfdcf5;font-size:15px;max-width:78ch}
+  @media (max-width:600px){ .chapterbar{flex-direction:column;gap:10px} }
+
+  /* ---------- operator grid ---------- */
+  .opgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:16px 0}
+  .opcol{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fbfcff}
+  .opcol h4{margin:0 0 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)}
+  .opcol span{
+    display:inline-block;font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    background:#eef2fa;border:1px solid #dde5f3;border-radius:6px;padding:2px 7px;margin:0 4px 5px 0;
+    color:#1e3a72
+  }
+
+  /* ---------- numbered checklist ---------- */
+  ol.biglist{counter-reset:bl;list-style:none;padding-left:0;margin:18px 0}
+  ol.biglist > li{
+    counter-increment:bl;position:relative;padding:0 0 0 44px;margin:0 0 16px;
+    border-left:2px solid var(--line);padding-bottom:2px
+  }
+  ol.biglist > li::before{
+    content:counter(bl);position:absolute;left:8px;top:-3px;
+    width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+    background:var(--blue);color:#fff;font-size:13px;font-weight:700
+  }
+  ol.biglist > li:last-child{margin-bottom:0}
+
+  /* ---------- toc groups ---------- */
+  nav.toc .grp{
+    margin:14px 0 4px;padding-top:12px;border-top:1px solid var(--line);
+    font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700
+  }
+  nav.toc .grp:first-of-type{margin-top:0;padding-top:0;border-top:none}
+  nav.toc a.mini{padding-left:18px;font-size:13.5px;color:#3b4761}
+  nav.toc a.mini:hover{padding-left:18px}
 </style>
 </head>
 <body>
@@ -176,17 +224,16 @@
 <header class="hero">
   <div class="wrap">
     <p class="kicker">SQL Server Execution Plans · 3rd Edition · Grant Fritchey</p>
-    <h1>Chapter 1 — Introducing the Execution Plan</h1>
+    <h1>Execution Plans, in plain English</h1>
     <p class="sub">
-      A plain-English walkthrough of how SQL Server turns your T-SQL into an execution plan,
-      why it caches and reuses plans, and how to capture and read your first graphical plan.
-      Every figure from the chapter is embedded below, together with the code listings.
+      Chapter-by-chapter study notes: what each chapter says, what it actually means, every
+      figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">≈ 30 pages of material</span>
-      <span class="badge">5 code listings</span>
-      <span class="badge">11 figures</span>
-      <span class="badge">Read time ≈ 12 min</span>
+      <span class="badge">2 chapters covered</span>
+      <span class="badge">11 book listings</span>
+      <span class="badge">23 figures</span>
+      <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
 </header>
@@ -194,20 +241,42 @@
 <div class="wrap layout">
 
   <nav class="toc">
-    <h2>On this page</h2>
+    <h2>Contents</h2>
+
+    <div class="grp">Chapter 1 · Introducing the Execution Plan</div>
     <a href="#tldr">The 60-second version</a>
-    <a href="#journey">1. What happens to a query</a>
-    <a href="#optimizer">2. Working with the optimizer</a>
-    <a href="#stats">3. Statistics</a>
-    <a href="#cache">4. Plan cache &amp; reuse</a>
-    <a href="#formats">5. Plan formats</a>
-    <a href="#actual">6. Estimated vs actual</a>
-    <a href="#first">7. Your first plan</a>
-    <a href="#components">8. Reading a plan</a>
-    <a href="#takeaways">Key takeaways</a>
+    <a class="mini" href="#journey">What happens to a query</a>
+    <a class="mini" href="#optimizer">Working with the optimizer</a>
+    <a class="mini" href="#stats">Statistics</a>
+    <a class="mini" href="#cache">Plan cache &amp; reuse</a>
+    <a class="mini" href="#formats">Plan formats</a>
+    <a class="mini" href="#actual">Estimated vs actual</a>
+    <a class="mini" href="#first">Your first plan</a>
+    <a class="mini" href="#components">Reading a plan</a>
+    <a class="mini" href="#takeaways">Key takeaways</a>
+
+    <div class="grp">Chapter 2 · Getting Started Reading Plans</div>
+    <a class="mini" href="#ch2-language">The language of plans</a>
+    <a class="mini" href="#ch2-direction">Right to left, or left to right?</a>
+    <a class="mini" href="#ch2-blocking">Streaming vs blocking</a>
+    <a class="mini" href="#ch2-checklist">The seven-point check</a>
+    <a class="mini" href="#ch2-first-operator">Behind the first operator</a>
+    <a class="mini" href="#ch2-metrics">Measuring alongside plans</a>
+    <a class="mini" href="#ch2-takeaways">Chapter 2 in ten lines</a>
   </nav>
 
   <main>
+
+
+    <div class="chapterbar" id="chapter1">
+      <span class="cnum">Chapter 1</span>
+      <div>
+        <h2>Introducing the Execution Plan</h2>
+        <p>How SQL Server turns your T-SQL into an execution plan, why it caches and reuses
+        plans, what the estimated and actual plans really are, and how to capture and read your
+        first graphical plan.</p>
+      </div>
+    </div>
 
     <!-- TL;DR -->
     <section class="card" id="tldr">
@@ -274,7 +343,7 @@
       </div>
 
       <figure>
-        <img src="images/fig-1-1-query-compilation-execution.png"
+        <img src="images/chapter1/fig-1-1-query-compilation-execution.png"
              alt="Diagram: a query entering the relational engine, passing through Query Parser, Algebrizer, Optimizer and Execution Engine, with a parse tree, query processor tree and execution plan passing between them.">
         <figcaption><b>Figure 1-1</b> — Query compilation and execution. Note where the compilation phase ends and the execution phase begins.</figcaption>
       </figure>
@@ -681,12 +750,12 @@ DBCC FLUSHPROCINDB(<span class="fn">DB_ID</span>(<span class="str">'AdventureWor
 
       <div class="figrow">
         <figure>
-          <img src="images/fig-1-2-estimated-plan-icon.png"
+          <img src="images/chapter1/fig-1-2-estimated-plan-icon.png"
                alt="SSMS toolbar with the Display Estimated Execution Plan icon highlighted.">
           <figcaption><b>Figure 1-2</b> — Display Estimated Execution Plan</figcaption>
         </figure>
         <figure>
-          <img src="images/fig-1-3-actual-plan-icon.jpg"
+          <img src="images/chapter1/fig-1-3-actual-plan-icon.jpg"
                alt="SSMS toolbar with the Include Actual Execution Plan icon highlighted.">
           <figcaption><b>Figure 1-3</b> — Include Actual Execution Plan</figcaption>
         </figure>
@@ -700,7 +769,7 @@ DBCC FLUSHPROCINDB(<span class="fn">DB_ID</span>(<span class="str">'AdventureWor
       </ul>
 
       <figure>
-        <img src="images/fig-1-4-live-execution-plan.png"
+        <img src="images/chapter1/fig-1-4-live-execution-plan.png"
              alt="SSMS toolbar with the Include Live Query Statistics button highlighted.">
         <figcaption><b>Figure 1-4</b> — The live execution plan button, backed by <code class="inl">sys.dm_exec_query_statistics_xml</code> (DMV in SQL Server 2014, graphical view in 2016). Covered in Chapter 17.</figcaption>
       </figure>
@@ -726,7 +795,7 @@ DBCC FLUSHPROCINDB(<span class="fn">DB_ID</span>(<span class="str">'AdventureWor
       </div>
 
       <figure>
-        <img src="images/fig-1-5-estimated-execution-plan.png"
+        <img src="images/chapter1/fig-1-5-estimated-execution-plan.png"
              alt="Graphical execution plan for the Listing 1-5 query: SELECT, Nested Loops, Nested Loops, Compute Scalar, Nested Loops, Index Seek, Key Lookup, Clustered Index Seek ×2.">
         <figcaption><b>Figure 1-5</b> — The estimated (and identical) actual execution plan for Listing 1-5.</figcaption>
       </figure>
@@ -751,13 +820,13 @@ DBCC FLUSHPROCINDB(<span class="fn">DB_ID</span>(<span class="str">'AdventureWor
       </p>
 
       <figure>
-        <img src="images/fig-1-6-data-access-operators.jpg"
+        <img src="images/chapter1/fig-1-6-data-access-operators.jpg"
              alt="Plan fragment: an Index Seek (NonClustered) on Person.IX_Person_LastName_FirstName_MiddleName with Cost 23%, a Key Lookup (Clustered) with Cost 26%, and a Nested Loops (Inner Join) with Cost 0%.">
         <figcaption><b>Figure 1-6</b> — Two data access operators feeding a join operator. The Index Seek finds "Dempsey" rows via the nonclustered index; the Key Lookup fetches the extra columns held in the clustered index; Nested Loops stitches them together.</figcaption>
       </figure>
 
       <figure>
-        <img src="images/fig-1-7-broader-plan.png"
+        <img src="images/chapter1/fig-1-7-broader-plan.png"
              alt="Wider view of the plan showing Nested Loops, Compute Scalar concatenating first and last name, further joins and the final SELECT operator.">
         <figcaption><b>Figure 1-7</b> — A broader slice. Data flows from the first Nested Loops into a <b>Compute Scalar</b> (which builds <code class="inl">LastName + ', ' + FirstName</code>), then joins PersonPhone and PhoneNumberType, ending at SELECT.</figcaption>
       </figure>
@@ -776,7 +845,7 @@ DBCC FLUSHPROCINDB(<span class="fn">DB_ID</span>(<span class="str">'AdventureWor
       </p>
 
       <figure>
-        <img src="images/fig-1-8-arrow-tooltip.jpg"
+        <img src="images/chapter1/fig-1-8-arrow-tooltip.jpg"
              alt="Tooltip over a data flow arrow showing the number of rows passing through it.">
         <figcaption><b>Figure 1-8</b> — Hovering a data flow arrow reveals how many rows it carries.</figcaption>
       </figure>
@@ -796,7 +865,7 @@ DBCC FLUSHPROCINDB(<span class="fn">DB_ID</span>(<span class="str">'AdventureWor
       </div>
 
       <figure>
-        <img src="images/fig-1-9-query-cost.png"
+        <img src="images/chapter1/fig-1-9-query-cost.png"
              alt="Top of an execution plan showing the query text and 'Query 1: Query cost (relative to the batch): 100%'.">
         <figcaption><b>Figure 1-9</b> — The top bar shows the query text and its cost relative to the whole <b>batch</b>. Each operator's percentage, by contrast, is relative to its own plan.</figcaption>
       </figure>
@@ -808,7 +877,7 @@ DBCC FLUSHPROCINDB(<span class="fn">DB_ID</span>(<span class="str">'AdventureWor
       </p>
 
       <figure>
-        <img src="images/fig-1-10-compare-properties.png"
+        <img src="images/chapter1/fig-1-10-compare-properties.png"
              alt="Side-by-side Properties windows for the same Index Seek operator, left from the estimated plan and right from the actual plan, the latter adding Actual Number of Rows and Number of Executions.">
         <figcaption><b>Figure 1-10</b> — Same Index Seek, estimated (left) vs actual (right). The actual plan adds the real row count and execution count: the optimizer estimated 1.3333 rows, 2 were returned.</figcaption>
       </figure>
@@ -840,7 +909,7 @@ DBCC FLUSHPROCINDB(<span class="fn">DB_ID</span>(<span class="str">'AdventureWor
       </p>
 
       <figure>
-        <img src="images/fig-1-11-select-tooltip.jpg"
+        <img src="images/chapter1/fig-1-11-select-tooltip.jpg"
              alt="Tooltip for the SELECT operator showing cached plan size and degree of parallelism.">
         <figcaption><b>Figure 1-11</b> — Tooltip for the SELECT operator. Watch two values: <b>Cached plan size</b> (memory this plan occupies in the cache) and <b>Degree of Parallelism</b> (1 means serial here).</figcaption>
       </figure>
@@ -887,8 +956,525 @@ DBCC FLUSHPROCINDB(<span class="fn">DB_ID</span>(<span class="str">'AdventureWor
       </div>
     </section>
 
+    <div class="chapterbar" id="chapter2">
+      <span class="cnum">Chapter 2</span>
+      <div>
+        <h2>Getting Started Reading Plans</h2>
+        <p>How to actually read a plan: the vocabulary of operators, which direction to read,
+        the seven things worth checking first, and the surprising amount of information hidden
+        in the <b>first operator</b> — the SELECT at the left-hand edge.</p>
+      </div>
+    </div>
+
+    <!-- 2.1 LANGUAGE -->
+    <section class="card" id="ch2-language">
+      <h2><span class="num">1</span> The language of execution plans</h2>
+      <p class="lede">Learning plans is like learning a language — except the vocabulary is small. There are about 85 operators, and most queries use a handful.</p>
+
+      <p>Three kinds of icon appear in a graphical plan:</p>
+      <table>
+        <thead><tr><th>Type</th><th>Icon colour</th><th>What it represents</th></tr></thead>
+        <tbody>
+          <tr><td><b>Physical operators</b> (with their logical operation)</td><td>Blue</td><td>Actual query execution, including DML and parallelism. The only kind you see in an actual plan.</td></tr>
+          <tr><td><b>Cursor operators</b></td><td>Yellow</td><td>T-SQL cursor operations (Chapter 14).</td></tr>
+          <tr><td><b>Language elements</b></td><td>Green</td><td>Language constructs such as <code class="inl">ASSIGN</code>, <code class="inl">DECLARE</code>, <code class="inl">IF</code>, <code class="inl">WHILE</code>.</td></tr>
+        </tbody>
+      </table>
+
+      <p>
+        Every operator has two halves. The <b>physical</b> part is the algorithm chosen;
+        the <b>logical</b> part is the job being done. The label reads
+        <i>physical (logical)</i> — e.g. <code class="inl">Nested Loops (Inner Join)</code>:
+        "do an inner join, using the nested loops algorithm". Physical operations only ever run in
+        <b>row mode</b> or <b>batch mode</b> (Chapter 12).
+      </p>
+
+      <div class="opgrid">
+        <div class="opcol">
+          <h4>Reading data</h4>
+          <span>Table Scan</span><span>Index Scan</span><span>Index Seek</span>
+          <span>Lookup (Key / RID)</span><span>Constant Scan</span>
+        </div>
+        <div class="opcol">
+          <h4>Combining data</h4>
+          <span>Nested Loops</span><span>Merge Join</span><span>Hash Match</span>
+          <span>Adaptive Join</span><span>Sequence</span><span>Concatenation</span><span>Switch</span>
+        </div>
+        <div class="opcol">
+          <h4>Grouping &amp; ordering</h4>
+          <span>Sort</span><span>Stream Aggregate</span><span>Hash Match (Aggregate)</span>
+          <span>Window Aggregate</span><span>Segment</span><span>Window Spool</span>
+        </div>
+        <div class="opcol">
+          <h4>Manipulating data</h4>
+          <span>Compute Scalar</span><span>Filter</span><span>Top</span>
+          <span>Sequence Project</span><span>Assert</span><span>Split</span><span>Collapse</span>
+        </div>
+        <div class="opcol">
+          <h4>Modifying data</h4>
+          <span>Table/Index Insert</span><span>Table/Index Update</span>
+          <span>Table/Index Delete</span><span>Table/Index Merge</span>
+        </div>
+        <div class="opcol">
+          <h4>Performance</h4>
+          <span>Bitmap</span><span>Spools</span><span>Parallelism</span>
+        </div>
+      </div>
+
+      <div class="note">
+        <b>What you see depends on the workload</b>
+        OLTP: you hope for lots of <b>Index Seek</b> and <b>Nested Loops</b> — small, frequent
+        queries. BI/reporting: <b>Index Scans</b>, <b>Merge Join</b> and <b>Hash Match</b> are
+        normal and often better, because they read large fractions of a table.
+      </div>
+      <p>
+        Some operators — mainly <b>Sort</b>, <b>Hash Match</b> and <b>Adaptive Join</b> — need a
+        variable amount of <b>memory</b> to run. A query using one may wait for a memory grant before
+        it starts, which can hurt performance on its own.
+      </p>
+    </section>
+
+    <!-- 2.2 DIRECTION -->
+    <section class="card" id="ch2-direction">
+      <h2><span class="num">2</span> Right to left, or left to right?</h2>
+      <p class="lede">Both. Right to left follows the <b>data</b>; left to right follows the <b>calls</b>. Knowing the difference prevents a classic misreading.</p>
+
+      <div class="code">
+        <header><span>Listing 2-1 · simple TOP query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT TOP</span> ( 5 )
+        BusinessEntityID ,
+        PersonType ,
+        NameStyle ,
+        Title ,
+        FirstName ,
+        LastName ,
+        ModifiedDate
+<span class="kw">FROM</span>    Person.Person
+<span class="kw">WHERE</span>   ModifiedDate &gt;= <span class="str">'20130601'</span>
+        <span class="kw">AND</span> ModifiedDate &lt;= <span class="kw">CURRENT_TIMESTAMP</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter2/fig-2-1-simple-plan.png"
+             alt="Plan with SELECT, Top and Clustered Index Scan operators, data flowing right to left.">
+        <figcaption><b>Figure 2-1</b> — A simple plan: Clustered Index Scan → Top → SELECT.</figcaption>
+      </figure>
+
+      <p>
+        Reading right to left, you would think the scan reads every row matching the WHERE clause
+        (over 13,000 of them) and Top then throws away all but five. <b>That is not what happens.</b>
+        The arrow between the scan and Top is thin — the scan only read <b>5 rows</b>.
+      </p>
+
+      <figure>
+        <img src="images/chapter2/fig-2-2-actual-rows.png"
+             alt="Properties of the Clustered Index Scan showing Actual Number of Rows = 5 and TableCardinality 19972.">
+        <figcaption><b>Figure 2-2</b> — Properties of the Clustered Index Scan: <b>Actual Number of Rows = 5</b>, while the table itself holds 19,972 rows. Nothing was scanned unnecessarily.</figcaption>
+      </figure>
+
+      <p>
+        Why? Because execution is <b>pull-based</b>. Every operator implements a
+        <code class="inl">GetNext()</code> method — "give me the next row". Execution begins with a
+        GetNext call from <b>Top</b> down to the scan; the scan returns one qualifying row, Top keeps it
+        and asks again. After five rows Top is satisfied, execution stops, and the rest of the table is
+        never touched.
+      </p>
+
+      <div class="plain">
+        <div><span>Read right to left</span>Follow the arrows: this is where the <b>data</b> goes.</div>
+        <div><span>Read left to right</span>Follow the GetNext calls: this is <b>who asks whom</b> for rows, and it explains early termination.</div>
+      </div>
+    </section>
+
+    <!-- 2.3 STREAMING VS BLOCKING -->
+    <section class="card" id="ch2-blocking">
+      <h2><span class="num">3</span> Streaming vs blocking operators</h2>
+      <p class="lede">The single most useful thing to know about an operator: can it pass rows along immediately, or must it swallow everything first?</p>
+
+      <table>
+        <thead><tr><th>Kind</th><th>Behaviour</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td><b>Streaming</b> (non-blocking)</td><td>Produces output as it receives input — rows flow straight through.</td><td>Clustered Index Scan, Index Seek, Nested Loops, Compute Scalar, Filter</td></tr>
+          <tr><td><b>Blocking</b></td><td>Must read the <i>entire</i> input before it can emit the first row.</td><td>Sort, Hash Match (Aggregate), Stream Aggregate (partly)</td></tr>
+          <tr><td><b>Semi-blocking</b></td><td>Consumes all of one input, then streams the other.</td><td>Hash Match (Join) — builds from the first input, streams the second</td></tr>
+        </tbody>
+      </table>
+
+      <p>Add <code class="inl">ORDER BY ModifiedDate</code> to Listing 2-1 and the plan changes shape:</p>
+
+      <div class="code">
+        <header><span>Listing 2-1 + ORDER BY</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT TOP</span> ( 5 ) BusinessEntityID , FirstName , LastName , ModifiedDate
+<span class="kw">FROM</span>    Person.Person
+<span class="kw">WHERE</span>   ModifiedDate &gt;= <span class="str">'20130601'</span>
+        <span class="kw">AND</span> ModifiedDate &lt;= <span class="kw">CURRENT_TIMESTAMP</span>
+<span class="kw">ORDER BY</span> ModifiedDate;   <span class="cm">-- now a Sort must see everything before it can emit a row</span></code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter2/fig-2-3-blocking-operators.png"
+             alt="Plan with SELECT showing a warning, a Sort (Top N Sort) at 23% cost, and a Clustered Index Scan at 77%.">
+        <figcaption><b>Figure 2-3</b> — Adding ORDER BY introduces a <b>Sort (Top N Sort)</b>. The scan must now feed it all ~13 K qualifying rows, which is why the arrow is fat. The yellow exclamation mark on SELECT is a warning.</figcaption>
+      </figure>
+
+      <p>
+        Everything downstream is now forced to do more work: the Sort cannot emit a single row until
+        it has read every qualifying row, sorted them, and picked the top five. That is the cost of
+        blocking — no early termination. Microsoft publishes no definitive list of which operators
+        block; you infer it from behaviour and from the plan's own definitions.
+      </p>
+    </section>
+
+    <!-- 2.4 WHAT TO LOOK FOR -->
+    <section class="card" id="ch2-checklist">
+      <h2><span class="num">4</span> The seven-point plan check</h2>
+      <p class="lede">Instead of tracing every path in a big plan, run down this list first. The book calls these "pointers to sources of possible problems."</p>
+
+      <ol class="biglist">
+        <li>
+          <b>First operator.</b> Select it and read its Properties. It describes the <i>whole plan</i> —
+          compile cost, SET options, and whether optimization finished or timed out.
+        </li>
+        <li>
+          <b>Warnings.</b> Yellow or red exclamation marks (SQL Server 2012+). Each one has a
+          description in its properties. Common ones: memory grant mismatch, Sort spilling to disk.
+        </li>
+        <li>
+          <b>Estimated vs actual rows.</b> Do this <i>before</i> looking at any cost. All costs are built
+          on cardinality estimates, so if the estimates are wrong the costs are meaningless.
+        </li>
+        <li>
+          <b>Operator cost.</b> Only now rank operators by estimated cost. Compare operators
+          <i>within</i> a plan — never between two different plans, because the numbers are
+          mathematical constructs, not stopwatch readings.
+        </li>
+        <li>
+          <b>"Missing index" suggestions.</b> Treat as hints, not instructions. The plan sees one query;
+          your workload is many. Also, only the first suggestion appears at the top — check the first
+          operator for more.
+        </li>
+        <li>
+          <b>Data flow / pipe thickness.</b> Fat pipes mean lots of data. Watch for <b>abrupt changes</b>:
+          a fat pipe narrowing sharply at the left means filtering happens late; thin pipes widening as
+          you move left mean the query is <i>multiplying</i> rows.
+        </li>
+        <li>
+          <b>"Extra" operators.</b> The author's invented heuristic: any operator you don't recognise,
+          or recognise but can't explain <i>why it's in that position</i>, is an "extra" operator. The fix
+          is simply to learn what it does — then it stops being extra.
+        </li>
+      </ol>
+
+      <figure>
+        <img src="images/chapter2/fig-2-4-first-operator-props.png"
+             alt="SSMS window with the execution plan on the left and the full Properties pane of the SELECT operator on the right.">
+        <figcaption><b>Figure 2-4</b> — Why the first operator matters: pin its Properties pane and you get a summary of the whole plan, not just one icon.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>"Scans bad, seeks good" is a myth</b>
+        A seek uses the index structure to jump to a starting point and read a range — usually few rows.
+        A scan reads across the pages of a table or index — often many rows. Neither is inherently good
+        or bad. What you're hunting for is a <b>high-cost scan that returns very few rows</b> (a sign of a
+        missing or poorly-designed index) or a <b>seek that returns a huge number of rows</b>.
+      </div>
+    </section>
+
+    <!-- 2.5 FIRST OPERATOR -->
+    <section class="card" id="ch2-first-operator">
+      <h2><span class="num">5</span> The information behind the first operator</h2>
+      <p class="lede">Most people jump straight to the data-access operators on the right and never look left. That's a mistake — the first operator is a report card on how the plan was made.</p>
+
+      <p>
+        Microsoft calls it the <b>Result Showplan</b> operator, but in the plan it is labelled by what the
+        statement does: <code class="inl">SELECT</code>, <code class="inl">INSERT</code>,
+        <code class="inl">UPDATE</code>, <code class="inl">DELETE</code>, or similar. It's a
+        <b>Language Element</b> (green), not a physical operator.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 2-2 · the chapter's baseline query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> d.DepartmentID,
+       d.Name,
+       d.GroupName
+<span class="kw">FROM</span> HumanResources.Department <span class="kw">AS</span> d
+<span class="kw">WHERE</span> d.GroupName = <span class="str">'Manufacturing'</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter2/fig-2-6-simple-plan.png"
+             alt="Two-operator plan: SELECT and Clustered Index Scan on Department at 100% cost.">
+        <figcaption><b>Figure 2-6</b> — Two operators only: a Clustered Index Scan and the SELECT. Simple plans still carry rich SELECT properties.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter2/fig-2-7-tooltip-missing-props.png"
+               alt="SELECT tooltip showing only cached plan size, degree of parallelism, estimated cost and row count.">
+          <figcaption><b>Figure 2-7</b> — The tooltip shows a small subset, and almost none of the interesting properties. Don't rely on it.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter2/fig-2-8-select-props-full.png"
+               alt="Full Properties window for the SELECT operator listing cached plan size, CE model version, compile CPU, memory and time, parameter list, query hashes, set options.">
+          <figcaption><b>Figure 2-8</b> — The full Properties window. Right-click the operator → Properties, then <b>pin it</b> to your SSMS desktop and click operators instead of right-clicking each one.</figcaption>
+        </figure>
+      </div>
+
+      <h3 class="step">Properties worth knowing</h3>
+      <table>
+        <thead><tr><th>Property</th><th>Why you care</th></tr></thead>
+        <tbody>
+          <tr><td><b>Cached plan size</b></td><td>Memory this plan occupies in the plan cache — useful when hunting cache bloat.</td></tr>
+          <tr><td><b>CardinalityEstimationModelVersion</b></td><td><code class="inl">140</code> = the new (2014+) estimator; <code class="inl">70</code> = the original from SQL Server 7. Explains plan differences between versions.</td></tr>
+          <tr><td><b>CompileCPU / CompileMemory / CompileTime</b></td><td>What it cost to build the plan. Time in ms, memory in KB. High numbers justify caring about recompiles.</td></tr>
+          <tr><td><b>RetrievedFromCache</b></td><td>A misnomer: true means the plan <i>is stored</i> in cache, not that it was fetched from it. False means it isn't cached at all.</td></tr>
+          <tr><td><b>QueryTimeStats</b></td><td>SQL Server 2016+: actual CPU and elapsed time when you capture an actual plan.</td></tr>
+          <tr><td><b>Optimization Level</b></td><td><b>Trivial</b> or <b>Full</b> — how much effort the optimizer spent.</td></tr>
+          <tr><td><b>Reason For Early Termination…</b></td><td>Why optimization stopped: <i>Good Enough Plan Found</i>, <i>Timeout</i>, or <i>Memory Limit Exceeded</i>.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="step">Trivial vs Full optimization</h3>
+      <p>
+        A <b>trivial</b> plan is one where the optimizer has no real choice — a simple single-table
+        <code class="inl">SELECT</code>, or an <code class="inl">INSERT … VALUES</code>. Add a JOIN
+        (Listing 2-3) and you get <b>FULL</b>.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 2-3 · the same query plus a join</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> d.DepartmentID,
+       d.Name,
+       d.GroupName,
+       edh.StartDate
+<span class="kw">FROM</span> HumanResources.Department <span class="kw">AS</span> d
+<span class="kw">INNER JOIN</span> HumanResources.EmployeeDepartmentHistory <span class="kw">AS</span> edh
+   <span class="kw">ON</span> edh.DepartmentID = d.DepartmentID
+<span class="kw">WHERE</span> d.GroupName = <span class="str">'Manufacturing'</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter2/fig-2-9-full-optimization-plan.png"
+             alt="Plan with SELECT, Nested Loops (Inner Join) at 2%, Clustered Index Scan at 48% and Index Seek on EmployeeDepartmentHistory at 50%.">
+        <figcaption><b>Figure 2-9</b> — One JOIN turns this into a full optimization: a Nested Loops join now decides the cost split between the scan (48%) and the seek (50%).</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter2/fig-2-10-select-props-subset.png"
+             alt="Properties subset showing Optimization Level FULL, QueryHash, QueryPlanHash and Reason For Early Termination Of Statement Optimization = Good Enough Plan Found.">
+        <figcaption><b>Figure 2-10</b> — <b>Optimization Level = FULL</b>, plus the two hash values and the early-termination reason.</figcaption>
+      </figure>
+
+      <table>
+        <thead><tr><th>Reason For Early Termination</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><b>Good Enough Plan Found</b></td><td>After at least one optimization phase, the cheapest plan was already below the threshold for the next phase. Normal and healthy.</td></tr>
+          <tr><td><i>(not reported)</i></td><td>Full optimization ran to completion in whatever phase it entered — the plan is the genuine best it found.</td></tr>
+          <tr><td><b>Timeout</b></td><td>The optimizer ran out of attempts without finding a mathematically "good enough" plan, and returned the cheapest so far.</td></tr>
+          <tr><td><b>Memory Limit Exceeded</b></td><td>A very large, complex query against complex structures. The plan is probably not optimal — simplify the query or the schema to do better.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="step">Parameter List and simple parameterization</h3>
+      <p>
+        Listing 2-2 hard-codes <code class="inl">'Manufacturing'</code> — no parameter, no variable.
+        Yet the SELECT properties show a <b>Parameter List</b> with <code class="inl">@1</code>.
+        That is <b>simple (auto) parameterization</b>: the optimizer notices it could reuse a plan if
+        the literal were a parameter, so it substitutes one. Your WHERE clause becomes
+        <code class="inl">WHERE d.GroupName = @1</code>.
+      </p>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter2/fig-2-11-parameter-list.png"
+               alt="Parameter List showing @1 with compiled value and runtime value both 'Manufacturing'.">
+          <figcaption><b>Figure 2-11</b> — First execution: compiled and runtime values are both <code class="inl">'Manufacturing'</code>.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter2/fig-2-12-parameter-runtime.png"
+               alt="Parameter List showing compiled value 'Manufacturing' but runtime value 'Sales and Marketing'.">
+          <figcaption><b>Figure 2-12</b> — Second execution with a different value: the SQL text is unchanged, so the <b>same plan is reused</b>. Compiled ≠ runtime — this is parameter sniffing in action.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note">
+        <b>Parameter sniffing, explained</b>
+        The value passed to a parameter is compared against the column's statistics at compile time. That's
+        usually a good thing — it lets the optimizer size the plan for the data it will actually see. It
+        becomes a problem when the first value is unrepresentative of later ones. The
+        <code class="inl">@1</code> block in Figure 2-12 is how you see which value the plan was built for.
+      </div>
+      <div class="note warn">
+        <b>Auto-parameterization has limits</b> The two-table query in Listing 2-3 gets <b>no</b>
+        Parameter List — simple parameterization only applies to simple one-table queries. For real
+        plan reuse, parameterize deliberately, ideally with stored procedures.
+      </div>
+
+      <h3 class="step">QueryHash vs QueryPlanHash</h3>
+      <table>
+        <thead><tr><th>What you changed</th><th>QueryHash</th><th>QueryPlanHash</th></tr></thead>
+        <tbody>
+          <tr><td>Only literals, plan unchanged</td><td>Same</td><td>Same</td></tr>
+          <tr><td>Only literals, <b>different plan</b></td><td>Same</td><td><b>Different</b></td></tr>
+          <tr><td>Logic changed, plan unchanged</td><td><b>Different</b></td><td>Same</td></tr>
+        </tbody>
+      </table>
+      <p>
+        <b>QueryHash</b> fingerprints the query text/logic (used to find candidate cached plans);
+        <b>QueryPlanHash</b> fingerprints the plan's operations and their order. Together they're how
+        you detect ad hoc / dynamic SQL generating duplicate plans.
+      </p>
+
+      <h3 class="step">SET options</h3>
+      <figure>
+        <img src="images/chapter2/fig-2-13-set-options.png"
+             alt="Set Options table listing ANSI_NULLS, ANSI_PADDING, ANSI_WARNINGS, ARITHABORT, CONCAT_NULL_YIELDS_NULL, NUMERIC_ROUNDABORT, QUOTED_IDENTIFIER with their values.">
+        <figcaption><b>Figure 2-13</b> — The ANSI and SET options in force when the plan was compiled. If a later session uses different ones, SQL Server must compile a <b>second</b> plan for the same query.</figcaption>
+      </figure>
+      <div class="note tip">
+        <b>Classic real-world trap</b> A plan compiled with <code class="inl">ARITHABORT OFF</code>
+        (SSMS default) is unusable by an application connecting with <code class="inl">ARITHABORT ON</code>.
+        That's how "it's fast in SSMS but slow in the app" happens.
+      </div>
+    </section>
+
+    <!-- 2.6 METRICS -->
+    <section class="card" id="ch2-metrics">
+      <h2><span class="num">6</span> Measuring queries alongside the plan</h2>
+      <p class="lede">A plan tells you where the work is; metrics tell you how much it cost. The book's recommendation is unambiguous: use Extended Events, not Trace.</p>
+
+      <h3 class="step">STATISTICS IO / TIME</h3>
+      <div class="code">
+        <header><span>Listing 2-4 · STATISTICS IO and TIME</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SET</span> STATISTICS IO <span class="kw">ON</span>;
+<span class="kw">SET</span> STATISTICS TIME <span class="kw">ON</span>;
+
+  <span class="kw">SELECT</span> d.DepartmentID,
+      d.Name,
+      d.GroupName
+  <span class="kw">FROM</span> HumanResources.Department <span class="kw">AS</span> d
+  <span class="kw">WHERE</span> d.GroupName = <span class="str">'Manufacturing'</span>;
+
+<span class="kw">SET</span> STATISTICS IO <span class="kw">OFF</span>;
+<span class="kw">SET</span> STATISTICS TIME <span class="kw">OFF</span>;</code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 2-5 · the resulting messages</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="cm">SQL Server parse and compile time:</span>
+   CPU time = 0 ms, elapsed time = 0 ms.
+(2 row(s) affected)
+Table <span class="str">'Department'</span>. Scan count 1, logical reads 2, physical reads 0,
+read-ahead reads 0, lob logical reads 0, lob physical reads 0,
+lob read-ahead reads 0.
+(1 row(s) affected)
+<span class="cm">SQL Server Execution Times:</span>
+   CPU time = 0 ms,  elapsed time = 6 ms.
+<span class="cm">SQL Server Execution Times:</span>
+   CPU time = 0 ms,  elapsed time = 0 ms.</code></pre>
+        <div class="cap">The interesting numbers — 2 logical reads and 6 ms — are buried in noise, and the two "Execution Times" blocks are easy to misread.</div>
+      </div>
+
+      <p><b>Pros:</b> breaks I/O down per table. <b>Cons, per the book:</b></p>
+      <ul>
+        <li>Returning the I/O messages to the client adds overhead, so your timing measurements are no longer accurate.</li>
+        <li>It doesn't count all the work — I/O inside user-defined functions called many times is invisible, whereas Extended Events sees it.</li>
+      </ul>
+
+      <h3 class="step">Include Client Statistics — for fast, frequent queries</h3>
+      <p>
+        If results rendering costs more than the query itself, discard the results, run the query many
+        times with <code class="inl">GO 100</code>, and read elapsed time from SSMS's
+        <b>Include Client Statistics</b> output instead.
+      </p>
+      <div class="code">
+        <header><span>Run one query 100 times, without rendering results</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="cm">-- SSMS: Query ▸ Query Options ▸ Results ▸ Grid ▸ "Discard results after execution"</span>
+<span class="cm">-- Then enable Query ▸ Include Client Statistics, and run the batch 100 times:</span>
+<span class="kw">SELECT</span> d.DepartmentID, d.Name
+<span class="kw">FROM</span> HumanResources.Department <span class="kw">AS</span> d
+<span class="kw">WHERE</span> d.GroupName = <span class="str">'Manufacturing'</span>;
+<span class="kw">GO</span> 100</code></pre>
+      </div>
+
+      <h3 class="step">SQL Trace / Profiler — don't</h3>
+      <ul>
+        <li>Profiler's buffering can hurt, or even take down, a production server.</li>
+        <li>Trace cannot filter at capture time — everything is collected, then filtered, multiplying the overhead.</li>
+        <li>Both are on Microsoft's deprecation list, so they will disappear.</li>
+      </ul>
+
+      <h3 class="step">Extended Events — the recommendation</h3>
+      <p>
+        Actively supported, filters far more effectively, runs lower in the call stack (less overhead),
+        gives clear read/timing numbers, and since SQL Server 2012 has a full GUI for reviewing captured
+        data. Listing 2-6 is a minimal session for procedures and batches:
+      </p>
+      <div class="code">
+        <header><span>Listing 2-6 · a basic Extended Events session</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE EVENT SESSION</span> QueryPerformance <span class="kw">ON SERVER</span>
+<span class="kw">ADD EVENT</span> sqlserver.rpc_completed (
+    <span class="kw">WHERE</span> (sqlserver.database_name = <span class="fn">N</span><span class="str">'AdventureWorks2014'</span>)),
+<span class="kw">ADD EVENT</span> sqlserver.sql_batch_completed (
+    <span class="kw">WHERE</span> (sqlserver.database_name = <span class="fn">N</span><span class="str">'AdventureWorks2014'</span>))
+<span class="kw">ADD TARGET</span> package0.event_file (<span class="kw">SET</span> filename = <span class="fn">N</span><span class="str">'QueryPerformance'</span>)
+<span class="kw">WITH</span> (MAX_MEMORY = 4096 KB,
+      EVENT_RETENTION_MODE = ALLOW_SINGLE_EVENT_LOSS,
+      MAX_DISPATCH_LATENCY = 3 SECONDS,
+      MAX_EVENT_SIZE = 0 KB,
+      MEMORY_PARTITION_MODE = NONE,
+      TRACK_CAUSALITY = OFF,
+      STARTUP_STATE = OFF);
+<span class="kw">GO</span>
+
+<span class="cm">-- Start it when you're ready to measure:</span>
+<span class="kw">ALTER EVENT SESSION</span> QueryPerformance <span class="kw">ON SERVER STATE</span> = <span class="kw">START</span>;
+<span class="cm">-- ...run the workload...</span>
+<span class="kw">ALTER EVENT SESSION</span> QueryPerformance <span class="kw">ON SERVER STATE</span> = <span class="kw">STOP</span>;
+
+<span class="cm">-- Read the captured events straight out of the target file:</span>
+<span class="kw">SELECT</span>  xe.*
+<span class="kw">FROM</span>    (<span class="kw">SELECT</span> CAST(target_data <span class="kw">AS xml</span>) <span class="kw">AS</span> event_data
+         <span class="kw">FROM</span>   sys.dm_xe_session_targets <span class="kw">AS</span> t
+                <span class="kw">JOIN</span> sys.dm_xe_sessions <span class="kw">AS</span> s
+                  <span class="kw">ON</span> s.address = t.event_session_address
+         <span class="kw">WHERE</span>  s.name = <span class="str">'QueryPerformance'</span>
+                <span class="kw">AND</span> t.target_name = <span class="str">'event_file'</span>) <span class="kw">AS</span> raw
+<span class="kw">CROSS APPLY</span> raw.event_data.nodes(<span class="str">'//event'</span>) <span class="kw">AS</span> xe(xe);</code></pre>
+        <div class="cap">Extended Events are covered properly in Chapter 15; this is just enough to start collecting durations and reads.</div>
+      </div>
+      <div class="note">
+        <b>Where Query Store fits</b> For <i>aggregated</i> history — how a query's plan and duration changed
+        over days — the book points to Query Store (Chapter 16) rather than ad hoc tracing.
+      </div>
+    </section>
+
+    <!-- 2.7 TAKEAWAYS -->
+    <section class="card" id="ch2-takeaways">
+      <h2><span class="num">★</span> Chapter 2 in ten lines</h2>
+      <ul class="check">
+        <li>Three icon colours: <b>blue</b> = physical operator, <b>yellow</b> = cursor, <b>green</b> = language element.</li>
+        <li>Read <b>right to left</b> for data flow, <b>left to right</b> for who calls whom (<code class="inl">GetNext</code>).</li>
+        <li><b>Thin arrows</b> on the left of a scan + TOP mean early termination — the plan isn't reading everything.</li>
+        <li><b>Blocking operators</b> (Sort, aggregates) must consume all input first; they kill early termination.</li>
+        <li>Check <b>estimated vs actual rows</b> before you believe any cost figure.</li>
+        <li>Compare operator costs <b>inside one plan</b>, never across plans.</li>
+        <li>Missing-index messages are <b>suggestions</b> for one query, not commands for your workload.</li>
+        <li>The <b>first operator</b> reports optimization level, early-termination reason, compile cost, hashes and SET options.</li>
+        <li><b>SET options and database ID</b> must match for a plan to be reused — the usual cause of "fast in SSMS, slow in the app".</li>
+        <li>Measure with <b>Extended Events</b> (or Query Store); avoid Trace/Profiler, and distrust STATISTICS IO timing.</li>
+      </ul>
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        This chapter is a guide to reading any plan, however large: understand the operators, know the
+        direction, check the seven warning signs, and never neglect the first operator — it holds the story
+        of how the plan was built.
+      </div>
+    </section>
+
+
     <footer class="foot">
-      Summary of Chapter 1, <i>SQL Server Execution Plans, 3rd Edition</i> by Grant Fritchey (Redgate, 2018).
+      Study notes for <i>SQL Server Execution Plans, 3rd Edition</i> by Grant Fritchey (Redgate, 2018).
       Figures are reproduced from the book for study purposes. Sample code targets AdventureWorks2014
       on SQL Server 2012+.
     </footer>
