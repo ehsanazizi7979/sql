@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapters 1–2 · A Little Background + Creating &amp; Populating a Database — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Chapters 1–3 · Background, Creating a Database, Query Primer — Simple Summary (Learning SQL, 3rd Ed.)</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -132,7 +132,46 @@
     color:var(--accent);margin:0 0 8px}
   .pick ul{margin:0;padding-left:1.1em;font-family:var(--sans)}
   .pick li{margin:.25em 0}
-  /* ---------- footer ---------- */
+  /* ---------- original diagrams (CSS, no images) ---------- */
+  .diag{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:26px 0}
+  .diag .cap{font-family:var(--sans);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:14px}
+  .diag .cap i{font-style:normal;font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted);margin-left:8px}
+  /* clause anatomy */
+  .anatomy{display:grid;grid-template-columns:96px 1fr 58px;gap:8px 14px;align-items:center;
+    font-family:var(--mono);font-size:13px}
+  .anatomy .c{font-weight:700;color:var(--ink);text-align:right}
+  .anatomy .c small{display:block;font-family:var(--sans);font-size:9.5px;font-weight:700;color:var(--muted);letter-spacing:.06em}
+  .anatomy .what{font-family:var(--sans);font-size:12.6px;color:var(--muted);line-height:1.4}
+  .anatomy .ord{font-family:var(--sans);font-size:11px;font-weight:800;text-align:center;border-radius:6px;padding:3px 0}
+  .o1{background:#e6efdd;color:#3d6b28}.o2{background:#fce8d5;color:#9a3c07}.o3{background:#e2eaf7;color:#2a4f8f}
+  .anatomy .bar{height:7px;border-radius:4px;background:linear-gradient(90deg,var(--accent),#eab877)}
+  .anatomy .rowbar{grid-column:2;display:flex;align-items:center;gap:10px}
+  .anatomy .rowbar .bar{flex:1}
+  /* pipeline */
+  .pipe{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;font-family:var(--sans);font-size:12.4px}
+  .pipe .st{flex:1 1 128px;min-width:128px;background:#f7f4ee;border:1px solid var(--line);border-radius:10px;
+    padding:11px 12px;position:relative;margin:0 16px 12px 0}
+  .pipe .st:not(:last-child)::after{content:"→";position:absolute;right:-14px;top:50%;transform:translateY(-50%);
+    color:var(--accent);font-weight:700}
+  .pipe .st b{display:block;font-size:12.6px;margin-bottom:3px}
+  .pipe .st span{color:var(--muted);font-size:11.6px;line-height:1.4;display:block}
+  .pipe .st.chk{background:#fdf6ec;border-color:#f0dcc0}
+  .pipe .st.opt{background:#eef3fa;border-color:#d5e2f2}
+  /* collapsible answers */
+  details{margin:16px 0 4px;border-top:1px dashed var(--line);padding-top:12px}
+  summary{cursor:pointer;font-family:var(--sans);font-size:.92rem;color:var(--accent);list-style:none;
+    display:flex;align-items:center;gap:8px}
+  summary::before{content:"▸";transition:transform .15s;font-size:.85em}
+  details[open] summary::before{transform:rotate(90deg)}
+  summary::-webkit-details-marker{display:none}
+  summary:hover{text-decoration:underline}
+  /* before/after row counts */
+  .counts{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--sans);font-size:12.4px;margin-top:6px}
+  .counts div{flex:1;min-width:150px;background:#f7f4ee;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .counts b{display:block;font-size:1.5rem;font-family:var(--serif);letter-spacing:-.02em}
+  .counts .cut b{color:var(--accent)}
+  /* footer ---------- */
   footer{grid-column:1/-1;border-top:1px solid var(--line);margin-top:44px;padding:26px 0 0;
     font-family:var(--sans);font-size:13px;color:var(--muted);line-height:1.6}
   @media(max-width:900px){
@@ -162,20 +201,22 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapters 1 &amp; 2, in plain English</h1>
+  <h1>Chapters 1–3, in plain English</h1>
   <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
   and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
   data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
-  rows — with the book's own figures, design tables and example code.</p>
+  rows. <b>Ch. 3 — Query Primer:</b> the six clauses of <span class="inline">SELECT</span>, what each one
+  is for, and the order the server actually runs them in.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–43 (PDF pp. 19–62)</span>
-    <span><b>Sections:</b> 12 + 10</span>
+    <span><b>Book pages:</b> 1–66 (PDF pp. 19–84)</span>
+    <span><b>Sections:</b> 12 + 10 + 12</span>
     <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8</span>
-    <span><b>Reading time:</b> ~25 min</span>
+    <span><b>Reading time:</b> ~40 min</span>
   </div>
   <div class="jump">
     <a href="#tldr">↓ Chapter 1 · A Little Background</a>
-    <a href="#ch2">↓ Chapter 2 · Creating &amp; Populating a Database</a>
+    <a href="#ch2">↓ Chapter 2 · Creating &amp; Populating</a>
+    <a href="#ch3">↓ Chapter 3 · Query Primer</a>
   </div>
 </header>
 
@@ -207,6 +248,21 @@
     <li><a href="#errors">When good statements go bad</a></li>
     <li><a href="#sakila">The Sakila database</a></li>
     <li><a href="#recap">Cheat sheet &amp; self-test</a></li>
+  </ol>
+  <div class="brand" style="margin-top:18px">Chapter 3 · Query primer</div>
+  <ol>
+    <li><a href="#ch3-intro">The chapter in one paragraph</a></li>
+    <li><a href="#mechanics">How a query gets run</a></li>
+    <li><a href="#clauses">The six clauses</a></li>
+    <li><a href="#sel">The select clause</a></li>
+    <li><a href="#alias">Column aliases</a></li>
+    <li><a href="#distinct">Removing duplicates</a></li>
+    <li><a href="#from">The from clause</a></li>
+    <li><a href="#join">Linking tables + aliases</a></li>
+    <li><a href="#where">The where clause</a></li>
+    <li><a href="#group">group by &amp; having</a></li>
+    <li><a href="#orderby">The order by clause</a></li>
+    <li><a href="#exercises">Exercises &amp; cheat sheet</a></li>
   </ol>
 </nav>
 
@@ -1526,19 +1582,960 @@ Query OK, 0 rows affected (0.05 sec)</code></pre>
       <span class="inline">select</span>, <span class="inline">from</span>,
       <span class="inline">where</span>, <span class="inline">group by</span>,
       <span class="inline">having</span>, <span class="inline">order by</span> — the three-clause skeleton
-      from Chapter 1 growing into the full shape you'll use for the rest of the book, all against Sakila.
-      Say the word and I'll add it to this page the same way.</p>
+      from Chapter 1 growing into the full shape you'll use for the rest of the book, all against Sakila —
+      which is exactly what <a href="#ch3">Chapter 3 below</a> covers.</p>
   </div>
 </section>
 
+<div class="chap" id="ch3">
+  <div class="kicker">Chapter 3 · book pages 73–96 (PDF pp. 63–84)</div>
+  <h2><span class="num">3.0</span>Query Primer</h2>
+  <p>Chapters 1 and 2 gave you theory and a schema. This is the first real chapter on <em>asking
+  questions</em>: the six clauses that make up a <span class="inline">SELECT</span> statement, what each
+  one does, and — crucially — the order the server evaluates them in, which is not the order you write
+  them. Every query in the rest of the book is built from these six parts.</p>
+</div>
+
+<section id="ch3-intro">
+  <h2><span class="num">3.1</span>The chapter in one paragraph</h2>
+  <p class="lede">A tour, not a manual — the deep dives come in Chapters 4 through 10.</p>
+  <p>A query travels from your client to the server over a connection the server handed you at login (and
+    it gives that connection a number you should note, because it's what your DBA needs to kill your
+    runaway query). Before anything executes, the server clears three gates — do you have permission to run
+    this statement, permission to touch this data, and is the syntax valid — and then hands the statement
+    to the <strong>optimizer</strong>, which decides join order and index usage and produces an execution
+    plan. What comes back is a <em>result set</em>: just another table of rows and columns, which is why
+    the mysql tool prints it inside the same +-| box you've already seen, and why "Empty set" is a normal,
+    non-error answer. On top of that machinery sit six clauses —
+    <span class="inline">select</span>, <span class="inline">from</span>, <span class="inline">where</span>,
+    <span class="inline">group by</span>, <span class="inline">having</span>,
+    <span class="inline">order by</span> — of which only
+    <span class="inline">select</span> is mandatory in MySQL. The chapter walks each one against Sakila,
+    shows that a query without <span class="inline">ORDER BY</span> has no order at all, and ends with four
+    exercises.</p>
+  <div class="simple">
+    <span class="tag">The one idea worth keeping</span>
+    You write the clauses in one order; the server runs them in another. Nearly every confusing thing
+    about SQL — why you can't use a column alias in <span class="inline">WHERE</span>, why
+    <span class="inline">HAVING</span> exists at all — falls out of that gap.
+  </div>
+</section>
+
+<section id="mechanics">
+  <h2><span class="num">3.2</span>How a query gets run</h2>
+  <p class="lede">Connection → three checks → optimizer → plan → result set.</p>
+
+  <p>You log in with a username, password, and possibly a hostname. The server verifies them and issues a
+    <strong>connection</strong>, which the requesting application (the mysql tool) holds until it releases
+    it — by you typing <span class="inline">quit</span> — or the server shuts down. Each connection gets an
+    ID, printed at login:</p>
+  <div class="code">
+    <div class="bar"><span class="k">the login banner — note the connection id</span></div>
+    <pre><code class="out">Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 11
+Server version: 8.0.15 MySQL Community Server - GPL</code></pre>
+  </div>
+  <div class="note">
+    <span class="tag">Why your connection id is worth jotting down</span>
+    When something goes wrong — a malformed query grinding for hours, say — your DBA will ask for it. It's
+    the only handle you have on <em>your</em> session among everyone else's.
+  </div>
+
+  <div class="diag">
+    <div class="cap">Query lifecycle <i>drawn from the chapter's prose — the book has no figure here</i></div>
+    <div class="pipe">
+      <div class="st"><b>1 · Client</b><span>mysql tool sends your statement over the open connection</span></div>
+      <div class="st chk"><b>2 · Three gates</b><span>statement permission · data permission · syntax valid</span></div>
+      <div class="st opt"><b>3 · Optimizer</b><span>picks join order + available indexes → execution plan</span></div>
+      <div class="st"><b>4 · Execute</b><span>server follows the plan against the tables</span></div>
+      <div class="st"><b>5 · Result set</b><span>rows + columns returned; the tool boxes them</span></div>
+    </div>
+  </div>
+
+  <p>The optimizer is the same agent Chapter 1 introduced: it decides things like <em>the order in which to
+    join the tables named in your</em> <span class="inline">FROM</span> clause and which indexes to use,
+    then emits a plan the server follows. Understanding and influencing plan choice is a whole career — the
+    book points at <i>High Performance MySQL</i> (Schwartz et al., O'Reilly) for index generation, plan
+    analysis, query hints and server tuning. You will not need any of it to read this book.</p>
+
+  <p>The two answers you can get back are both normal, and beginners misread the first one as an error:</p>
+  <div class="code">
+    <div class="bar"><span class="k">no matching rows → not an error</span></div>
+    <pre><code class="sql">mysql&gt; SELECT first_name, last_name
+    -&gt; FROM customer
+    -&gt; WHERE last_name = 'ZIEGLER';
+Empty set (0.02 sec)</code></pre>
+  </div>
+  <div class="code">
+    <div class="bar"><span class="k">rows found → headers + boxed columns</span></div>
+    <pre><code class="sql">mysql&gt; SELECT *
+    -&gt; FROM category;
++-------------+-------------+---------------------+
+| category_id | name        | last_update         |
++-------------+-------------+---------------------+
+|           1 | Action      | 2006-02-15 04:46:27 |
+|           2 | Animation   | 2006-02-15 04:46:27 |
+|           3 | Children    | 2006-02-15 04:46:27 |
+|           4 | Classics    | 2006-02-15 04:46:27 |
+|           5 | Comedy      | 2006-02-15 04:46:27 |
+|           6 | Documentary | 2006-02-15 04:46:27 |
+|           7 | Drama       | 2006-02-15 04:46:27 |
+|           8 | Family      | 2006-02-15 04:46:27 |
+|           9 | Foreign     | 2006-02-15 04:46:27 |
+|          10 | Games       | 2006-02-15 04:46:27 |
+|          11 | Horror      | 2006-02-15 04:46:27 |
+|          12 | Music       | 2006-02-15 04:46:27 |
+|          13 | New         | 2006-02-15 04:46:27 |
+|          14 | Sci-Fi      | 2006-02-15 04:46:27 |
+|          15 | Sports      | 2006-02-15 04:46:27 |
+|          16 | Travel      | 2006-02-15 04:46:27 |
++-------------+-------------+---------------------+
+16 rows in set (0.02 sec)</code></pre>
+  </div>
+  <p>Read a result box as three parts: the header row naming the columns, the data rows, and the footer
+    counting them. <span class="inline">SELECT *</span> means "every column" — fine for exploring, and the
+    thing to avoid in application code, because your program stops making sense the day someone adds a
+    column to the table.</p>
+</section>
+
+<section id="clauses">
+  <h2><span class="num">3.3</span>The six clauses — and their true order</h2>
+  <p class="lede">Table 3-1 is the map of the rest of the chapter, and of the rest of the book.</p>
+
+  <table>
+    <thead><tr><th>Clause</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>select</td><td>Determines which columns to include in the query's result set</td></tr>
+      <tr><td>from</td><td>Identifies the tables to retrieve data from, and how they should be joined</td></tr>
+      <tr><td>where</td><td>Filters out unwanted data</td></tr>
+      <tr><td>group by</td><td>Groups rows together by common column values</td></tr>
+      <tr><td>having</td><td>Filters out unwanted groups</td></tr>
+      <tr><td>order by</td><td>Sorts the rows of the final result set by one or more columns</td></tr>
+    </tbody>
+  </table>
+  <p>All six are in the ANSI specification. In MySQL only <span class="inline">select</span> is mandatory —
+    the other five are optional, though you'll usually reach for two or three.</p>
+
+  <div class="diag">
+    <div class="cap">Written order vs. evaluated order <i>original diagram</i></div>
+    <div class="anatomy">
+      <div class="c">SELECT <small>written 1st</small></div>
+      <div class="rowbar"><div class="bar" style="width:38%"></div><div class="what">which columns / expressions to output</div></div>
+      <div class="ord o3">5th</div>
+
+      <div class="c">FROM <small>written 2nd</small></div>
+      <div class="rowbar"><div class="bar" style="width:12%"></div><div class="what">which tables, joined how</div></div>
+      <div class="ord o1">1st</div>
+
+      <div class="c">WHERE <small>written 3rd</small></div>
+      <div class="rowbar"><div class="bar" style="width:20%"></div><div class="what">drop unwanted rows</div></div>
+      <div class="ord o1">2nd</div>
+
+      <div class="c">GROUP BY <small>written 4th</small></div>
+      <div class="rowbar"><div class="bar" style="width:30%"></div><div class="what">collapse rows into groups by shared values</div></div>
+      <div class="ord o2">3rd</div>
+
+      <div class="c">HAVING <small>written 5th</small></div>
+      <div class="rowbar"><div class="bar" style="width:24%"></div><div class="what">drop unwanted groups</div></div>
+      <div class="ord o2">4th</div>
+
+      <div class="c">ORDER BY <small>written 6th</small></div>
+      <div class="rowbar"><div class="bar" style="width:16%"></div><div class="what">sort what survived</div></div>
+      <div class="ord o3">6th</div>
+    </div>
+    <p style="font-family:var(--sans);font-size:12.2px;color:var(--muted);margin:14px 0 0">Bar length is
+      only decorative; the numbers are the point. Blue = uses raw columns, green = the row filter, amber =
+      the group filter. <span class="inline">SELECT</span> waits until the groups are cooked because until
+      then the server doesn't know which columns even exist.</p>
+  </div>
+
+  <p>The chapter states the principle outright: <em>even though</em>
+    <span class="inline">SELECT</span> is the first clause of the statement, it is one of the <em>last</em>
+    the server evaluates — because to decide what to include in the result set, you first need to know the
+    full set of columns that <em>could</em> be included, and that's decided by
+    <span class="inline">FROM</span>.</p>
+  <div class="simple">
+    <span class="tag">Payoff, three chapters early</span>
+    This is why <span class="inline">WHERE</span> can't see the aliases you defined in
+    <span class="inline">SELECT</span> (they don't exist yet at gate 2), and why
+    <span class="inline">HAVING</span> exists instead of just reusing <span class="inline">WHERE</span>:
+    row-level filters run <em>before</em> grouping, group-level filters must run <em>after</em>.
+  </div>
+</section>
+
+<section id="sel">
+  <h2><span class="num">3.4</span>The select clause</h2>
+  <p class="lede">Its job: choose which of all <em>possible</em> columns appear in the result.</p>
+
+  <p>Three queries against the same table show the whole clause. First, everything:</p>
+  <div class="code">
+    <div class="bar"><span class="k">* = every column</span></div>
+    <pre><code class="sql">mysql&gt; SELECT *
+    -&gt; FROM language;
++-------------+----------+---------------------+
+| language_id | name     | last_update         |
++-------------+----------+---------------------+
+|           1 | English  | 2006-02-15 05:02:19 |
+|           2 | Italian  | 2006-02-15 05:02:19 |
+|           3 | Japanese | 2006-02-15 05:02:19 |
+|           4 | Mandarin | 2006-02-15 05:02:19 |
+|           5 | French   | 2006-02-15 05:02:19 |
+|           6 | German   | 2006-02-15 05:02:19 |
++-------------+----------+---------------------+
+6 rows in set (0.03 sec)</code></pre>
+  </div>
+  <p>Then the same result written out longhand — the book's point being that these two are
+    <strong>identical</strong>, because <span class="inline">language</span> has exactly those three
+    columns:</p>
+  <div class="code">
+    <div class="bar"><span class="k">explicit list → same rows, same order of columns</span></div>
+    <pre><code class="sql">mysql&gt; SELECT language_id, name, last_update
+    -&gt; FROM language;
++-------------+----------+---------------------+
+| language_id | name     | last_update         |
++-------------+----------+---------------------+
+|           1 | English  | 2006-02-15 05:02:19 |
+|           2 | Italian  | 2006-02-15 05:02:19 |
+|           3 | Japanese | 2006-02-15 05:02:19 |
+|           4 | Mandarin | 2006-02-15 05:02:19 |
+|           5 | French   | 2006-02-15 05:02:19 |
+|           6 | German   | 2006-02-15 05:02:19 |
++-------------+----------+---------------------+
+6 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>And finally a projection down to one column — 6 rows either way, since
+    <span class="inline">SELECT</span> chooses <em>columns</em>, not rows:</p>
+  <div class="code">
+    <div class="bar"><span class="k">one column</span></div>
+    <pre><code class="sql">mysql&gt; SELECT name
+    -&gt; FROM language;
++----------+
+| name     |
++----------+
+| English  |
+| Italian  |
+| Japanese |
+| Mandarin |
+| French   |
+| German   |
++----------+
+6 rows in set (0.00 sec)</code></pre>
+  </div>
+
+  <h3>You are not limited to stored columns</h3>
+  <p>A <span class="inline">SELECT</span> list can contain four kinds of thing — and this is what makes the
+    clause a projection <em>and</em> a computation at once:</p>
+  <ul>
+    <li><strong>Table columns</strong> — <span class="inline">language_id</span></li>
+    <li><strong>Literals</strong> — a number or string written into every row, e.g.
+      <span class="inline">'COMMON'</span></li>
+    <li><strong>Expressions</strong> — e.g. <span class="inline">transaction.amount * -1</span></li>
+    <li><strong>Function calls</strong> — built-in like
+      <span class="inline">ROUND(transaction.amount, 2)</span> or
+      <span class="inline">upper(name)</span>, or user-defined</li>
+    </ul>
+  <div class="code">
+    <div class="bar"><span class="k">all four in one query</span></div>
+    <pre><code class="sql">mysql&gt; SELECT language_id,
+    -&gt;   'COMMON' language_usage,
+    -&gt;   language_id * 3.1415927 lang_pi_value,
+    -&gt;   upper(name) language_name
+    -&gt; FROM language;
++-------------+----------------+---------------+---------------+
+| language_id | language_usage | lang_pi_value | language_name |
++-------------+----------------+---------------+---------------+
+|           1 | COMMON         |     3.1415927 | ENGLISH       |
+|           2 | COMMON         |     6.2831854 | ITALIAN       |
+|           3 | COMMON         |     9.4247781 | JAPANESE      |
+|           4 | COMMON         |    12.5663708 | MANDARIN      |
+|           5 | COMMON         |    15.7079635 | FRENCH        |
+|           6 | COMMON         |    18.8495562 | GERMAN        |
++-------------+----------------+---------------+---------------+
+6 rows in set (0.04 sec)</code></pre>
+  </div>
+  <p>Note <span class="inline">COMMON</span> repeated on every row — a literal isn't a constant per query,
+    it's a column whose value happens to be the same everywhere. And if all you want is to evaluate
+    functions or an expression, there's no table to read, so there's no need for a
+    <span class="inline">FROM</span> at all:</p>
+  <div class="code">
+    <div class="bar"><span class="k">no FROM clause needed</span></div>
+    <pre><code class="sql">mysql&gt; SELECT version(),
+    -&gt;   user(),
+    -&gt;   database();
++-----------+----------------+------------+
+| version() | user()         | database() |
++-----------+----------------+------------+
+| 8.0.15    | root@localhost | sakila     |
++-----------+----------------+------------+
+1 row in set (0.00 sec)</code></pre>
+  </div>
+  <p>This is Chapter 2's <span class="inline">dual</span> note inverted: MySQL lets you omit
+    <span class="inline">FROM</span> outright, and it also accepts Oracle's
+    <span class="inline">FROM dual</span> when you need the portable form. A quick "who am I, which server,
+    which database" check like the one above is the single most useful habit for confirming you're pointed
+    at the database you think you are.</p>
+</section>
+
+<section id="alias">
+  <h2><span class="num">3.5</span>Column aliases</h2>
+  <p class="lede">Name your own output columns — and always name the computed ones.</p>
+
+  <p>The mysql tool labels columns for you, but auto-labels are bad in two cases: a table column whose
+    stored name is poor or ambiguous, and — much more importantly — any column produced by an expression or
+    function, which has no natural name at all. You supply one by writing it after the item in the list:</p>
+  <div class="code">
+    <div class="bar"><span class="k">three aliases, one stored column left bare</span></div>
+    <pre><code class="sql">SELECT language_id,
+  'COMMON' language_usage,
+  language_id * 3.1415927 lang_pi_value,
+  upper(name) language_name
+FROM language;</code></pre>
+  </div>
+  <p>Compare the headers: without aliases, you'd be looking at
+  <span class="inline">COMMON</span>, <span class="inline">language_id * 3.1415927</span> and
+  <span class="inline">upper(name)</span> as column names — unreadable in a report, and unusable from code.
+  With them, the result set is a table with a real schema, which is what you want when Java or Python is
+  consuming it.</p>
+  <div class="note">
+    <span class="tag">The optional AS</span>
+    You can prefix an alias with <span class="inline">AS</span> —
+    <span class="inline">'COMMON' AS language_usage</span> — which many people find clearer. The two forms
+    are equivalent, and the book deliberately omits it while noting that of the developers he's worked with,
+    roughly half use it for their column and table aliases and half don't. Pick one per team and stay there.
+  </div>
+  <div class="code">
+    <div class="bar"><span class="k">same query with AS</span></div>
+    <pre><code class="sql">SELECT language_id,
+  'COMMON' AS language_usage,
+  language_id * 3.1415927 AS lang_pi_value,
+  upper(name) AS language_name
+FROM language;</code></pre>
+  </div>
+</section>
+
+<section id="distinct">
+  <h2><span class="num">3.6</span>Removing duplicates with DISTINCT</h2>
+  <p class="lede">5,462 rows collapse to 200 — and the cost of doing it.</p>
+
+  <p>Ask for the IDs of all actors who appeared in a film and you get one row per <em>appearance</em>:</p>
+  <div class="code">
+    <div class="bar"><span class="k">raw: repeats per film</span></div>
+    <pre><code class="sql">mysql&gt; SELECT actor_id FROM film_actor ORDER BY actor_id;
++----------+
+| actor_id |
++----------+
+|        1 |
+|        1 |
+|        1 |
+|        1 |
+|        1 |
+|      ... |
+|      200 |
+|      200 |
+|      200 |
+|      200 |
+|      200 |
++----------+
+5462 rows in set (0.01 sec)</code></pre>
+  </div>
+  <p>That's correct — <span class="inline">film_actor</span> is a link table, so an actor in nine films
+    appears nine times, which is exactly the compound-key design from Chapter 2 paying its way. What you
+    <em>want</em> is the distinct set:</p>
+  <div class="code">
+    <div class="bar"><span class="k">DISTINCT right after SELECT</span></div>
+    <pre><code class="sql">mysql&gt; SELECT DISTINCT actor_id FROM film_actor ORDER BY actor_id;
++----------+
+| actor_id |
++----------+
+|        1 |
+|        2 |
+|        3 |
+|      ... |
+|      199 |
+|      200 |
++----------+
+200 rows in set (0.01 sec)</code></pre>
+  </div>
+  <div class="counts">
+    <div><b>5,462</b>rows without <span class="inline">DISTINCT</span> — one per film appearance</div>
+    <div class="cut"><b>200</b>rows with it — one per actor</div>
+  </div>
+  <p>Two counterweights the book adds, both easy to miss:</p>
+  <ul>
+    <li><strong>Think first.</strong> If you only want a list of actors, query the
+      <span class="inline">actor</span> table. There the primary key guarantees one row per actor, so no
+      de-duplication step is needed at all.</li>
+    <li><strong>It isn't free.</strong> Producing a distinct set requires the data to be <em>sorted</em>,
+      which costs real time on large result sets. Don't sprinkle
+      <span class="inline">DISTINCT</span> in "just in case" — understand whether duplicates are possible,
+      and only pay for the sort when they are.</li>
+  </ul>
+  <p>The opposite keyword exists — <span class="inline">ALL</span>, meaning "keep duplicates" — but it's the
+    default, so it never needs writing and most people never do write it.</p>
+</section>
+
+<section id="from">
+  <h2><span class="num">3.7</span>The from clause: "table" means four things</h2>
+  <p class="lede">The book deliberately widens the definition — and this is the most conceptual page of the chapter.</p>
+
+  <p>The textbook definition is "a list of one or more tables." The author restates it as:</p>
+  <div class="simple">
+    <span class="tag">Two-part definition</span>
+    The <span class="inline">FROM</span> clause defines the tables used by a query <strong>and</strong> the
+    means of linking them together. The second half is the part beginners omit.
+  </div>
+  <p>On the first half: drop any idea of <em>how</em> data is stored and keep only "a set of related rows,"
+    and four different things qualify. All four may appear in a <span class="inline">FROM</span> clause:</p>
+  <table>
+    <thead><tr><th>Kind of table</th><th>What it is</th><th>Lives</th></tr></thead>
+    <tbody>
+      <tr><td>Persistent</td><td>Created with <span class="inline">CREATE TABLE</span> — what you built in Chapter 2</td><td>On disk, until dropped</td></tr>
+      <tr><td>Derived</td><td>Rows returned by a subquery in the <span class="inline">FROM</span> clause</td><td>In memory, for the duration of the query</td></tr>
+      <tr><td>Temporary</td><td>Volatile data you insert into a table definition</td><td>In memory, until the transaction or session ends</td></tr>
+      <tr><td>Virtual</td><td>A <span class="inline">CREATE VIEW</span> definition — a stored query, no data of its own</td><td>In the data dictionary only</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Derived tables (subqueries in FROM)</h3>
+  <p>Wrap a query in parentheses inside <span class="inline">FROM</span> and it becomes a table the outer
+    query can use — visible to every other clause, joinable with other tables, then thrown away:</p>
+  <div class="code">
+    <div class="bar"><span class="k">a subquery acting as a table named cust</span></div>
+    <pre><code class="sql">mysql&gt; SELECT concat(cust.last_name, ', ', cust.first_name) full_name
+    -&gt; FROM
+    -&gt;  (SELECT first_name, last_name, email
+    -&gt;   FROM customer
+    -&gt;   WHERE first_name = 'JESSIE'
+    -&gt;  ) cust;
++---------------+
+| full_name     |
++---------------+
+| BANKS, JESSIE |
+| MILAM, JESSIE |
++---------------+
+2 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>Three details to notice: the inner query returns <em>three</em> columns but the outer one uses only
+    two — a derived table is a real table, so it can expose more than you need; the subquery <strong>must
+    have an alias</strong> (<span class="inline">cust</span>) or the outer query has no way to name it; and
+    the filter runs inside, so the outer query only ever sees two rows. Full treatment is Chapter 9.</p>
+
+  <h3>Temporary tables</h3>
+  <div class="code">
+    <div class="bar"><span class="k">create → populate from a query → use</span></div>
+    <pre><code class="sql">mysql&gt; CREATE TEMPORARY TABLE actors_j
+    -&gt;  (actor_id smallint(5),
+    -&gt;   first_name varchar(45),
+    -&gt;   last_name varchar(45)
+    -&gt;  );
+Query OK, 0 rows affected (0.00 sec)
+mysql&gt; INSERT INTO actors_j
+    -&gt; SELECT actor_id, first_name, last_name
+    -&gt; FROM actor
+    -&gt; WHERE last_name LIKE 'J%';
+Query OK, 7 rows affected (0.03 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql&gt; SELECT * FROM actors_j;
++----------+------------+-----------+
+| actor_id | first_name | last_name |
++----------+------------+-----------+
+|      119 | WARREN     | JACKMAN   |
+|      131 | JANE       | JACKMAN   |
+|        8 | MATTHEW    | JOHANSSON |
+|       64 | RAY        | JOHANSSON |
+|      146 | ALBERT     | JOHANSSON |
+|       82 | WOODY      | JOLIE     |
+|       43 | KIRK       | JOVOVICH  |
++----------+------------+-----------+
+7 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>It looks and behaves exactly like a persistent table while you're working — note the insert-from-a-query
+    form, which is how you'd actually fill one — and those seven rows evaporate when the session closes.
+    One vendor quirk: Oracle <em>keeps the definition</em> for future sessions even though the data goes.</p>
+
+  <h3>Views</h3>
+  <div class="code">
+    <div class="bar"><span class="k">store the query, not the data</span></div>
+    <pre><code class="sql">mysql&gt; CREATE VIEW cust_vw AS
+    -&gt; SELECT customer_id, first_name, last_name, active
+    -&gt; FROM customer;
+Query OK, 0 rows affected (0.12 sec)
+
+mysql&gt; SELECT first_name, last_name
+    -&gt; FROM cust_vw
+    -&gt; WHERE active = 0;
++------------+-----------+
+| first_name | last_name |
++------------+-----------+
+| SANDRA     | MARTIN    |
+| JUDITH     | COX       |
+| SHEILA     | WELLS     |
+| ERICA      | MATTHEWS  |
+| HEIDI      | LARSON    |
+| PENNY      | NEAL      |
+| KENNETH    | GOODEN    |
+| HARRY      | ARCE      |
+| NATHAN     | RUNYON    |
+| THEODORE   | CULP      |
+| MAURICE    | CRAWLEY   |
+| BEN        | EASTER    |
+| CHRISTIAN  | JUNG      |
+| JIMMIE     | EGGLESTON |
+| TERRANCE   | ROUSH     |
++------------+-----------+
+15 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>Creating the view stores nothing but the <span class="inline">SELECT</span> — the server "tucks it away
+    for future use." Querying <span class="inline">cust_vw</span> doesn't read a hidden copy of the data;
+    your query is <em>merged</em> with the view's definition to produce one final query, which is then
+    executed like any other. So the whole chapter's pipeline still applies, just to a longer statement.
+    Why bother? Two reasons the book gives: to <strong>hide columns</strong> from certain users (here the
+    view exposes four of the customer table's columns), and to <strong>shrink a complex design</strong>
+    behind a simple name.</p>
+  <div class="note">
+    <span class="tag">You've been using views already</span>
+    Remember Sakila's <span class="inline">customer_list</span>, <span class="inline">film_list</span> and
+    <span class="inline">actor_info</span> from Chapter 2? Those pre-built "tables" whose names ended in
+    <span class="inline">_list</span> are precisely this mechanism — stored queries, not stored data.
+  </div>
+</section>
+
+<section id="join">
+  <h2><span class="num">3.8</span>Linking tables, and table aliases</h2>
+  <p class="lede">The second half of the from clause: if you name two tables, say how they connect.</p>
+
+  <div class="code">
+    <div class="bar"><span class="k">full table names</span></div>
+    <pre><code class="sql">mysql&gt; SELECT customer.first_name, customer.last_name,
+    -&gt;   time(rental.rental_date) rental_time
+    -&gt; FROM customer
+    -&gt;   INNER JOIN rental
+    -&gt;   ON customer.customer_id = rental.customer_id
+    -&gt; WHERE date(rental.rental_date) = '2005-06-14';
++------------+-----------+-------------+
+| first_name | last_name | rental_time |
++------------+-----------+-------------+
+| JEFFERY    | PINSON    | 22:53:33    |
+| ELMER      | NOE       | 22:55:13    |
+| MINNIE     | ROMERO    | 23:00:34    |
+| MIRIAM     | MCKINNEY  | 23:07:08    |
+| DANIEL     | CABRAL    | 23:09:38    |
+| TERRANCE   | ROUSH     | 23:12:46    |
+| JOYCE      | EDWARDS   | 23:16:26    |
+| GWENDOLYN  | MAY       | 23:16:27    |
+| CATHERINE  | CAMPBELL  | 23:17:03    |
+| MATTHEW    | MAHAN     | 23:25:58    |
+| HERMAN     | DEVORE    | 23:35:09    |
+| AMBER      | DIXON     | 23:42:56    |
+| TERRENCE   | GUNDERSON | 23:47:35    |
+| SONIA      | GREGORY   | 23:50:11    |
+| CHARLES    | KOWALSKI  | 23:54:34    |
+| JEANETTE   | GREENE    | 23:54:46    |
++------------+-----------+-------------+
+16 rows in set (0.01 sec)</code></pre>
+  </div>
+  <p>Read the <span class="inline">ON</span> line as the relational idea from Chapter 1 in the flesh: the
+    <span class="inline">customer_id</span> value stored in <em>both</em> tables is the link, so the server
+    uses each customer's ID to find that customer's rentals. Data comes from both tables —
+    <span class="inline">first_name</span> and <span class="inline">last_name</span> from
+    <span class="inline">customer</span>, <span class="inline">rental_date</span> from
+    <span class="inline">rental</span> — so both must be named.</p>
+  <ul>
+    <li>The <span class="inline">WHERE</span> line is <strong>not part of the join</strong>. It's there only
+      to keep the printed result small — <span class="inline">rental</span> has more than 16,000 rows.</li>
+    <li>Two functions appear in passing: <span class="inline">date()</span> strips the time off a datetime
+      so a day can be compared, and <span class="inline">time()</span> keeps only the time. Chapter 7 owns
+      these.</li>
+    <li>The ANSI <span class="inline">INNER JOIN … ON …</span> syntax is what makes this portable across
+      servers; the deep treatment is Chapters 5 and 10.</li>
+  </ul>
+
+  <h3>Table aliases: the same query, two-thirds the length</h3>
+  <p>Once two tables are in play, a bare column name becomes ambiguous — which table's
+    <span class="inline">customer_id</span>? You have two answers:</p>
+  <ul>
+    <li>Qualify with the full table name: <span class="inline">customer.customer_id</span></li>
+    <li>Alias each table in the <span class="inline">FROM</span> clause and use the alias everywhere else</li>
+  </ul>
+  <div class="code">
+    <div class="bar"><span class="k">aliased — same query, same result</span></div>
+    <pre><code class="sql">SELECT c.first_name, c.last_name,
+  time(r.rental_date) rental_time
+FROM customer c
+  INNER JOIN rental r
+  ON c.customer_id = r.customer_id
+WHERE date(r.rental_date) = '2005-06-14';</code></pre>
+  </div>
+  <p>The alias is declared by simply writing a name after the table in
+  <span class="inline">FROM</span>/<span class="inline">JOIN</span>, then used to qualify columns in
+  <span class="inline">SELECT</span>, <span class="inline">ON</span> and
+  <span class="inline">WHERE</span>. It makes the statement more compact without causing confusion —
+  <em>as long as your alias names are reasonable</em>, which is the whole skill:
+  <span class="inline">c</span> and <span class="inline">r</span> are obvious,
+  <span class="inline">t1</span> and <span class="inline">t2</span> are not, and the cost shows up when
+  someone reads your query six months later. <span class="inline">AS</span> works here too
+  (<span class="inline">FROM customer AS c</span>) with the same half-the-team split as column aliases.</p>
+</section>
+
+<section id="where">
+  <h2><span class="num">3.9</span>The where clause</h2>
+  <p class="lede">The row filter — and how one word changes 29 rows into 340.</p>
+
+  <p>Sometimes you do want every row (small lookup tables like
+  <span class="inline">language</span>). Usually you don't, and
+  <span class="inline">WHERE</span> is how you say which rows survive. The example: you want to rent
+  something rated G you can keep for at least a week.</p>
+  <div class="code">
+    <div class="bar"><span class="k">two conditions, AND</span></div>
+    <pre><code class="sql">mysql&gt; SELECT title
+    -&gt; FROM film
+    -&gt; WHERE rating = 'G' AND rental_duration &gt;= 7;
++-------------------------+
+| title                   |
++-------------------------+
+| BLANKET BEVERLY         |
+| BORROWERS BEDAZZLED     |
+| BRIDE INTRIGUE          |
+| CATCH AMISTAD           |
+| CITIZEN SHREK           |
+| COLDBLOODED DARLING     |
+|      ... (24 more) ...  |
+| TRUMAN CRAZY            |
+| WAKE JAWS               |
+| WAR NOTTING             |
++-------------------------+
+29 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>Twenty-nine rows out of 1,000 — the clause threw away <strong>971 of them</strong>. Now change one
+    word:</p>
+  <div class="code">
+    <div class="bar"><span class="k">same two conditions, OR</span></div>
+    <pre><code class="sql">mysql&gt; SELECT title
+    -&gt; FROM film
+    -&gt; WHERE rating = 'G' OR rental_duration &gt;= 7;
++---------------------------+
+| title                     |
++---------------------------+
+| ACE GOLDFINGER            |
+| ADAPTATION HOLES          |
+| AFFAIR PREJUDICE          |
+|      ... (333 more) ...   |
+| YOUNG LANGUAGE            |
++---------------------------+
+340 rows in set (0.00 sec)</code></pre>
+  </div>
+  <div class="counts">
+    <div><b>29</b>rows with <span class="inline">AND</span> — <em>every</em> condition must be true</div>
+    <div class="cut"><b>340</b>rows with <span class="inline">OR</span> — <em>one</em> condition is enough</div>
+  </div>
+  <p>That twelve-fold jump is the whole difference, and it's why a "missing
+  <span class="inline">AND</span>" is such a common bug: the query still runs, still returns plausible
+  rows, and is quietly ~12× too broad. No error, just wrong answers.</p>
+
+  <h3>Mixing AND and OR: always parenthesize</h3>
+  <div class="code">
+    <div class="bar"><span class="k">two groups, each internally ANDed</span></div>
+    <pre><code class="sql">mysql&gt; SELECT title, rating, rental_duration
+    -&gt; FROM film
+    -&gt; WHERE (rating = 'G' AND rental_duration &gt;= 7)
+    -&gt;   OR (rating = 'PG-13' AND rental_duration &lt; 4);
++-------------------------+--------+-----------------+
+| title                   | rating | rental_duration |
++-------------------------+--------+-----------------+
+| ALABAMA DEVIL           | PG-13  |               3 |
+| BACKLASH UNDEFEATED     | PG-13  |               3 |
+| BILKO ANONYMOUS         | PG-13  |               3 |
+| BLANKET BEVERLY         | G      |               7 |
+| BORROWERS BEDAZZLED     | G      |               7 |
+| BRIDE INTRIGUE          | G      |               7 |
+|      ... (56 more) ...  |        |                 |
+| WORLD LEATHERNECKS      | PG-13  |               3 |
++-------------------------+--------+-----------------+
+68 rows in set (0.00 sec)</code></pre>
+  </div>
+  <p>Read it as: (G <em>and</em> long rental) <em>or</em> (PG-13 <em>and</em> short rental) — 68 rows. The
+    book's rule is unconditional: <strong>always</strong> group conditions with parentheses when you mix
+    operators, so that you, the server, and whoever edits this code in a year all read the same intent.
+    Even where precedence would make them optional, they're documentation. Conditions of your own can be
+    chained as far as you need; the full set of operators is Chapter 4's subject.</p>
+</section>
+
+<section id="group">
+  <h2><span class="num">3.10</span>group by &amp; having — introduced, not explained</h2>
+  <p class="lede">The two clauses that "cook" the data. Full treatment is Chapter 8.</p>
+
+  <p>Everything so far returns <em>raw</em> rows. To find trends, you let the server aggregate first. The
+    motivating question: which customers have rented 40 or more films? You could squint at all 16,044 rows
+    of <span class="inline">rental</span>, or you could group them by customer, count within each group, and
+    keep only the big counts:</p>
+  <div class="code">
+    <div class="bar"><span class="k">group the rows, then filter the groups</span></div>
+    <pre><code class="sql">mysql&gt; SELECT c.first_name, c.last_name, count(*)
+    -&gt; FROM customer c
+    -&gt;   INNER JOIN rental r
+    -&gt;   ON c.customer_id = r.customer_id
+    -&gt; GROUP BY c.first_name, c.last_name
+    -&gt; HAVING count(*) &gt;= 40;
++------------+-----------+----------+
+| first_name | last_name | count(*) |
++------------+-----------+----------+
+| TAMMY      | SANDERS   |       41 |
+| CLARA      | SHAW      |       42 |
+| ELEANOR    | HUNT      |       46 |
+| SUE        | PETERS    |       40 |
+| MARCIA     | DEAN      |       42 |
+| WESLEY     | BULL      |       40 |
+| KARL       | SEAL      |       45 |
++------------+-----------+----------+
+7 rows in set (0.03 sec)</code></pre>
+  </div>
+  <ul>
+    <li><span class="inline">GROUP BY c.first_name, c.last_name</span> — the 16,044 rental rows collapse
+      into one row per distinct name pair. Grouping on <em>two</em> columns is what makes the group "this
+      specific customer," not just "someone with this surname."</li>
+    <li><span class="inline">count(*)</span> — an aggregate, evaluated per group. Note it appears in both
+      the <span class="inline">SELECT</span> list and the <span class="inline">HAVING</span> clause: you
+      can't refer to a <span class="inline">SELECT</span> alias here, so it's written twice.</li>
+    <li><span class="inline">HAVING count(*) &gt;= 40</span> — the filter, applied <em>after</em> the groups
+      exist.</li>
+  </ul>
+  <div class="simple">
+    <span class="tag">The distinction, once and for all</span>
+    <span class="inline">WHERE</span> filters <strong>raw rows</strong> before grouping;
+    <span class="inline">HAVING</span> filters <strong>groups</strong> after it. You cannot swap them:
+    <span class="inline">count(*)</span> has no value to test until the groups are built — which is exactly
+    why a second filtering clause exists in the language.
+  </div>
+  <p>The author is explicit that this pair is ahead of where you are and that they're only meeting it so
+    it doesn't ambush them later; Chapter 8 does the real work.</p>
+</section>
+
+<section id="orderby">
+  <h2><span class="num">3.11</span>The order by clause</h2>
+  <p class="lede">Without it, you have no order. With it, column order matters more than you'd guess.</p>
+
+  <p>The result set from the join in <a href="#join">§3.8</a> arrived in a definite-looking sequence —
+    CABRAL, CAMPBELL, DEVORE… — but that was luck, not a promise. The clause that makes it a promise:</p>
+  <div class="code">
+    <div class="bar"><span class="k">one sort column</span></div>
+    <pre><code class="sql">mysql&gt; SELECT c.first_name, c.last_name,
+    -&gt;   time(r.rental_date) rental_time
+    -&gt; FROM customer c
+    -&gt;   INNER JOIN rental r
+    -&gt;   ON c.customer_id = r.customer_id
+    -&gt; WHERE date(r.rental_date) = '2005-06-14'
+    -&gt; ORDER BY c.last_name;
++------------+-----------+-------------+
+| first_name | last_name | rental_time |
++------------+-----------+-------------+
+| DANIEL     | CABRAL    | 23:09:38    |
+| CATHERINE  | CAMPBELL  | 23:17:03    |
+| HERMAN     | DEVORE    | 23:35:09    |
+| AMBER      | DIXON     | 23:42:56    |
+| JOYCE      | EDWARDS   | 23:16:26    |
+| JEANETTE   | GREENE    | 23:54:46    |
+|      ... (10 more) ... |
+| MINNIE     | ROMERO    | 23:00:34    |
+| TERRANCE   | ROUSH     | 23:12:46    |
++------------+-----------+-------------+
+16 rows in set (0.01 sec)</code></pre>
+  </div>
+  <p>Notice what sorting did to the <em>time</em> column: 23:09, 23:17, 23:35, 23:42, 23:16, 23:54… The
+    rental times are now scrambled, because <span class="inline">ORDER BY</span> answers "in what order
+    should the <em>rows</em> come," and it doesn't care about any column you didn't name.</p>
+
+  <h3>Two columns, and why their order is not cosmetic</h3>
+  <p>Surname alone won't settle a big customer list — collisions are guaranteed — so add a tiebreaker:</p>
+  <div class="code">
+    <div class="bar"><span class="k">last_name, then first_name</span></div>
+    <pre><code class="sql">ORDER BY c.last_name, c.first_name</code></pre>
+  </div>
+  <p>That sorts by surname first, and only <em>within</em> a shared surname by first name. Reverse the two
+    and you get a genuinely different answer: <span class="inline">ORDER BY c.first_name,
+    c.last_name</span> puts <strong>Amber Dixon first</strong>, because the primary key of the sort is now
+    the first name, and AMBER beats DANIEL regardless of surnames. The book uses this to make the general
+    point that position in an <span class="inline">ORDER BY</span> list is significance, not style.</p>
+
+  <h3>Descending, and the ranking pattern</h3>
+  <div class="code">
+    <div class="bar"><span class="k">DESC on an expression</span></div>
+    <pre><code class="sql">mysql&gt; SELECT c.first_name, c.last_name,
+    -&gt;   time(r.rental_date) rental_time
+    -&gt; FROM customer c
+    -&gt;   INNER JOIN rental r
+    -&gt;   ON c.customer_id = r.customer_id
+    -&gt; WHERE date(r.rental_date) = '2005-06-14'
+    -&gt; ORDER BY time(r.rental_date) desc;
++------------+-----------+-------------+
+| first_name | last_name | rental_time |
++------------+-----------+-------------+
+| JEANETTE   | GREENE    | 23:54:46    |
+| CHARLES    | KOWALSKI  | 23:54:34    |
+| SONIA      | GREGORY   | 23:50:11    |
+| TERRENCE   | GUNDERSON | 23:47:35    |
+| AMBER      | DIXON     | 23:42:56    |
+| HERMAN     | DEVORE    | 23:35:09    |
+|      ... (10 more) ... |
+| JEFFERY    | PINSON    | 22:53:33    |
++------------+-----------+-------------+
+16 rows in set (0.01 sec)</code></pre>
+  </div>
+  <p><span class="inline">ASC</span> and <span class="inline">DESC</span> set direction per column; ascending
+    is the default, so it's the descending case that needs the keyword. Two things worth noting:
+    you can sort on an <em>expression</em>, not just a stored column, and descending sort is the engine of
+    every "top N" question — top five account balances, most valuable customers, longest films — which
+    MySQL pairs with the <span class="inline">LIMIT</span> clause to sort and then discard all but the first
+    X rows.</p>
+
+  <h3>Numeric placeholders — useful, dangerous</h3>
+  <div class="code">
+    <div class="bar"><span class="k">"sort by the 3rd item in my SELECT list"</span></div>
+    <pre><code class="sql">mysql&gt; SELECT c.first_name, c.last_name,
+    -&gt;   time(r.rental_date) rental_time
+    -&gt; FROM customer c
+    -&gt;   INNER JOIN rental r
+    -&gt;   ON c.customer_id = r.customer_id
+    -&gt; WHERE date(r.rental_date) = '2005-06-14'
+    -&gt; ORDER BY 3 desc;</code></pre>
+  </div>
+  <p>The identical descending result, without repeating the expression — <span class="inline">3</span>
+    points at the third item in the <span class="inline">SELECT</span> list. The warning is the useful
+    part: add a column to the list, forget to update the numbers, and the sort silently changes meaning. No
+    error, just a different answer — the same failure mode as the <span class="inline">OR</span> above. The
+    book's rule, which is a good one: positionals are fine for ad hoc poking at a prompt, and always name
+    your columns in code you have to maintain.</p>
+</section>
+
+<section id="exercises">
+  <h2><span class="num">3.12</span>The book's exercises, cheat sheet &amp; self-test</h2>
+  <p class="lede">Four questions against Sakila — try them before opening the answers.</p>
+
+  <div class="card">
+    <h3 style="margin-top:0">Questions (as posed in the chapter)</h3>
+    <ol>
+      <li><b>3-1</b> Retrieve the actor ID, first name and last name for all actors, sorted by last name
+        and then first name.</li>
+      <li><b>3-2</b> Retrieve the same three columns for actors whose last name equals 'WILLIAMS' or
+        'DAVIS'.</li>
+      <li><b>3-3</b> Against <span class="inline">rental</span>, return the IDs of customers who rented a
+        film on July 5, 2005 — using <span class="inline">date()</span> to ignore the time component, and
+        one row per <em>distinct</em> customer ID.</li>
+      <li><b>3-4</b> Fill in the four blanks so that the query returns each June-14-2005 renter's email and
+        return date, ordered so that the <em>latest</em> returns appear first.</li>
+    </ol>
+    <details>
+      <summary><b>Answers</b> — the book puts these in Appendix B; these are worked from the chapter's clauses</summary>
+      <div class="code">
+        <div class="bar"><span class="k">3-1 · three columns, two sort keys</span></div>
+        <pre><code class="sql">SELECT a.actor_id, a.first_name, a.last_name
+FROM actor a
+ORDER BY a.last_name, a.first_name;</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="k">3-2 · add a row filter</span></div>
+        <pre><code class="sql">SELECT a.actor_id, a.first_name, a.last_name
+FROM actor a
+WHERE a.last_name = 'WILLIAMS' OR a.last_name = 'DAVIS';</code></pre>
+      </div>
+      <p style="font-size:.94rem">An <span class="inline">IN ('WILLIAMS','DAVIS')</span> list is the tidier
+      spelling of the same condition (Chapter 4) — and note no <span class="inline">ORDER BY</span> is asked
+      for here, so none should be written.</p>
+      <div class="code">
+        <div class="bar"><span class="k">3-3 · date() + DISTINCT in one pass</span></div>
+        <pre><code class="sql">SELECT DISTINCT r.customer_id
+FROM rental r
+WHERE date(r.rental_date) = '2005-07-05';</code></pre>
+      </div>
+      <p style="font-size:.94rem"><span class="inline">rental_date</span> is a
+      <span class="inline">datetime</span> (Chapter 2), so comparing it to a bare date would drop the row
+      unless you strip the time first. A single renter with three rentals that day would otherwise appear
+      three times — hence <span class="inline">DISTINCT</span>, exactly as §3.6 intended.</p>
+      <div class="code">
+        <div class="bar"><span class="k">3-4 · &lt;1&gt; r  &lt;2&gt; r.customer_id  &lt;3&gt; r.return_date  &lt;4&gt; DESC</span></div>
+        <pre><code class="sql">SELECT c.email, r.return_date
+FROM customer c
+  INNER JOIN rental r
+  ON c.customer_id = r.customer_id
+WHERE date(r.rental_date) = '2005-06-14'
+ORDER BY r.return_date DESC;</code></pre>
+      </div>
+      <p style="font-size:.94rem">The blank-by-blank reasoning: <b>&lt;1&gt;</b> names the second table, so
+      it needs an alias because the rest of the statement uses <span class="inline">r.</span>;
+      <b>&lt;2&gt;</b> is the join condition's other half, matching the
+      <span class="inline">customer_id</span> foreign key in <span class="inline">rental</span> (a
+      <span class="inline">c.customer_id = c.customer_id</span> typo compiles happily and returns wrong
+      rows, so read it twice); <b>&lt;3&gt;</b>/<b>&lt;4&gt;</b> are the sort column and its direction, and
+      the expected output starts at <span class="inline">2005-06-23 22:00:38</span> and ends at
+      <span class="inline">2005-06-15 20:43:03</span> — descending, so
+      <span class="inline">DESC</span> is mandatory.</p>
+    </details>
+  </div>
+
+  <h3>Cheat sheet</h3>
+  <table>
+    <thead><tr><th>Clause</th><th>One line</th></tr></thead>
+    <tbody>
+      <tr><td>select</td><td>Which columns/expressions to output. <span class="inline">*</span> = all — fine to explore, bad in code. Written first, evaluated nearly last.</td></tr>
+      <tr><td>Literals &amp; functions</td><td>A select list can hold columns, literals, expressions and function calls; with no table needed, drop <span class="inline">FROM</span> entirely.</td></tr>
+      <tr><td>aliases</td><td>Name output columns after the item, optionally with <span class="inline">AS</span>. Essential for computed columns.</td></tr>
+      <tr><td>distinct</td><td>One row per unique combination — costs a sort. Prefer querying the table whose key already guarantees uniqueness.</td></tr>
+      <tr><td>from</td><td>Which tables <em>and</em> how they link. Accepts persistent, derived, temporary and virtual tables.</td></tr>
+      <tr><td>derived table</td><td>A parenthesized subquery in <span class="inline">FROM</span>. Must be aliased.</td></tr>
+      <tr><td>view</td><td>A stored query, no data of its own; your query gets merged into its definition.</td></tr>
+      <tr><td>INNER JOIN … ON</td><td>The ANSI, portable way to link tables on a shared key. The join condition belongs here, not in <span class="inline">WHERE</span>.</td></tr>
+      <tr><td>table aliases</td><td>Needed once two tables share column names; short but meaningful names only.</td></tr>
+      <tr><td>where</td><td>Row filter. <span class="inline">AND</span> = all must be true, <span class="inline">OR</span> = any one. Parenthesize mixed groups.</td></tr>
+      <tr><td>group by</td><td>Collapse rows into one per distinct value set, so aggregates can be computed per group.</td></tr>
+      <tr><td>having</td><td>Group filter, evaluated after grouping — the only place a <span class="inline">count(*)</span> can be tested.</td></tr>
+      <tr><td>order by</td><td>The only thing that guarantees order. Earlier column = more significant; <span class="inline">DESC</span> flips direction; numbers refer to select-list positions.</td></tr>
+      <tr><td>limit</td><td>MySQL's sort-then-keep-first-X, for "top N" questions.</td></tr>
+      <tr><td>Empty set</td><td>A successful query with no matching rows — not an error.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Questions to test yourself</h3>
+  <ol>
+    <li>Which clause must the server evaluate before it can decide what your
+      <span class="inline">SELECT</span> list refers to?</li>
+    <li>Name the three checks passed before the optimizer is consulted.</li>
+    <li>Why is <span class="inline">SELECT *</span> acceptable at a prompt but a liability in an
+      application?</li>
+    <li>The <span class="inline">film_actor</span> query returned 5,462 rows, then 200. What did
+      <span class="inline">DISTINCT</span> actually do, and what did it cost?</li>
+    <li>Which four kinds of "table" may appear in a <span class="inline">FROM</span> clause, and which of
+      them hold no data of their own?</li>
+    <li>Why must a derived table have an alias, and why can a view be queried even though creating it
+      stored no rows?</li>
+    <li>One query returns 29 rows, another 340, from the same table and the same two conditions. What
+      changed?</li>
+    <li>Give a filter that <span class="inline">WHERE</span> cannot express but <span class="inline">HAVING</span>
+      can, and say why.</li>
+    <li><span class="inline">ORDER BY a, b</span> vs <span class="inline">ORDER BY b, a</span> — which
+      column decides the order of two rows that differ in both?</li>
+    <li>You <span class="inline">ORDER BY 3</span>, then insert a column at position 2 of the select list.
+      What happens, and what does the server tell you?</li>
+  </ol>
+
+  <div class="card">
+    <h3 style="margin-top:0">What's next</h3>
+    <p>Chapter 4, <em>Filtering</em>, takes the <span class="inline">WHERE</span> clause alone and opens it
+      up: operator precedence, comparison and range conditions, <span class="inline">LIKE</span> pattern
+      matching, and the strange three-valued logic of <span class="inline">NULL</span> — the chapter where
+      "the query ran without error and still gave me the wrong rows" gets explained properly. Say the word
+      and I'll append it the same way.</p>
+  </div>
+</section>
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1 and 2 of <i>Learning SQL: Generate,
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–3 of <i>Learning SQL: Generate,
   Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
   ISBN 9781492057611). Figure 1-1…1-3 and the Table 2-6…2-8 crops are reproduced from the copy of that PDF
   in this repository for personal study; please buy the book if you like it. SQL snippets are the book's
-  teaching examples.</p>
+  teaching examples, and Chapter 3's exercise answers are mine, not the book's (its solutions are in
+  Appendix B). Diagrams marked <i>original</i> are drawn for this page — Chapters 2 and 3 contain no
+  figures at all.</p>
 </footer>
 </div>
 
