@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>T-SQL Fundamentals — Chapters 1–3 | Plain-English Study Companion</title>
-<meta name="description" content="Plain-English summaries of Chapters 1, 2, and 3 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, and code samples.">
+<title>T-SQL Fundamentals — Chapters 1–4 | Plain-English Study Companion</title>
+<meta name="description" content="Plain-English summaries of Chapters 1–4 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, and code samples.">
 <style>
   :root{
     --paper:#f7f4ed;
@@ -236,28 +236,28 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="#top"><span class="brand-mark">1–3</span> T-SQL Fundamentals · Chapters 1–3</a>
+    <a class="brand" href="#top"><span class="brand-mark">1–4</span> T-SQL Fundamentals · Chapters 1–4</a>
     <div class="topbar-meta">
-      <span>Plain-English summaries</span><span class="dot"></span><span>9 figures + 3 tables</span><span class="dot"></span><span>60+ code samples</span>
+      <span>Plain-English summaries</span><span class="dot"></span><span>9 figures + 3 tables</span><span class="dot"></span><span>80+ code samples</span>
     </div>
-    <a class="pill" href="#ch3-cross">Jump to Chapter 3 ↓</a>
+    <a class="pill" href="#ch4-selfcontained">Jump to Chapter 4 ↓</a>
   </div>
 </header>
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <span class="eyebrow">📘 Chapters 1–3 · T-SQL Fundamentals, 4th Edition</span>
+    <span class="eyebrow">📘 Chapters 1–4 · T-SQL Fundamentals, 4th Edition</span>
     <h1>The ideas behind the queries</h1>
-    <p class="lede">A plain-English study companion for Chapters 1, 2, and 3 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
+    <p class="lede">A plain-English study companion for Chapters 1–4 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
     <div class="chips">
-      <span class="chip">3 chapters · 148 book pages</span>
+      <span class="chip">4 chapters · 175 book pages</span>
       <span class="chip">9 figures + 3 tables from the book</span>
-      <span class="chip">60+ code samples</span>
-      <span class="chip">~45 min read</span>
+      <span class="chip">80+ code samples</span>
+      <span class="chip">~60 min read</span>
     </div>
     <div class="hero-quote">
-      <span>The three-chapter version</span>
-      <p>Chapter 1 gives you the mental model — sets, logic, keys, and how SQL Server is organized. Chapter 2 turns that model into a single-table query. Chapter 3 combines tables: cross joins, inner joins, and outer joins, with the ON-vs-WHERE rules that prevent silent bugs.</p>
+      <span>The four-chapter version</span>
+      <p>Chapter 1 gives you the mental model — sets, logic, keys, and how SQL Server is organized. Chapter 2 turns that model into a single-table query. Chapter 3 combines tables with joins. Chapter 4 nests queries: self-contained and correlated subqueries, EXISTS, and the NULL traps that make NOT IN misbehave.</p>
     </div>
   </div>
 </section>
@@ -296,9 +296,19 @@
       <a href="#ch3-practice"><span class="n">3.5</span> Practice: 9 exercises</a>
       <a href="#ch3-recap"><span class="n">3.6</span> Recap &amp; key terms</a>
       <a href="#ch3-quiz"><span class="n">3.7</span> Check yourself</a>
+      <div class="toc-group">Chapter 4 · Subqueries</div>
+      <a href="#ch4-selfcontained"><span class="n">4.1</span> Self-contained subqueries</a>
+      <a href="#ch4-correlated"><span class="n">4.2</span> Correlated subqueries</a>
+      <a href="#ch4-exists"><span class="n">4.3</span> The EXISTS predicate</a>
+      <a href="#ch4-previous"><span class="n">4.4</span> Previous / next values</a>
+      <a href="#ch4-running"><span class="n">4.5</span> Running aggregates</a>
+      <a href="#ch4-misbehaving"><span class="n">4.6</span> Misbehaving subqueries</a>
+      <a href="#ch4-practice"><span class="n">4.7</span> Practice: 10 exercises</a>
+      <a href="#ch4-recap"><span class="n">4.8</span> Recap &amp; key terms</a>
+      <a href="#ch4-quiz"><span class="n">4.9</span> Check yourself</a>
     </nav>
     <div class="toc-foot">
-      <strong>Reading tip:</strong> Chapter 1 is theory, Chapter 2 is the single-table query, Chapter 3 is combining tables. If you only have five minutes, read the three recaps.
+      <strong>Reading tip:</strong> Chapter 1 is theory, Chapter 2 is the single-table query, Chapter 3 is joins, Chapter 4 is nesting queries. If you only have five minutes, read the four recaps.
     </div>
   </aside>
 
@@ -2423,6 +2433,673 @@ FROM Sales.Customers AS C
       </details>
     </section>
 
+    <!-- ================= CHAPTER 4 ================= -->
+    <div class="part-divider" id="chapter-4">
+      <span class="part-eyebrow">Chapter 4 · Subqueries</span>
+      <h2>Queries inside queries</h2>
+      <p>A subquery is an inner query whose result is used by an outer query. Self-contained subqueries stand alone; correlated subqueries depend on the outer row. Chapter 4 shows when to use each, how to use <code>EXISTS</code>, and how to avoid the NULL and column-name traps that make subqueries silently wrong.</p>
+      <div class="part-chips">
+        <span>Book pages 149–175</span>
+        <span>1 listing + many examples</span>
+        <span>10 practice exercises</span>
+      </div>
+    </div>
+
+    <!-- 4.1 -->
+    <section class="section" id="ch4-selfcontained">
+      <div class="section-head">
+        <div class="sec-num">4.1</div>
+        <div>
+          <div class="kicker">Self-contained subqueries</div>
+          <h2>A query that stands on its own</h2>
+        </div>
+      </div>
+      <p class="lead">A subquery is a query nested inside another query. The outer query returns its result to the caller; the inner query’s result is used by the outer query. A <strong>self-contained</strong> subquery does not depend on any table in the outer query, so it can be evaluated once and debugged on its own.</p>
+
+      <h3 class="subhead">Scalar subqueries</h3>
+      <p>A scalar subquery returns a single value. It can appear anywhere a single-valued expression can appear, such as <code>WHERE</code> or <code>SELECT</code>. It must return at most one value: no rows becomes NULL, and more than one row is an error.</p>
+      <p>The book first shows the “old way” with a variable, then replaces the variable with a subquery.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · variable approach</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+DECLARE @maxid AS INT = (SELECT MAX(orderid)
+                         FROM Sales.Orders);
+SELECT orderid, orderdate, empid, custid
+FROM Sales.Orders
+WHERE orderid = @maxid;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · scalar self-contained subquery</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, orderdate, empid, custid
+FROM Sales.Orders
+WHERE orderid = (SELECT MAX(O.orderid)
+                 FROM Sales.Orders AS O);</code></pre>
+      </div>
+      <div class="warn">
+        <strong>A scalar subquery must return one value</strong>
+        The subquery below happens to work today because only one employee’s last name starts with C. If you change it to <code>D%</code>, two employees match and the query fails with “Subquery returned more than 1 value.” Use <code>IN</code> when the subquery can return multiple values.
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · works only because one row matches</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid
+FROM Sales.Orders
+WHERE empid =
+  (SELECT E.empid
+   FROM HR.Employees AS E
+   WHERE E.lastname LIKE N'C%');</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · fails: two employees start with D</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid
+FROM Sales.Orders
+WHERE empid =
+  (SELECT E.empid
+   FROM HR.Employees AS E
+   WHERE E.lastname LIKE N'D%');</code></pre>
+      </div>
+
+      <h3 class="subhead">Multivalued subqueries</h3>
+      <p>A multivalued subquery returns multiple values in a single column. The <code>IN</code> predicate is the natural fit: it returns TRUE if the outer value equals any value from the subquery.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · IN with a multivalued subquery</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid
+FROM Sales.Orders
+WHERE empid IN
+  (SELECT E.empid
+   FROM HR.Employees AS E
+   WHERE E.lastname LIKE N'D%');</code></pre>
+      </div>
+      <p>The same task can be written with a join. The book’s advice: there is no reliable rule that subqueries are always faster or slower than joins. Write the intuitive solution first, then revise if performance is not acceptable.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the join alternative</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT O.orderid
+FROM HR.Employees AS E
+  INNER JOIN Sales.Orders AS O
+    ON E.empid = O.empid
+WHERE E.lastname LIKE N'D%';</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · orders for US customers</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, orderid, orderdate, empid
+FROM Sales.Orders
+WHERE custid IN
+  (SELECT C.custid
+   FROM Sales.Customers AS C
+   WHERE C.country = N'USA');</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · customers who placed no orders</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, companyname
+FROM Sales.Customers
+WHERE custid NOT IN
+  (SELECT O.custid
+   FROM Sales.Orders AS O);</code></pre>
+      </div>
+
+      <h3 class="subhead">Several subqueries in one query</h3>
+      <p>The book combines scalar and multivalued subqueries to find missing order IDs. First create a table with the even-numbered order IDs, then use <code>MIN</code> and <code>MAX</code> scalar subqueries for the range and a multivalued <code>NOT IN</code> subquery for the existing IDs.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · create dbo.Orders</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+DROP TABLE IF EXISTS dbo.Orders;
+CREATE TABLE dbo.Orders(orderid INT NOT NULL CONSTRAINT PK_Orders PRIMARY KEY);
+INSERT INTO dbo.Orders(orderid)
+  SELECT orderid
+  FROM Sales.Orders
+  WHERE orderid % 2 = 0;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · missing order IDs</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT n
+FROM dbo.Nums
+WHERE n BETWEEN (SELECT MIN(O.orderid) FROM dbo.Orders AS O)
+            AND (SELECT MAX(O.orderid) FROM dbo.Orders AS O)
+  AND n NOT IN (SELECT O.orderid FROM dbo.Orders AS O);</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS dbo.Orders;</code></pre>
+      </div>
+    </section>
+
+    <!-- 4.2 -->
+    <section class="section" id="ch4-correlated">
+      <div class="section-head">
+        <div class="sec-num">4.2</div>
+        <div>
+          <div class="kicker">Correlated subqueries</div>
+          <h2>A query that depends on the outer row</h2>
+        </div>
+      </div>
+      <p class="lead">A correlated subquery refers to attributes from the outer query. It cannot run on its own, and it is logically evaluated separately for each outer row.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">SUBQUERY TYPES</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 220" role="img" aria-label="Diagram comparing a self-contained subquery, evaluated once, with a correlated subquery, re-evaluated for each outer row">
+                <defs>
+                  <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                </defs>
+                <g transform="translate(0,0)">
+                  <text x="225" y="18" text-anchor="middle" class="jtitle">SELF-CONTAINED</text>
+                  <rect x="30" y="50" width="170" height="90" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="115" y="85" text-anchor="middle" class="jlabel">OUTER QUERY</text>
+                  <text x="115" y="105" text-anchor="middle" class="jcap">uses the result</text>
+                  <rect x="250" y="50" width="170" height="90" rx="8" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="335" y="85" text-anchor="middle" class="jlabel">SUBQUERY</text>
+                  <text x="335" y="105" text-anchor="middle" class="jcap">no outer references</text>
+                  <line x1="250" y1="95" x2="205" y2="95" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow2)"/>
+                  <text x="225" y="80" text-anchor="middle" class="jcap">one value</text>
+                  <text x="225" y="170" text-anchor="middle" class="jcap">evaluated once</text>
+                </g>
+                <g transform="translate(450,0)">
+                  <text x="225" y="18" text-anchor="middle" class="jtitle">CORRELATED</text>
+                  <rect x="30" y="50" width="170" height="90" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="115" y="85" text-anchor="middle" class="jlabel">OUTER QUERY</text>
+                  <text x="115" y="105" text-anchor="middle" class="jcap">one row at a time</text>
+                  <rect x="250" y="50" width="170" height="90" rx="8" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="335" y="85" text-anchor="middle" class="jlabel">SUBQUERY</text>
+                  <text x="335" y="105" text-anchor="middle" class="jcap">uses outer columns</text>
+                  <line x1="205" y1="80" x2="245" y2="80" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow2)"/>
+                  <text x="225" y="70" text-anchor="middle" class="jcap">outer row</text>
+                  <line x1="245" y1="110" x2="205" y2="110" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow2)"/>
+                  <text x="225" y="125" text-anchor="middle" class="jcap">result</text>
+                  <text x="225" y="170" text-anchor="middle" class="jcap">re-evaluated per outer row</text>
+                </g>
+              </svg>
+            </div>
+            <p class="fig-cap">Self-contained vs. correlated subqueries</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> an original study diagram (the book has no figures for this chapter). A self-contained subquery has no arrows back to the outer query and is evaluated once. A correlated subquery receives the current outer row and returns a result for that row, so it is re-evaluated for every outer row.</p>
+          </div>
+        </div>
+      </figure>
+
+      <p>The book’s Listing 4-1 returns the order with the maximum order ID for each customer. The outer query reads <code>Orders</code> as <code>O1</code>; the subquery reads a second instance as <code>O2</code> and filters <code>O2.custid = O1.custid</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · Listing 4-1, correlated subquery</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+SELECT custid, orderid, orderdate, empid
+FROM Sales.Orders AS O1
+WHERE orderid =
+  (SELECT MAX(O2.orderid)
+   FROM Sales.Orders AS O2
+   WHERE O2.custid = O1.custid);</code></pre>
+      </div>
+      <p>To understand it, focus on one outer row. For customer 85, the correlation <code>O1.custid</code> means 85. Substitute it manually and the subquery becomes a simple standalone query.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · substitute the correlation with a constant</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT MAX(O2.orderid)
+FROM Sales.Orders AS O2
+WHERE O2.custid = 85;</code></pre>
+      </div>
+      <div class="warn">
+        <strong>You cannot highlight and run a correlated subquery</strong>
+        If you try, SQL Server reports that the multi-part identifier <code>O1.custid</code> could not be bound. To troubleshoot, replace the correlation with a constant, test the inner query, then put the correlation back.
+      </div>
+      <p>Another example: for each order, calculate its percentage of the customer’s total value. The outer query reads <code>OrderValues</code> as <code>O1</code>; the correlated subquery sums <code>O2.val</code> for the same customer.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · percentage of customer total</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, custid, val,
+  CAST(100. * val / (SELECT SUM(O2.val)
+                     FROM Sales.OrderValues AS O2
+                     WHERE O2.custid = O1.custid)
+       AS NUMERIC(5,2)) AS pct
+FROM Sales.OrderValues AS O1
+ORDER BY custid, orderid;</code></pre>
+      </div>
+    </section>
+
+    <!-- 4.3 -->
+    <section class="section" id="ch4-exists">
+      <div class="section-head">
+        <div class="sec-num">4.3</div>
+        <div>
+          <div class="kicker">The EXISTS predicate</div>
+          <h2>Does a matching row exist?</h2>
+        </div>
+      </div>
+      <p class="lead"><code>EXISTS</code> accepts a subquery and returns TRUE if the subquery returns at least one row, FALSE otherwise. It uses two-valued logic — there is no “unknown” case.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · customers from Spain with orders</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, companyname
+FROM Sales.Customers AS C
+WHERE country = N'Spain'
+  AND EXISTS
+    (SELECT * FROM Sales.Orders AS O
+     WHERE O.custid = C.custid);</code></pre>
+      </div>
+      <p>Read it like English: “return customers from Spain if they have any orders where the order’s customer ID matches the customer’s ID.” Negate it with <code>NOT EXISTS</code> to find customers who did not place orders.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · customers from Spain without orders</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, companyname
+FROM Sales.Customers AS C
+WHERE country = N'Spain'
+  AND NOT EXISTS
+    (SELECT * FROM Sales.Orders AS O
+     WHERE O.custid = C.custid);</code></pre>
+      </div>
+      <div class="note">
+        <strong>Why <code>SELECT *</code> is fine here</strong>
+        <code>EXISTS</code> only cares whether rows exist, not what they contain. The engine can stop as soon as it finds one row, and it ignores the subquery’s SELECT list for index selection. The book prefers <code>EXISTS(SELECT * FROM ...)</code> over <code>EXISTS(SELECT 1 FROM ...)</code> because it reads more naturally.
+      </div>
+    </section>
+
+    <!-- 4.4 -->
+    <section class="section" id="ch4-previous">
+      <div class="section-head">
+        <div class="sec-num">4.4</div>
+        <div>
+          <div class="kicker">Previous and next values</div>
+          <h2>“The row before this one”</h2>
+        </div>
+      </div>
+      <p class="lead">Tables have no order, so “previous” must be defined in terms of values. The book defines the previous order as <em>the maximum order ID that is smaller than the current one</em>, and the next order as <em>the minimum order ID that is greater than the current one</em>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · previous order ID</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, orderdate, empid, custid,
+  (SELECT MAX(O2.orderid)
+   FROM Sales.Orders AS O2
+   WHERE O2.orderid &lt; O1.orderid) AS prevorderid
+FROM Sales.Orders AS O1;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · next order ID</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, orderdate, empid, custid,
+  (SELECT MIN(O2.orderid)
+   FROM Sales.Orders AS O2
+   WHERE O2.orderid &gt; O1.orderid) AS nextorderid
+FROM Sales.Orders AS O1;</code></pre>
+      </div>
+      <p>The first order has no previous order, so the subquery returns NULL. The last order has no next order, so it also returns NULL. Window functions such as <code>LAG</code> and <code>LEAD</code> make this easier; the book covers them in Chapter 7.</p>
+    </section>
+
+    <!-- 4.5 -->
+    <section class="section" id="ch4-running">
+      <div class="section-head">
+        <div class="sec-num">4.5</div>
+        <div>
+          <div class="kicker">Running aggregates</div>
+          <h2>A running total with a correlated subquery</h2>
+        </div>
+      </div>
+      <p class="lead">A running aggregate accumulates values in order. The book uses the view <code>Sales.OrderTotalsByYear</code>, which holds total quantities by year, and computes a running total for each year.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · running total quantity</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderyear, qty,
+  (SELECT SUM(O2.qty)
+   FROM Sales.OrderTotalsByYear AS O2
+   WHERE O2.orderyear &lt;= O1.orderyear) AS runqty
+FROM Sales.OrderTotalsByYear AS O1
+ORDER BY orderyear;</code></pre>
+      </div>
+      <p>For each year in <code>O1</code>, the subquery sums all quantities in <code>O2</code> for that year and earlier years. Window aggregate functions can do this more easily and efficiently; the book covers them in Chapter 7.</p>
+    </section>
+
+    <!-- 4.6 -->
+    <section class="section" id="ch4-misbehaving">
+      <div class="section-head">
+        <div class="sec-num">4.6</div>
+        <div>
+          <div class="kicker">Misbehaving subqueries</div>
+          <h2>Two traps: NULLs and column names</h2>
+        </div>
+      </div>
+      <p class="lead">Subqueries can be silently wrong. The two classic traps are <code>NOT IN</code> with a NULL in the subquery, and an unprefixed column name that accidentally binds to the outer table.</p>
+
+      <h3 class="subhead">NULL trouble with NOT IN</h3>
+      <p>The query below looks correct and returns customers 22 and 57 — until you insert an order with a NULL customer ID. Then it returns an empty set.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · customers with no orders</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, companyname
+FROM Sales.Customers
+WHERE custid NOT IN(SELECT O.custid
+                    FROM Sales.Orders AS O);</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · insert an order with a NULL customer ID</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>INSERT INTO Sales.Orders
+  (custid, empid, orderdate, requireddate, shippeddate, shipperid,
+   freight, shipname, shipaddress, shipcity, shipregion,
+   shippostalcode, shipcountry)
+  VALUES(NULL, 1, '20220212', '20220212',
+         '20220212', 1, 123.00, N'abc', N'abc', N'abc',
+         N'abc', N'abc', N'abc');</code></pre>
+      </div>
+      <p>Why? For a customer such as 22, the comparison with known IDs is FALSE, but the comparison with the NULL is UNKNOWN. <code>FALSE OR UNKNOWN</code> is UNKNOWN. Applying <code>NOT</code> gives UNKNOWN again, and a query filter discards UNKNOWN. So <code>NOT IN</code> against a subquery that contains a NULL always returns an empty set.</p>
+      <p>Two fixes: filter the NULLs out of the subquery, or use <code>NOT EXISTS</code>, which uses two-valued logic and handles NULLs naturally.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · fix 1: exclude NULLs</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, companyname
+FROM Sales.Customers
+WHERE custid NOT IN(SELECT O.custid
+                    FROM Sales.Orders AS O
+                    WHERE O.custid IS NOT NULL);</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · fix 2: use NOT EXISTS</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, companyname
+FROM Sales.Customers AS C
+WHERE NOT EXISTS
+  (SELECT *
+   FROM Sales.Orders AS O
+   WHERE O.custid = C.custid);</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DELETE FROM Sales.Orders WHERE custid IS NULL;</code></pre>
+      </div>
+      <div class="warn">
+        <strong>Best practice</strong>
+        Define columns that should not allow NULLs as <code>NOT NULL</code>. When you write <code>NOT IN</code>, think explicitly about whether the subquery can return a NULL. If it can, prefer <code>NOT EXISTS</code>.
+      </div>
+
+      <h3 class="subhead">Substitution errors in column names</h3>
+      <p>Unprefixed column names are resolved from the inner scope outward. If the inner table does not have the column, SQL Server looks in the outer table. A small naming difference — <code>shipper_id</code> vs. <code>shipperid</code> — can turn a self-contained subquery into a correlated one without any error.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · create and populate MyShippers</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS Sales.MyShippers;
+CREATE TABLE Sales.MyShippers
+(
+  shipper_id  INT          NOT NULL,
+  companyname NVARCHAR(40) NOT NULL,
+  phone       NVARCHAR(24) NOT NULL,
+  CONSTRAINT PK_MyShippers PRIMARY KEY(shipper_id)
+);
+INSERT INTO Sales.MyShippers(shipper_id, companyname, phone)
+  VALUES(1, N'Shipper GVSUA', N'(503) 555-0137'),
+        (2, N'Shipper ETYNR', N'(425) 555-0136'),
+        (3, N'Shipper ZHISN', N'(415) 555-0138');</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the bug: wrong column name</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT shipper_id, companyname
+FROM Sales.MyShippers
+WHERE shipper_id IN
+  (SELECT shipper_id
+   FROM Sales.Orders
+   WHERE custid = 43);</code></pre>
+      </div>
+      <p>The subquery’s <code>shipper_id</code> does not exist in <code>Orders</code> (the real column is <code>shipperid</code>), so SQL Server binds it to <code>MyShippers.shipper_id</code> in the outer query. The subquery becomes correlated, and every shipper matches itself. The query returns all three shippers instead of the two that actually shipped to customer 43.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · prefixing exposes the error</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT shipper_id, companyname
+FROM Sales.MyShippers
+WHERE shipper_id IN
+  (SELECT O.shipper_id
+   FROM Sales.Orders AS O
+   WHERE O.custid = 43);</code></pre>
+      </div>
+      <p>Now SQL Server looks only in <code>Orders</code>, does not find <code>shipper_id</code>, and reports “Invalid column name.” That is the error you want: it tells you the truth instead of silently returning wrong data.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · corrected query</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT shipper_id, companyname
+FROM Sales.MyShippers
+WHERE shipper_id IN
+  (SELECT O.shipperid
+   FROM Sales.Orders AS O
+   WHERE O.custid = 43);</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS Sales.MyShippers;</code></pre>
+      </div>
+      <div class="note">
+        <strong>Two habits that prevent this bug</strong>
+        Use consistent attribute names across tables, and always prefix column names in a subquery with the source table name or alias. Then an accidental outer reference becomes a resolution error instead of a silent logic change.
+      </div>
+    </section>
+
+    <!-- 4.7 -->
+    <section class="section" id="ch4-practice">
+      <div class="section-head">
+        <div class="sec-num">4.7</div>
+        <div>
+          <div class="kicker">Practice</div>
+          <h2>Ten exercises, with the book’s solutions</h2>
+        </div>
+      </div>
+      <p class="lead">Try each one before opening the solution. The sample database is <code>TSQLV6</code>. The chapter asks you to solve these with subqueries, even though joins can often do the same job.</p>
+
+      <details>
+        <summary>Exercise 1 · Orders placed on the last day of activity</summary>
+        <div class="answer">
+          <p>Use a scalar subquery for the maximum order date.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+SELECT orderid, orderdate, custid, empid
+FROM Sales.Orders
+WHERE orderdate =
+  (SELECT MAX(O.orderdate) FROM Sales.Orders AS O);</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 2 · Orders by the customer(s) with the most orders</summary>
+        <div class="answer">
+          <p>Use <code>TOP (1) WITH TIES</code> to get all customers tied for the maximum count, then <code>IN</code>.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT custid, orderid, orderdate, empid
+FROM Sales.Orders
+WHERE custid IN
+  (SELECT TOP (1) WITH TIES O.custid
+   FROM Sales.Orders AS O
+   GROUP BY O.custid
+   ORDER BY COUNT(*) DESC);</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 3 · Employees who did not place orders on or after May 1, 2022</summary>
+        <div class="answer">
+          <p>Use <code>NOT IN</code> with a self-contained subquery of employee IDs from orders since May 2022.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT empid, firstname, lastname
+FROM HR.Employees
+WHERE empid NOT IN
+  (SELECT O.empid
+   FROM Sales.Orders AS O
+   WHERE O.orderdate &gt;= '20220501');</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 4 · Countries with customers but not employees</summary>
+        <div class="answer">
+          <p>Use <code>NOT IN</code> with a subquery of employee countries, and <code>DISTINCT</code> to remove duplicate customer countries.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT DISTINCT country
+FROM Sales.Customers
+WHERE country NOT IN
+  (SELECT E.country FROM HR.Employees AS E);</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 5 · Each customer’s orders on their last day of activity</summary>
+        <div class="answer">
+          <p>Correlate the subquery: compare each order date with the maximum order date for the same customer.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT custid, orderid, orderdate, empid
+FROM Sales.Orders AS O1
+WHERE orderdate =
+  (SELECT MAX(O2.orderdate)
+   FROM Sales.Orders AS O2
+   WHERE O2.custid = O1.custid)
+ORDER BY custid;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 6 · Customers with orders in 2021 but not in 2022</summary>
+        <div class="answer">
+          <p>Use <code>EXISTS</code> for 2021 and <code>NOT EXISTS</code> for 2022. Both are correlated and use two-valued logic.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT custid, companyname
+FROM Sales.Customers AS C
+WHERE EXISTS
+  (SELECT *
+   FROM Sales.Orders AS O
+   WHERE O.custid = C.custid
+     AND O.orderdate &gt;= '20210101'
+     AND O.orderdate &lt; '20220101')
+  AND NOT EXISTS
+  (SELECT *
+   FROM Sales.Orders AS O
+   WHERE O.custid = C.custid
+     AND O.orderdate &gt;= '20220101'
+     AND O.orderdate &lt; '20230101');</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 7 · Customers who ordered product 12</summary>
+        <div class="answer">
+          <p>Nest <code>EXISTS</code> predicates: one correlated subquery for the customer’s orders, and another for order details with product 12.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT custid, companyname
+FROM Sales.Customers AS C
+WHERE EXISTS
+  (SELECT *
+   FROM Sales.Orders AS O
+   WHERE O.custid = C.custid
+     AND EXISTS
+       (SELECT *
+        FROM Sales.OrderDetails AS OD
+        WHERE OD.orderid = O.orderid
+          AND OD.ProductID = 12));</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 8 · Running-total quantity for each customer and month</summary>
+        <div class="answer">
+          <p>Correlate on customer and month, and sum all quantities up to and including the current month.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT custid, ordermonth, qty,
+  (SELECT SUM(O2.qty)
+   FROM Sales.CustOrders AS O2
+   WHERE O2.custid = O1.custid
+     AND O2.ordermonth &lt;= O1.ordermonth) AS runqty
+FROM Sales.CustOrders AS O1
+ORDER BY custid, ordermonth;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 9 · Explain the difference between IN and EXISTS</summary>
+        <div class="answer">
+          <p><code>IN</code> uses three-valued logic; <code>EXISTS</code> uses two-valued logic. With no NULLs, they mean the same thing in both positive and negative forms. With NULLs, they agree in the positive form but not in the negative form: <code>NOT IN</code> returns UNKNOWN (so the outer row is discarded), while <code>NOT EXISTS</code> returns TRUE (so the outer row is returned).</p>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 10 · Days since the same customer’s previous order</summary>
+        <div class="answer">
+          <p>Use a correlated <code>TOP (1)</code> subquery to find the previous order date, then <code>DATEDIFF</code>. Recency is determined by <code>orderdate</code> first and <code>orderid</code> as the tiebreaker.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT custid, orderdate, orderid,
+  DATEDIFF(day,
+    (SELECT TOP (1) O2.orderdate
+     FROM Sales.Orders AS O2
+     WHERE O2.custid = O1.custid
+       AND (    O2.orderdate = O1.orderdate AND O2.orderid &lt; O1.orderid
+             OR O2.orderdate &lt; O1.orderdate )
+     ORDER BY O2.orderdate DESC, O2.orderid DESC),
+    orderdate) AS diff
+FROM Sales.Orders AS O1
+ORDER BY custid, orderdate, orderid;</code></pre>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- 4.8 -->
+    <section class="section" id="ch4-recap">
+      <div class="section-head">
+        <div class="sec-num">4.8</div>
+        <div>
+          <div class="kicker">Takeaways</div>
+          <h2>Chapter 4 in ten bullets</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li><strong>A subquery is an inner query</strong> whose result is used by an outer query; it acts as an expression evaluated at run time.</li>
+        <li><strong>Self-contained subqueries</strong> have no dependency on the outer query, are evaluated once, and can be debugged by running them alone.</li>
+        <li><strong>Correlated subqueries</strong> reference outer-query columns and are evaluated for each outer row; they cannot run standalone.</li>
+        <li><strong>A scalar subquery must return at most one value.</strong> No rows becomes NULL; more than one row is an error.</li>
+        <li><strong>Multivalued subqueries</strong> return a single column of many values and are typically used with <code>IN</code>.</li>
+        <li><strong>Subqueries vs. joins:</strong> there is no reliable rule of thumb; write the intuitive solution first and tune later.</li>
+        <li><strong><code>EXISTS</code> returns TRUE if any rows exist</strong> and uses two-valued logic. <code>SELECT *</code> is fine inside <code>EXISTS</code>.</li>
+        <li><strong>Previous/next values</strong> can be expressed as the maximum smaller value or the minimum greater value; edge rows return NULL.</li>
+        <li><strong><code>NOT IN</code> with a NULL in the subquery</strong> always returns an empty set. Filter the NULLs or use <code>NOT EXISTS</code>.</li>
+        <li><strong>Prefix subquery columns with the table alias.</strong> Unprefixed names resolve inner-to-outer and can silently turn a subquery into a correlated one.</li>
+      </ul>
+
+      <h3 class="subhead">Chapter 4 key terms</h3>
+      <dl class="terms">
+        <div class="term"><dt>Outer query</dt><dd>The query that returns its result to the caller and contains the subquery.</dd></div>
+        <div class="term"><dt>Subquery</dt><dd>An inner query whose result is used by the outer query.</dd></div>
+        <div class="term"><dt>Self-contained subquery</dt><dd>A subquery with no dependency on the outer query; evaluated once.</dd></div>
+        <div class="term"><dt>Correlated subquery</dt><dd>A subquery that references outer-query columns; evaluated per outer row.</dd></div>
+        <div class="term"><dt>Scalar subquery</dt><dd>A subquery that returns a single value.</dd></div>
+        <div class="term"><dt>Multivalued subquery</dt><dd>A subquery that returns multiple values in one column, typically used with <code>IN</code>.</dd></div>
+        <div class="term"><dt>EXISTS</dt><dd>A predicate that returns TRUE if the subquery returns any rows, FALSE otherwise; two-valued logic.</dd></div>
+        <div class="term"><dt>Running aggregate</dt><dd>An aggregate that accumulates values in order, such as a running total.</dd></div>
+        <div class="term"><dt>NULL trouble</dt><dd>The empty-set bug caused by <code>NOT IN</code> when the subquery returns a NULL.</dd></div>
+        <div class="term"><dt>Substitution error</dt><dd>An unprefixed column name that binds to the outer table instead of the inner one.</dd></div>
+        <div class="term"><dt>Correlation</dt><dd>A reference from the subquery to a column of the outer query, such as <code>O2.custid = O1.custid</code>.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 4.9 -->
+    <section class="section" id="ch4-quiz">
+      <div class="section-head">
+        <div class="sec-num">4.9</div>
+        <div>
+          <div class="kicker">Check yourself</div>
+          <h2>Six quick questions</h2>
+        </div>
+      </div>
+      <p class="lead">Try to answer before opening each one. If you can explain it in your own words, you’ve got the chapter.</p>
+
+      <details>
+        <summary>What is the difference between a self-contained and a correlated subquery?</summary>
+        <div class="answer">A <strong>self-contained</strong> subquery has no dependency on the outer query and is evaluated once; you can run it on its own. A <strong>correlated</strong> subquery references outer-query columns and is evaluated for each outer row; it cannot run standalone.</div>
+      </details>
+      <details>
+        <summary>What happens if a scalar subquery returns no rows? More than one row?</summary>
+        <div class="answer">No rows is converted to <strong>NULL</strong>. More than one row is an error: “Subquery returned more than 1 value.” Use <code>IN</code> when multiple values are possible.</div>
+      </details>
+      <details>
+        <summary>Why does NOT IN return an empty set when the subquery contains a NULL?</summary>
+        <div class="answer">For a nonmatching outer value, the comparison with known values is FALSE and the comparison with the NULL is UNKNOWN. <code>FALSE OR UNKNOWN</code> is UNKNOWN, and <code>NOT UNKNOWN</code> is still UNKNOWN. Query filters discard UNKNOWN, so every outer row is discarded.</div>
+      </details>
+      <details>
+        <summary>What is the difference between IN and EXISTS?</summary>
+        <div class="answer"><code>IN</code> uses three-valued logic; <code>EXISTS</code> uses two-valued logic. They agree in the positive form and when there are no NULLs, but <code>NOT IN</code> can return UNKNOWN while <code>NOT EXISTS</code> returns TRUE or FALSE. <code>NOT EXISTS</code> is safer with NULLs.</div>
+      </details>
+      <details>
+        <summary>Why should you prefix subquery column names with the table alias?</summary>
+        <div class="answer">Unprefixed names are resolved from the inner scope outward. If the inner table lacks the column, SQL Server may bind it to the outer table, silently turning a self-contained subquery into a correlated one. Prefixing forces resolution in the intended table and produces an error if the column is wrong.</div>
+      </details>
+      <details>
+        <summary>How does a correlated subquery compute a running total?</summary>
+        <div class="answer">The outer query reads one instance of the data (for example, <code>O1</code>). The subquery reads a second instance (<code>O2</code>), filters rows up to and including the current outer row’s ordering value, and sums them: <code>(SELECT SUM(O2.qty) FROM ... AS O2 WHERE O2.orderyear &lt;= O1.orderyear)</code>.</div>
+      </details>
+    </section>
+
   </main>
 </div>
 
@@ -2430,12 +3107,12 @@ FROM Sales.Customers AS C
   <div class="footer-inner">
     <div>
       <h3>About this summary</h3>
-      <p>A study companion for <strong>Chapters 1, 2, and 3</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148.</p>
-      <p class="fine">All nine figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapter 3 has no figures or tables; the join-types diagram is an original study aid, not from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
+      <p>A study companion for <strong>Chapters 1–4</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175.</p>
+      <p class="fine">All nine figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3 and 4 have no figures or tables; the join-types and subquery-types diagrams are original study aids, not from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
     </div>
     <div>
       <h3>Navigate</h3>
-      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch3-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch3-quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch4-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch4-quiz" style="color:#9fe0d6">Quiz</a></p>
       <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
     </div>
   </div>
