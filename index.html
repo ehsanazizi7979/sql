@@ -230,9 +230,9 @@
       figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">9 chapters covered</span>
-      <span class="badge">109 book listings</span>
-      <span class="badge">208 figures</span>
+      <span class="badge">10 chapters covered</span>
+      <span class="badge">144 book listings</span>
+      <span class="badge">240 figures</span>
       <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
@@ -328,6 +328,17 @@
     <a class="mini" href="#ch9-plan-guides">Plan guides</a>
     <a class="mini" href="#ch9-forcing">Plan forcing</a>
     <a class="mini" href="#ch9-cheatsheet">Cheat sheet</a>
+
+    <div class="grp">Chapter 10 · Controlling Plans with Hints</div>
+    <a class="mini" href="#ch10-rules">The ground rules</a>
+    <a class="mini" href="#ch10-aggregation">Aggregation &amp; UNION hints</a>
+    <a class="mini" href="#ch10-join">Join method hints</a>
+    <a class="mini" href="#ch10-fast">FAST n</a>
+    <a class="mini" href="#ch10-order-maxdop">FORCE ORDER &amp; MAXDOP</a>
+    <a class="mini" href="#ch10-optimize">OPTIMIZE FOR &amp; RECOMPILE</a>
+    <a class="mini" href="#ch10-expand">EXPAND VIEWS</a>
+    <a class="mini" href="#ch10-table-hints">Join &amp; table hints</a>
+    <a class="mini" href="#ch10-cheatsheet">Cheat sheet</a>
   </nav>
 
   <main>
@@ -6383,6 +6394,1029 @@ N'@id int',
         <i>plan forcing</i> take control away from the optimizer entirely. But taking control can
         introduce problems as big as the ones you're solving: test everything, and keep retesting wherever
         you've taken direct control.
+      </div>
+    </section>
+
+    <div class="chapterbar" id="chapter10">
+      <span class="cnum">Chapter 10</span>
+      <div>
+        <h2>Controlling Execution Plans with Hints</h2>
+        <p>The chapter where the book stops being a tutorial and becomes an intervention. Eleven hints,
+        measured one by one — and most of them make the query <i>worse</i>. Hints are commandments, not
+        suggestions, and this chapter is the evidence.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch10-rules">
+      <h2><span class="num">!</span> The ground rules</h2>
+      <p class="lede">If you take one thing from this chapter, take the warning. The demos are the proof.</p>
+
+      <p>
+        The optimizer gets it right most of the time. The cases where it doesn't are well understood by
+        now: <b>jagged data distributions</b> that statistics can't describe accurately, <b>complex
+        predicates</b> that are hard to estimate, and predicates that force a hard-coded selectivity guess
+        (Chapters 8 and 9). In those cases you may want to force the optimizer's hand with hints about how
+        to access tables, which join strategy to use, or how to optimize an entire query. But:
+      </p>
+
+      <div class="note warn">
+        <b>Hints are not suggestions. They are commandments.</b>
+        The optimizer <b>must</b> obey them — even when obeying is impossible or absurd, in which case it
+        raises an error rather than quietly doing something sensible (you'll see that with the
+        <code class="inl">INDEX()</code> hint). A hint that is right for one query can radically slow
+        another, cause severe blocking and timeouts, and it removes the optimizer's ability to pick a
+        better plan later when the data changes, or when you patch or upgrade SQL Server.
+      </div>
+
+      <p>
+        The book's rule of thumb is a good one: <b>if you're putting hints on most of your queries,
+        you're doing something wrong.</b> Apply one only after copious testing, document why it's there,
+        and schedule re-testing as the system changes. This chapter deliberately shows as many hints
+        hurting as helping, "as this simply reflects reality. Hints more often hurt performance than they
+        help it."
+      </p>
+
+      <div class="plain">
+        <div><span>Query hints</span>Apply to the <b>whole query</b> via the <code class="inl">OPTION</code> clause — every operator, every join, every aggregate. Cannot be used on <code class="inl">INSERT</code> (except in its associated <code class="inl">SELECT</code>) and cannot be used in subqueries.</div>
+        <div><span>Join hints</span>Apply to <b>one specific join</b>, written in the <code class="inl">JOIN</code> clause. A join hint <b>overrides</b> the matching query hint.</div>
+      </div>
+      <div class="plain">
+        <div><span>Table hints</span>Apply to <b>one table</b>: which index, seek or scan, expand an indexed view or not. Worse than the others — some also change locking and can affect data integrity.</div>
+        <div><span>Note</span>Table hints go in <code class="inl">WITH ( … )</code>. Always use <code class="inl">WITH</code> and always comma-separate: safe, consistent and future-proof.</div>
+      </div>
+    </section>
+
+    <section class="card" id="ch10-aggregation">
+      <h2><span class="num">1</span> Aggregation and UNION hints</h2>
+      <p class="lede">Two hints that each add an operator the optimizer had deliberately avoided. Both times, the plan gets more expensive.</p>
+
+      <div class="code">
+        <header><span>Listing 10-1 · the OPTION clause</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>  <span class="kw">SELECT</span> ...
+  <span class="kw">OPTION</span> (&lt;hint&gt;,&lt;hint&gt;...);</code></pre>
+      </div>
+
+      <h3 class="step">HASH GROUP / ORDER GROUP</h3>
+      <div class="code">
+        <header><span>Listing 10-2 · the aggregation query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.Suffix,
+       <span class="fn">COUNT</span>(*) <span class="kw">AS</span> SuffixUsageCount
+<span class="kw">FROM</span> Person.Person <span class="kw">AS</span> p
+<span class="kw">GROUP BY</span> p.Suffix;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-1-hash-match-aggregate-unnhinted.png"
+             alt="Plan: Clustered Index Scan, Hash Match (Aggregate), SELECT.">
+        <figcaption><b>Figure 10-1</b> — Unhinted, the optimizer chooses hashing: a Clustered Index Scan feeding a <b>Hash Match (Aggregate)</b>. Baseline: <b>3,819 reads</b>, estimated cost <b>2.99727</b>, ~<b>9.7 ms</b>.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 10-3 · forcing a Stream Aggregate</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.Suffix,
+       <span class="fn">COUNT</span>(p.Suffix) <span class="kw">AS</span> SuffixUsageCount
+<span class="kw">FROM</span> Person.Person <span class="kw">AS</span> p
+<span class="kw">GROUP BY</span> p.Suffix
+<span class="kw">OPTION</span> (<span class="kw">ORDER GROUP</span>);</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-2-order-group-stream-aggregate.png"
+             alt="Plan with a Sort operator added before a Stream Aggregate.">
+        <figcaption><b>Figure 10-2</b> — A <b>Sort</b> had to be introduced, because stream aggregation needs sorted input (Chapter 5) and no index delivers <code class="inl">Suffix</code> in order.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>The cost of disobeying the optimizer's judgement</b>
+        Estimated cost up <b>39%</b> (2.99727 → 4.17893), and runtime <b>9.7 ms → 18 ms</b> — a
+        100% increase. Note the <code class="inl">COUNT(*)</code> becoming
+        <code class="inl">COUNT(p.Suffix)</code> in the book's listing; the point stands either way.
+        And the deeper problem: the hint freezes this shape forever, regardless of new indexes or
+        changed data. If you want stream aggregation, the fix is a <b>nonclustered index</b> the optimizer
+        can use to deliver the order — not a hint.
+      </div>
+
+      <h3 class="step">MERGE / HASH / CONCAT UNION</h3>
+      <div class="code">
+        <header><span>Listing 10-4 · a UNION that's too slow</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> pm1.Name,
+       pm1.ModifiedDate
+<span class="kw">FROM</span> Production.ProductModel <span class="kw">AS</span> pm1
+<span class="kw">UNION</span>
+<span class="kw">SELECT</span> p.Name,
+       p.ModifiedDate
+<span class="kw">FROM</span> Production.Product <span class="kw">AS</span> p;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-3-union-concatenation.png"
+             alt="Plan with Concatenation and a Distinct Sort.">
+        <figcaption><b>Figure 10-3</b> — The default: <b>Concatenation</b> (128 rows + 504 rows, very cheap) then a <b>Distinct Sort</b> to remove duplicates as <code class="inl">UNION</code> requires. <b>121 ms, 29 reads.</b></figcaption>
+      </figure>
+
+      <p>So: can a join operator do the de-duplication and lose that Sort?</p>
+
+      <div class="code">
+        <header><span>Listing 10-5 · MERGE UNION</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>... <span class="kw">OPTION</span> (<span class="kw">MERGE UNION</span>);</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-4-merge-union-sorts.png"
+             alt="Plan with two Sort operators feeding a Merge Join (Union).">
+        <figcaption><b>Figure 10-4</b> — The Merge Join (Union) replaces Concatenation, and the Distinct Sort is gone — but a Merge Join needs sorted inputs, so <b>two new Sorts</b> appear. <b>193 ms, 41 reads.</b> Worse.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 10-6 · HASH UNION</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>... <span class="kw">OPTION</span> (<span class="kw">HASH UNION</span>);</code></pre>
+        <div class="cap">Works here only because the probe (bottom) input is guaranteed duplicate-free. Note <code>HASH UNION</code> can never apply to <code>UNION ALL</code>, which the optimizer implements as Concatenation by definition.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-5-hash-union.png"
+             alt="Plan with Hash Match (Union) and no Sort operators.">
+        <figcaption><b>Figure 10-5</b> — No Sorts at all. <b>99 ms, same reads.</b> The one genuine win of the section — and only because both conditions held: no post-union Sort needed, and no new Sort introduced.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>The exception to remember</b>
+        If the bottom input <i>had</i> contained duplicates, the optimizer would have had to add a Distinct
+        Sort or similar anyway — so the win evaporates. Try it by dropping the
+        <code class="inl">Name</code> column from Listing 10-6. A hint doesn't make a plan cheap; it
+        changes what the optimizer is allowed to consider.
+      </div>
+    </section>
+
+    <section class="card" id="ch10-join">
+      <h2><span class="num">2</span> LOOP / MERGE / HASH JOIN — four plans, one query</h2>
+      <p class="lede">The most instructive comparison in the book: the same four-table query, four join hints, and a different definition of "better" every time.</p>
+
+      <p>
+        These set the method for <b>all</b> joins in the query, including the semi-joins behind
+        <code class="inl">EXISTS</code> and <code class="inl">IN</code>. A join hint on a specific join
+        overrides them.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 10-7 · the test query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> pm.Name,
+       pm.CatalogDescription,
+       p.Name <span class="kw">AS</span> ProductName,
+       i.Diagram
+<span class="kw">FROM</span> Production.ProductModel <span class="kw">AS</span> pm
+    <span class="kw">LEFT JOIN</span> Production.Product <span class="kw">AS</span> p
+        <span class="kw">ON</span> pm.ProductModelID = p.ProductModelID
+    <span class="kw">LEFT JOIN</span> Production.ProductModelIllustration <span class="kw">AS</span> pmi
+        <span class="kw">ON</span> p.ProductModelID = pmi.ProductModelID
+    <span class="kw">LEFT JOIN</span> Production.Illustration <span class="kw">AS</span> i
+        <span class="kw">ON</span> pmi.IllustrationID = i.IllustrationID
+<span class="kw">WHERE</span> pm.Name <span class="kw">LIKE</span> '%Mountain%'
+<span class="kw">ORDER BY</span> pm.Name;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-6-mixed-nested-loops-hash.png"
+             alt="Plan mixing Nested Loops, a Hash Match (Right Outer Join), a Sort and index scans.">
+        <figcaption><b>Figure 10-6</b> — Unhinted: a Hash Match (Right Outer Join) at 39% joining Product and ProductModel, a Sort (11%) then Nested Loops for the rest. <b>74 ms, 485 logical reads.</b></figcaption>
+      </figure>
+
+      <p>
+        The <code class="inl">LIKE '%Mountain%'</code> is <b>non-SARGable</b> — it can never be an index
+        seek, so the Clustered Index Scan on ProductModel is inevitable. The two small tables get scanned
+        rather than seeked simply because they're so small that scanning costs nothing measurable.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 10-8 · LOOP JOIN</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>...<span class="kw">OPTION</span> ( <span class="kw">LOOP JOIN</span> );</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-7-loop-join-only.png"
+             alt="Plan using only Nested Loops joins, with the Sort moved directly after the ProductModel scan.">
+        <figcaption><b>Figure 10-7</b> — All Nested Loops. The Sort moved up to right after the ProductModel scan (Nested Loops preserves outer-input order), so it sorts 40 rows instead of 99, and the in-memory worktable is gone.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>But I/O went up, not down</b>
+        <b>485 → 1,250 logical reads</b> (73 ms, essentially unchanged), because the Product table is now
+        scanned <b>37 times</b> — once per row out of the Sort. The one genuine gain is the
+        <b>MemoryGrantInfo</b> on the SELECT operator: a significantly smaller memory grant. That matters
+        if the query runs constantly; it isn't the I/O reduction we were after.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 10-9 · MERGE JOIN</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">OPTION</span>  ( <span class="kw">MERGE JOIN</span> );</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-8-merge-join-only.png"
+             alt="Plan containing only Merge Joins, with three Sort operators.">
+        <figcaption><b>Figure 10-8</b> — A different shape, and <b>three Sorts</b> instead of one: the Sort on Name is now last, and two more exist because each Merge Join needs its inputs ordered on the join column.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>Fewest reads, worst of both worlds</b>
+        <b>116 logical reads</b> — best so far — yet performance <i>didn't</i> improve (~83 ms). Two
+        reasons: the extra Sort overhead nearly <b>doubles the memory grant</b>, and the rightmost Merge
+        Join is a <b>many-to-many</b> join, which needs a worktable in tempdb (Chapter 4) and is far less
+        efficient. Fewer reads ≠ faster.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 10-10 · HASH JOIN</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">OPTION</span>  ( <span class="kw">HASH JOIN</span> );</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-9-hash-join-only.png"
+             alt="Plan with three Hash Match joins and a single Sort at the left.">
+        <figcaption><b>Figure 10-9</b> — Three Hash Matches, back to one Sort — but the Sort is now on the far left, because a Hash Match doesn't preserve probe-input order, so that's the only safe place for it.</figcaption>
+      </figure>
+
+      <p>
+        <b>97 logical reads</b> — the best — at roughly the original runtime, but with a memory grant up to
+        about <b>6,080 KB</b> from hashing every table. So: if you have severe I/O contention, this could
+        be a win; under additional load, you'd have to test to know.
+      </p>
+
+      <div class="note tip">
+        <b>The verdict the chapter wants you to draw</b>
+        Four hints, four plans, minimal reward — and <b>every one of them ignored the actual problem</b>:
+        the non-SARGable <code class="inl">LIKE '%Mountain%'</code>. The right fix is to change the database
+        structure (or the search pattern) so that wildcard scans aren't necessary. Hints are what you
+        reach for when the code and schema are out of your control.
+      </div>
+    </section>
+
+    <section class="card" id="ch10-fast">
+      <h2><span class="num">3</span> FAST n — optimise for the first screenful</h2>
+      <p class="lede">A hint that optimises for what the user <i>perceives</i> rather than what the query costs. It works — spectacularly — and the bill arrives at the storage layer.</p>
+
+      <div class="code">
+        <header><span>Listing 10-11 · the full result set, ordered</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> soh.SalesOrderNumber,
+       soh.OrderDate,
+       soh.DueDate,
+       sod.CarrierTrackingNumber,
+       sod.OrderQty
+<span class="kw">FROM</span> Sales.SalesOrderDetail <span class="kw">AS</span> sod
+    <span class="kw">JOIN</span> Sales.SalesOrderHeader <span class="kw">AS</span> soh
+        <span class="kw">ON</span> sod.SalesOrderID = soh.SalesOrderID
+<span class="kw">ORDER BY</span> soh.DueDate <span class="kw">DESC</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-10-full-result-set-plan.png"
+             alt="Plan optimized to return all data, with a Merge Join.">
+        <figcaption><b>Figure 10-10</b> — Optimised to return everything: a Merge Join, estimated subtree cost <b>11.3573</b> — so with <code class="inl">cost threshold for parallelism</code> at or below that, you'd get the parallel version (Chapter 11).</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>The warning is a false alarm</b>
+        The SELECT operator carries a warning: <i>Type conversion in expression
+        (CONVERT(nvarchar(23),[soh].[SalesOrderID],0)) may affect "CardinalityEstimate"</i>. It comes from
+        a calculated column on SalesOrderHeader that this query never filters on — so it has no effect.
+        Warnings are worth reading, not automatically obeying.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 10-12 · FAST 10</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">OPTION</span>  ( <span class="kw">FAST 10</span> );</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-11-fast-10-plan.png"
+             alt="Plan optimized to return only 10 rows, using Nested Loops instead of Merge Join.">
+        <figcaption><b>Figure 10-11</b> — The join flips from Merge to <b>Nested Loops</b> and the first 10 rows arrive quickly; the rest of the query gets slower, exactly as promised.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>The mechanism, and the price</b>
+        Internally the optimizer treats the query as if it had <code class="inl">TOP (10)</code> — same
+        plan choices, minus the operators that implement TOP. Estimated cost drops from
+        <b>11.3573 to 2.72567</b>, but that's the cost of the <i>first ten rows</i>. Hence the nonsense
+        estimates: the Sort is estimated at <b>2.6 rows</b> when it actually returns <b>31,465</b>.
+        And the reads: <b>1,935 → 106,505</b>. On a busy server that trade-off can hurt everyone else.
+      </div>
+    </section>
+
+    <section class="card" id="ch10-order-maxdop">
+      <h2><span class="num">4</span> FORCE ORDER and MAXDOP</h2>
+      <p class="lede">One hint takes away the optimizer's join-order search. The other takes away its parallelism. Both are for the edges of the problem, not the middle.</p>
+
+      <h3 class="step">FORCE ORDER</h3>
+      <div class="code">
+        <header><span>Listing 10-13 · ten tables, ten joins</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> pc.Name <span class="kw">AS</span> ProductCategoryName,
+       ps.Name <span class="kw">AS</span> ProductSubCategoryName,
+       p.Name <span class="kw">AS</span> ProductName,
+       pdr.Description,
+       pm.Name <span class="kw">AS</span> ProductModelName,
+       c.Name <span class="kw">AS</span> CultureName,
+       d.FileName,
+       pri.Quantity,
+       pr.Rating,
+       pr.Comments
+<span class="kw">FROM</span> Production.Product <span class="kw">AS</span> p
+    <span class="kw">LEFT JOIN</span> Production.ProductModel <span class="kw">AS</span> pm
+        <span class="kw">ON</span> p.ProductModelID = pm.ProductModelID
+    <span class="kw">LEFT JOIN</span> Production.ProductSubcategory <span class="kw">AS</span> ps
+        <span class="kw">ON</span> p.ProductSubcategoryID = ps.ProductSubcategoryID
+    <span class="kw">LEFT JOIN</span> Production.ProductInventory <span class="kw">AS</span> pri
+        <span class="kw">ON</span> p.ProductID = pri.ProductID
+    <span class="kw">LEFT JOIN</span> Production.ProductReview <span class="kw">AS</span> pr
+        <span class="kw">ON</span> p.ProductID = pr.ProductID
+    <span class="kw">LEFT JOIN</span> Production.ProductDocument <span class="kw">AS</span> pd
+        <span class="kw">ON</span> p.ProductID = pd.ProductID
+    <span class="kw">LEFT JOIN</span> Production.Document <span class="kw">AS</span> d
+        <span class="kw">ON</span> pd.DocumentNode = d.DocumentNode
+    <span class="kw">LEFT JOIN</span> Production.ProductCategory <span class="kw">AS</span> pc
+        <span class="kw">ON</span> ps.ProductCategoryID = pc.ProductCategoryID
+    <span class="kw">LEFT JOIN</span> Production.ProductModelProductDescriptionCulture <span class="kw">AS</span> pmpdc
+        <span class="kw">ON</span> pm.ProductModelID = pmpdc.ProductModelID
+    <span class="kw">LEFT JOIN</span> Production.ProductDescription <span class="kw">AS</span> pdr
+        <span class="kw">ON</span> pmpdc.ProductDescriptionID = pdr.ProductDescriptionID
+    <span class="kw">LEFT JOIN</span> Production.Culture <span class="kw">AS</span> c
+        <span class="kw">ON</span> c.CultureID = pmpdc.CultureID;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-12-large-multi-table-plan.png"
+             alt="A very large, wide execution plan for ten tables.">
+        <figcaption><b>Figure 10-12</b> — Too big to read comfortably — which is the point. Ten tables means a very large number of join orders to consider.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter10/fig-10-13-join-order-subset.png"
+             alt="Zoomed subset of the plan showing a chain of Hash Matches.">
+        <figcaption><b>Figure 10-13</b> — Zoomed: following the data <i>into</i> each operator you see Hash Match (ProductModel×Product) → Hash Match (×ProductSubcategory) → Hash Match (×ProductInventory) and so on. In <b>execution order</b> the optimizer works from the other end: Culture, then ProductDescription, then ProductModelProductDescriptionCulture.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter10/fig-10-14-reason-for-early-termination.png"
+             alt="SELECT properties showing Reason For Early Termination of Statement Optimization.">
+        <figcaption><b>Figure 10-14</b> — And here's why: <code class="inl">Reason For Early Termination</code> shows the optimizer <b>timed out</b> searching join orders. Not all permutations were tried.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 10-14 · FORCE ORDER</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">OPTION</span> (<span class="kw">FORCE ORDER</span>);</code></pre>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter10/fig-10-15-force-order-plan.png"
+               alt="A visibly different plan shape produced by FORCE ORDER.">
+          <figcaption><b>Figure 10-15</b> — A visibly different plan: tables are now accessed <i>in the order written</i>, which also forces Merge Joins and the Sorts they need.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter10/fig-10-16-force-order-join-subset.png"
+               alt="Subset showing Product then ProductModel joined in query order.">
+          <figcaption><b>Figure 10-16</b> — Zoomed: Product then ProductModel, exactly as specified, feeding Merge Joins onward.</figcaption>
+        </figure>
+      </div>
+
+      <p>
+        So it does exactly what it says — and <b>149 ms → 166 ms</b> because of all the extra Sorts. Worth
+        knowing for three situations, though: you're certain your join order beats the optimizer's; you
+        see <b>optimizer timeouts</b> on huge queries; or you see excessive compiles/recompiles from one
+        query and need the plan to stabilise.
+      </p>
+
+      <h3 class="step">MAXDOP</h3>
+      <p>
+        The scenario is the nastiest one in practice: a query that's usually fine and occasionally terrible.
+        Extended Events or Query Store eventually show you two plans.
+      </p>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter10/fig-10-17-serial-plan.png"
+               alt="Serial execution plan.">
+          <figcaption><b>Figure 10-17</b> — The <b>serial</b> plan, which runs fast.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter10/fig-10-18-parallel-plan.png"
+               alt="Parallel execution plan with gather streams and exchange operators.">
+          <figcaption><b>Figure 10-18</b> — The <b>parallel</b> plan, which for this query runs slower. The book modified the image for readability.</figcaption>
+        </figure>
+      </div>
+
+      <p>
+        The honest first question is <i>why did it recompile, and why are the costs different?</i> For a
+        parameterized query, parameter sniffing is the prime suspect (Chapter 8). Here it's a simple query
+        and the book chooses the "easy" fix. Note the advice around it: tune
+        <code class="inl">cost threshold for parallelism</code> properly (<b>don't leave it at 5</b>), set
+        MAXDOP at the <b>database</b> level rather than server level, and don't simply switch parallelism
+        off — a well-configured system benefits from it.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 10-15 · contrive a parallel plan, then reset</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="cm">--enable advanced options</span>
+<span class="kw">EXEC</span> sys.sp_configure 'show advanced options', 1
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>
+<span class="kw">GO</span>
+<span class="cm">--change the cost threshold to 1</span>
+<span class="kw">EXEC</span> sp_configure 'cost threshold for parallelism', 1;
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>;
+<span class="kw">GO</span>
+<span class="cm">--Execute the query which will go parallel</span>
+<span class="kw">SELECT</span> wo.DueDate,
+       <span class="fn">MIN</span>(wo.OrderQty) <span class="kw">AS</span> MinOrderQty,
+       <span class="fn">MIN</span>(wo.StockedQty) <span class="kw">AS</span> MinStockedQty,
+       <span class="fn">MIN</span>(wo.ScrappedQty) <span class="kw">AS</span> MinScrappedQty,
+       <span class="fn">MAX</span>(wo.OrderQty) <span class="kw">AS</span> MaxOrderQty,
+       <span class="fn">MAX</span>(wo.StockedQty) <span class="kw">AS</span> MaxStockedQty,
+       <span class="fn">MAX</span>(wo.ScrappedQty) <span class="kw">AS</span> MaxScrappedQty
+<span class="kw">FROM</span> Production.WorkOrder <span class="kw">AS</span> wo
+<span class="kw">GROUP BY</span> wo.DueDate
+<span class="kw">ORDER BY</span> wo.DueDate;
+<span class="kw">GO</span>
+<span class="cm">--reset the cost threshold to the default value</span>
+<span class="cm">--if your cost threshold is set to a different value, change the 5</span>
+<span class="kw">EXEC</span> sys.sp_configure 'cost threshold for parallelism', 5;
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>;
+<span class="kw">GO</span>
+<span class="cm">--disable advanced options</span>
+<span class="kw">EXEC</span> sys.sp_configure 'show advanced options', 0
+<span class="kw">GO</span>
+<span class="kw">RECONFIGURE WITH OVERRIDE</span>
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 10-16 · MAXDOP 1</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">OPTION</span>  ( <span class="kw">MAXDOP 1</span> );</code></pre>
+      </div>
+
+      <p>
+        Add it and the plan becomes Figure 10-17 — serial, no parallelism at all. More commonly you'd use
+        a value <b>between 1 and the processor count</b>, so a single long query can't take the whole box.
+      </p>
+    </section>
+
+    <section class="card" id="ch10-optimize">
+      <h2><span class="num">5</span> OPTIMIZE FOR and RECOMPILE</h2>
+      <p class="lede">Two fixes for parameter sniffing, and the recursive irony: a hint that stops the optimizer guessing, and a hint that makes it guess again — every time.</p>
+
+      <h3 class="step">OPTIMIZE FOR</h3>
+      <div class="code">
+        <header><span>Listing 10-17 · two values, two plans</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  AddressID,
+        AddressLine1,
+        AddressLine2,
+        City,
+        StateProvinceID,
+        PostalCode,
+        SpatialLocation,
+        rowguid,
+        ModifiedDate
+<span class="kw">FROM</span>    Person.Address
+<span class="kw">WHERE</span>   City = 'Mentor';
+<span class="kw">SELECT</span>  AddressID,
+        AddressLine1,
+        AddressLine2,
+        City,
+        StateProvinceID,
+        PostalCode,
+        SpatialLocation,
+        rowguid,
+        ModifiedDate
+<span class="kw">FROM</span>    Person.Address
+<span class="kw">WHERE</span>   City = 'London';</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-19-two-plans-two-values.png"
+             alt="Two plans: first with Index Scan on AddressLine1 plus Key Lookup, second with a Clustered Index Scan.">
+        <figcaption><b>Figure 10-19</b> — Two values, two plans. <b>Mentor</b> is rare, so the optimizer scans the nonclustered index on AddressLine1 and does a Key Lookup per row. <b>London</b> is not selective at all, so it scans the clustered index. Both are optimal — for their own value.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>Put this in a procedure and the second value inherits the first value's plan</b>
+        Execute with <b>Mentor</b> first, then with <b>London</b>, and the cached plan does thousands of Key
+        Lookups for a query that should scan. That's Chapters 8 and 9 in one sentence. Adding
+        <code class="inl">OPTIMIZE FOR (@City = 'London')</code> "fixes" it — until the data changes and
+        London stops being the common case. The book's honest view: <b>OPTIMIZE FOR UNKNOWN is generally
+        more stable</b> than optimizing for any particular value.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 10-18 · local variables get one generic plan</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> @City <span class="kw">NVARCHAR</span>(30)
+<span class="kw">SET</span> @City = 'Mentor'
+<span class="kw">SELECT</span>  AddressID,
+        AddressLine1,
+        AddressLine2,
+        City,
+        StateProvinceID,
+        PostalCode,
+        SpatialLocation,
+        rowguid,
+        ModifiedDate
+<span class="kw">FROM</span>    Person.Address
+<span class="kw">WHERE</span>   City = @City;
+<span class="kw">SET</span> @City = 'London'
+<span class="kw">SELECT</span>  AddressID,
+        AddressLine1,
+        AddressLine2,
+        City,
+        StateProvinceID,
+        PostalCode,
+        SpatialLocation,
+        rowguid,
+        ModifiedDate
+<span class="kw">FROM</span>    Person.Address
+<span class="kw">WHERE</span>   City = @City;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-20-local-variable-plans.png"
+             alt="Two identical plans, both clustered index scans.">
+        <figcaption><b>Figure 10-20</b> — A local variable can't be sniffed, so <b>both</b> queries get the same clustered index scan from the density estimate. Same code, different mechanism, and this time the "wrong" answer is at least stable.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 10-19 · OPTIMIZE FOR UNKNOWN in a procedure</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE OR ALTER PROCEDURE</span> dbo.AddressByCity @City <span class="kw">NVARCHAR</span>(30)
+<span class="kw">AS</span>
+<span class="kw">SELECT</span>  AddressID,
+        AddressLine1,
+        AddressLine2,
+        City,
+        StateProvinceID,
+        PostalCode,
+        SpatialLocation,
+        rowguid,
+        ModifiedDate
+<span class="kw">FROM</span>    Person.Address
+<span class="kw">WHERE</span>   City = @City
+<span class="kw">OPTION</span> (<span class="kw">OPTIMIZE FOR UNKNOWN</span>);
+<span class="kw">GO</span>
+<span class="kw">EXEC</span> dbo.AddressByCity @City = N'Mentor';</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-21-optimize-for-unknown-plan.png"
+             alt="The generic clustered index scan plan, used even for the selective value.">
+        <figcaption><b>Figure 10-21</b> — Even for rarity itself: Mentor is uncommon, the nonclustered index <i>would</i> be selective, and you still get the generic plan. That's the deal you accepted.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 10-20 · optimizing for more than one value</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE OR ALTER PROCEDURE</span> dbo.AddressDetails
+    @City <span class="kw">NVARCHAR</span>(30),
+    @PostalCode <span class="kw">NVARCHAR</span>(15),
+    @AddressLine2 <span class="kw">NVARCHAR</span>(60) <span class="kw">NULL</span>
+<span class="kw">AS</span>
+<span class="kw">SELECT</span> a.AddressLine1,
+       a.AddressLine2,
+       a.SpatialLocation
+<span class="kw">FROM</span> Person.Address <span class="kw">AS</span> a
+<span class="kw">WHERE</span> a.City = @City
+      <span class="kw">AND</span> a.PostalCode = @PostalCode
+      <span class="kw">AND</span> (   a.AddressLine2 = @AddressLine2
+              <span class="kw">OR</span> @AddressLine2 <span class="kw">IS NULL</span>)
+<span class="kw">OPTION</span> (<span class="kw">OPTIMIZE FOR</span> (@City = 'London', @PostalCode = 'W1Y 3RA'));</code></pre>
+        <div class="cap">One hint clause, as many parameter values as you need. Note this listing also contains the <code>OR … IS NULL</code> optional-parameter pattern — the one that costs you seeks (Chapter 8).</div>
+      </div>
+
+      <p>
+        This is one of the few hints the author uses regularly, "though still not often" — and always with
+        the caveat that using it requires intimate knowledge of the data. The wrong value doesn't just fail
+        to help; it actively hurts.
+      </p>
+
+      <h3 class="step">RECOMPILE</h3>
+      <div class="code">
+        <header><span>Listing 10-21 · the tipping point again</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  soh.SalesOrderNumber ,
+        soh.OrderDate ,
+        soh.SubTotal ,
+        soh.TotalDue
+<span class="kw">FROM</span>    Sales.SalesOrderHeader soh
+<span class="kw">WHERE</span>   soh.SalesPersonID = 279;
+<span class="kw">GO</span>
+<span class="kw">SELECT</span>  soh.SalesOrderNumber ,
+        soh.OrderDate ,
+        soh.SubTotal ,
+        soh.TotalDue
+<span class="kw">FROM</span>    Sales.SalesOrderHeader soh
+<span class="kw">WHERE</span>   soh.SalesPersonID = 280;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-22-recompiled-plans.png"
+             alt="Two very different plans for adjacent parameter values.">
+        <figcaption><b>Figure 10-22</b> — One row of difference between the two values, and radically different plans. This is the tipping point from Chapter 8, live.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter10/fig-10-23-failed-simple-parameterization.png"
+             alt="SELECT properties showing a Parameter List and StatementParameterizationType 0.">
+        <figcaption><b>Figure 10-23</b> — Looks like simple parameterization (there's a Parameter List), but <b>StatementParameterizationType</b> says otherwise. The Chapter 9 trap, repeated here for a reason.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 10-22 · the same query as a prepared statement</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> @IDValue <span class="kw">INT</span>;
+<span class="kw">DECLARE</span> @MaxID <span class="kw">INT</span> = 280;
+<span class="kw">DECLARE</span> @PreparedStatement <span class="kw">INT</span>;
+<span class="kw">SELECT</span> @IDValue = 279;
+<span class="kw">EXEC</span> sp_prepare @PreparedStatement <span class="kw">OUTPUT</span>,
+                N'@SalesPersonID INT',
+                N'<span class="kw">SELECT</span>  soh.SalesPersonID, soh.SalesOrderNumber,
+        soh.OrderDate,
+        soh.SubTotal,
+        soh.TotalDue
+<span class="kw">FROM</span>    Sales.SalesOrderHeader soh
+<span class="kw">WHERE</span>   soh.SalesPersonID =  @SalesPersonID';
+<span class="kw">WHILE</span> @IDValue &lt;= @MaxID
+<span class="kw">BEGIN</span>
+    <span class="kw">EXEC</span> sp_execute @PreparedStatement, @IDValue;
+    <span class="kw">SELECT</span> @IDValue = @IDValue + 1;
+<span class="kw">END</span>
+<span class="kw">EXEC</span> sp_unprepare @PreparedStatement;</code></pre>
+      </div>
+
+      <p>
+        Because <code class="inl">sp_prepare</code> compiles before any value exists, there's no sniffing:
+        you get <b>one</b> clustered index scan plan, used for both values, in either execution order.
+        Stable — and wrong for the selective value.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 10-23 · adding RECOMPILE to the prepared statement</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>&hellip;
+<span class="kw">EXEC</span> sp_prepare @PreparedStatement <span class="kw">OUTPUT</span>,
+                N'@SalesPersonID INT',
+                N'<span class="kw">SELECT</span>  soh.SalesPersonID, soh.SalesOrderNumber,
+        soh.OrderDate,
+        soh.SubTotal,
+        soh.TotalDue
+<span class="kw">FROM</span>    Sales.SalesOrderHeader soh
+<span class="kw">WHERE</span>   soh.SalesPersonID =  @SalesPersonID
+<span class="kw">OPTION</span> (<span class="kw">RECOMPILE</span>)';
+&hellip;</code></pre>
+      </div>
+
+      <div class="note">
+        <b>Both plans, neither cached</b>
+        With <code class="inl">RECOMPILE</code> you see the two different plans in SSMS again — and in the
+        plan cache, <b>neither</b>. For code modules, every statement stays cached but the hinted statement
+        recompiles every execution; for ad hoc queries the plan isn't stored at all. You swap cache
+        pressure for compile CPU, deliberately.
+      </div>
+    </section>
+
+    <section class="card" id="ch10-expand">
+      <h2><span class="num">6</span> EXPAND VIEWS and the columnstore ignore hint</h2>
+      <p class="lede">Two hints that say "don't use the clever structure I built" — and the measurements that explain why you usually shouldn't say it.</p>
+
+      <div class="code">
+        <header><span>Listing 10-24 · a query against an indexed view</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> vspcr.StateProvinceCode,
+       vspcr.StateProvinceName,
+       vspcr.CountryRegionName
+<span class="kw">FROM</span> Person.vStateProvinceCountryRegion <span class="kw">AS</span> vspcr;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-24-indexed-view-plan.png"
+             alt="Plan scanning the indexed view's clustered index.">
+        <figcaption><b>Figure 10-24</b> — The indexed view's clustered index contains exactly the data needed, so that's all the plan needs. <b>54 ms.</b></figcaption>
+      </figure>
+
+      <p>
+        <code class="inl">OPTION (EXPAND VIEWS)</code> replaces any referenced indexed view with its
+        definition during compilation and then <b>skips view matching</b> — so the optimizer never gets the
+        chance to use the materialised copy.
+      </p>
+
+      <figure>
+        <img src="images/chapter10/fig-10-25-expand-views-plan.png"
+             alt="Plan with clustered index scans on CountryRegion and StateProvince, a Sort and a Merge Join.">
+        <figcaption><b>Figure 10-25</b> — Expanded: Clustered Index Scans on <code class="inl">Person.CountryRegion</code> and <code class="inl">Person.StateProvince</code>, a Sort and a Merge Join. <b>189 ms</b> instead of 54 ms.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>The fine print</b>
+        Indexed-view matching is <b>Enterprise only</b>, so on Standard this hint does nothing at all. You
+        can override the hint per view with <code class="inl">WITH (NOEXPAND)</code>. And in most cases
+        (not all) the indexed view is the better plan — test before you expand.
+      </div>
+
+      <p>
+        <b><code class="inl">IGNORE_NONCLUSTERED_COLUMNSTORE_INDEX</code></b> does what it says for the
+        whole query: any nonclustered columnstore index is ignored. It does <b>not</b> affect a
+        <b>clustered</b> columnstore index. Useful when a columnstore that's great for aggregations is
+        being chosen for a point lookup it's bad at (Chapter 8).
+      </p>
+    </section>
+
+    <section class="card" id="ch10-table-hints">
+      <h2><span class="num">7</span> Join hints and table hints</h2>
+      <p class="lede">Now the surgical ones: a single join, a single index, a single operator type. More precision, more ways to hurt yourself.</p>
+
+      <h3 class="step">Join hints</h3>
+      <p>
+        <code class="inl">LOOP</code>, <code class="inl">HASH</code> or <code class="inl">MERGE</code>,
+        written into the <code class="inl">JOIN</code> clause. Two consequences worth knowing: a join hint
+        <b>also forces the join order</b> — effectively the same as
+        <code class="inl">OPTION (FORCE ORDER)</code> — and you <b>cannot force an Adaptive Join</b> (Chapter 4)
+        with any hint. A fourth kind, <code class="inl">REMOTE</code>, pushes the join to a remote server and
+        doesn't change the visible plan.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 10-25 · the reference query again</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> pm.Name,
+       pm.CatalogDescription,
+       p.Name <span class="kw">AS</span> ProductName,
+       i.Diagram
+<span class="kw">FROM</span> Production.ProductModel <span class="kw">AS</span> pm
+    <span class="kw">LEFT JOIN</span> Production.Product <span class="kw">AS</span> p
+        <span class="kw">ON</span> pm.ProductModelID = p.ProductModelID
+    <span class="kw">LEFT JOIN</span> Production.ProductModelIllustration <span class="kw">AS</span> pmi
+        <span class="kw">ON</span> p.ProductModelID = pmi.ProductModelID
+    <span class="kw">LEFT JOIN</span> Production.Illustration <span class="kw">AS</span> i
+        <span class="kw">ON</span> pmi.IllustrationID = i.IllustrationID
+<span class="kw">WHERE</span> pm.Name <span class="kw">LIKE</span> '%Mountain%'
+<span class="kw">ORDER BY</span> pm.Name;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-26-optimizer-join-choices.png"
+             alt="Plan with the optimizer's own join choices for the four-table query.">
+        <figcaption><b>Figure 10-26</b> — The optimizer's own choices. The top input to the final Nested Loops returns <b>455</b> rows, so the Clustered Index Scan on Illustration runs <b>455 times</b>. <b>485 reads, ~74 ms.</b></figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 10-26 · HASH on one join only</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> pm.Name,
+       pm.CatalogDescription,
+       p.Name <span class="kw">AS</span> ProductName,
+       i.Diagram
+<span class="kw">FROM</span> Production.ProductModel <span class="kw">AS</span> pm
+    <span class="kw">LEFT JOIN</span> Production.Product <span class="kw">AS</span> p
+        <span class="kw">ON</span> pm.ProductModelID = p.ProductModelID
+    <span class="kw">LEFT JOIN</span> Production.ProductModelIllustration <span class="kw">AS</span> pmi
+        <span class="kw">ON</span> pm.ProductModelID = pmi.ProductModelID
+    <span class="kw">LEFT HASH JOIN</span> Production.Illustration <span class="kw">AS</span> i
+        <span class="kw">ON</span> pmi.IllustrationID = i.IllustrationID
+<span class="kw">WHERE</span> pm.Name <span class="kw">LIKE</span> '%Mountain%'
+<span class="kw">ORDER BY</span> pm.Name;</code></pre>
+        <div class="cap">Note where the hint goes: <code>LEFT HASH JOIN</code>, not <code>LEFT JOIN … OPTION(HASH JOIN)</code>. That's the whole difference between one join and every join.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-27-forced-hash-join.png"
+             alt="Plan with the Illustration join now a Hash Match.">
+        <figcaption><b>Figure 10-27</b> — What you're <i>supposed</i> to see: the Illustration join as a <b>Hash Match</b>, the rest reshaping into Merge Joins and a Sort of the Product data. See the note below — this figure came out identical to 10-26.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>Note on Figure 10-27</b>
+        In my copy of the book, the image embedded for Figure 10-27 is <b>pixel-for-pixel the same plan as
+        Figure 10-26</b> — the optimizer's original, un-hinted plan. The text says the Illustration join
+        should now be a <b>Hash Match</b> with the other joins changed to Merge Joins and a Sort added on
+        Product. Read the caption as the intended plan, and treat the image as a printing fault rather than
+        as evidence that the hint did nothing. The <i>numbers</i> in the prose (34 reads) are what you're
+        meant to take away.
+      </div>
+
+      <div class="note tip">
+        <b>The best result in the chapter</b>
+        <b>485 reads → 34</b>, and runtime down marginally (77 → 74 ms). Eliminating the 455 repeated
+        scans is a real, substantial I/O saving. The time barely moved, so whether it's "better" depends
+        entirely on whether your bottleneck is <b>I/O contention</b> — which needs testing on a loaded
+        system to establish.
+      </div>
+
+      <h3 class="step">Table hints and NOEXPAND</h3>
+      <p>
+        Table hints can change locking behaviour and therefore data integrity, so they deserve even more
+        caution than the others. The syntax is always the same:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 10-27 · table hint syntax</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">FROM</span> TableName <span class="kw">WITH</span> (hint, hint,&hellip;)</code></pre>
+        <div class="cap"><code>WITH</code> and commas aren't mandatory for every hint, but they're allowed for all of them — use both and stop guessing.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 10-28 · NOEXPAND</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> a.City,
+       v.StateProvinceName,
+       v.CountryRegionName
+<span class="kw">FROM</span> Person.Address <span class="kw">AS</span> a
+    <span class="kw">JOIN</span> Person.vStateProvinceCountryRegion <span class="kw">AS</span> v <span class="kw">WITH</span> (<span class="kw">NOEXPAND</span>)
+        <span class="kw">ON</span> a.StateProvinceID = v.StateProvinceID
+<span class="kw">WHERE</span> a.AddressID = 22701;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-28-noexpand-plan.png"
+             alt="Plan using the indexed view's clustered index instead of a three-table join.">
+        <figcaption><b>Figure 10-28</b> — NOEXPAND keeps the view materialised: a smaller plan, <b>189 ms → 162 ms</b>, reads <b>6 → 4</b>. The difference is small here; the point is the mechanism.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>Why NOEXPAND matters most on Standard Edition</b>
+        Enterprise and Developer will use an indexed view's indexes when the optimizer judges it best — that's
+        <b>indexed view matching</b>, and it needs a specific session state:
+        <code class="inl">ANSI_NULLS</code>, <code class="inl">ANSI_WARNINGS</code>,
+        <code class="inl">CONCAT_NULL_YIELDS_NULL</code>, <code class="inl">ANSI_PADDING</code>,
+        <code class="inl">ARITHABORT</code> and <code class="inl">QUOTED_IDENTIFIER</code> all ON, and
+        <code class="inl">NUMERIC_ROUNDABORT</code> OFF. On <b>Standard</b>, matching doesn't happen at all
+        — so <code class="inl">NOEXPAND</code> is how you get the indexed view used.
+      </div>
+
+      <h3 class="step">INDEX()</h3>
+      <div class="code">
+        <header><span>Listings 10-29 to 10-31 · three ways to name an index</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="cm">-- by number (from sys.indexes) — not recommended, numbering can change</span>
+&hellip;<span class="kw">FROM</span> dbo.TableName <span class="kw">WITH</span> (<span class="kw">INDEX</span>(2))&hellip;
+
+<span class="cm">-- by name — the book's recommendation</span>
+&hellip;<span class="kw">FROM</span> dbo.TableName <span class="kw">WITH</span> (<span class="kw">INDEX</span> (IndexName))&hellip;
+
+<span class="cm">-- several indexes in ONE hint = force an index intersection</span>
+&hellip;<span class="kw">FROM</span> TableName <span class="kw">WITH</span> (<span class="kw">INDEX</span> (IndexName1,IndexName2))&hellip;</code></pre>
+        <div class="cap">Two special numbers: <code>0</code> forces a scan of the clustered index or heap; <code>1</code> forces a scan or seek on a clustered index and <b>errors on a heap</b>. And note what the multi-index form does — it doesn't let the optimizer pick among those indexes, it forces <b>all of them, in the listed order</b>.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 10-32 · index intersection in action</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE TABLE</span> dbo.IndexSample (ID <span class="kw">INT NOT NULL IDENTITY</span>(1, 1),
+                              ColumnA <span class="kw">INT</span>,
+                              ColumnB <span class="kw">INT</span>,
+                              ColumnC <span class="kw">INT</span>,
+                              <span class="kw">CONSTRAINT</span> IndexSamplePK
+                                  <span class="kw">PRIMARY KEY</span> (ID));
+
+<span class="kw">CREATE INDEX</span> FirstIndex <span class="kw">ON</span> dbo.IndexSample (ColumnA);
+<span class="kw">CREATE INDEX</span> SecondIndex <span class="kw">ON</span> dbo.IndexSample (ColumnB);
+<span class="kw">CREATE INDEX</span> ThirdIndex <span class="kw">ON</span> dbo.IndexSample (ColumnC);
+
+<span class="kw">SELECT</span> isa.ID,
+       isa.ColumnA,
+       isa.ColumnB,
+       isa.ColumnC
+<span class="kw">FROM</span> dbo.IndexSample <span class="kw">AS</span> isa <span class="kw">WITH</span> (<span class="kw">INDEX</span>(FirstIndex, SecondIndex, ThirdIndex));
+
+<span class="kw">DROP TABLE</span> dbo.IndexSample;</code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listings 10-33 and 10-34 · a realistic use, and a warning</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="cm">-- the unhinted query</span>
+<span class="kw">SELECT</span> de.Name,
+       e.JobTitle,
+       p.LastName + ', ' + p.FirstName
+<span class="kw">FROM</span> HumanResources.Department <span class="kw">AS</span> de
+    <span class="kw">JOIN</span> HumanResources.EmployeeDepartmentHistory <span class="kw">AS</span> edh
+        <span class="kw">ON</span> de.DepartmentID = edh.DepartmentID
+    <span class="kw">JOIN</span> HumanResources.Employee <span class="kw">AS</span> e
+        <span class="kw">ON</span> edh.BusinessEntityID = e.BusinessEntityID
+    <span class="kw">JOIN</span> Person.Person <span class="kw">AS</span> p
+        <span class="kw">ON</span> e.BusinessEntityID = p.BusinessEntityID
+<span class="kw">WHERE</span> de.Name <span class="kw">LIKE</span> 'P%';
+
+<span class="cm">-- the same query, forcing the Department clustered index</span>
+<span class="kw">SELECT</span> de.Name,
+       e.JobTitle,
+       p.LastName + ', ' + p.FirstName
+<span class="kw">FROM</span> HumanResources.Department <span class="kw">AS</span> de <span class="kw">WITH</span> (<span class="kw">INDEX</span>(PK_Department_DepartmentID))
+    <span class="kw">JOIN</span> HumanResources.EmployeeDepartmentHistory <span class="kw">AS</span> edh
+        <span class="kw">ON</span> de.DepartmentID = edh.DepartmentID
+    <span class="kw">JOIN</span> HumanResources.Employee <span class="kw">AS</span> e
+        <span class="kw">ON</span> edh.BusinessEntityID = e.BusinessEntityID
+    <span class="kw">JOIN</span> Person.Person <span class="kw">AS</span> p
+        <span class="kw">ON</span> e.BusinessEntityID = p.BusinessEntityID
+<span class="kw">WHERE</span> de.Name <span class="kw">LIKE</span> 'P%';</code></pre>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter10/fig-10-29-optimizer-index-choices.png"
+               alt="Plan with Index Seeks and Clustered Index Seeks joined by Nested Loops.">
+          <figcaption><b>Figure 10-29</b> — The optimizer's plan: seeks all the way, joined by Nested Loops. <b>217 ms, 1,042 reads.</b></figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter10/fig-10-30-forced-index-plan.png"
+               alt="Plan where the Department seek is replaced by a clustered index scan.">
+          <figcaption><b>Figure 10-30</b> — With the hint: a Clustered Index <b>Scan</b> replaces the seek — you named the index, so the optimizer chose how to use it. <b>103 ms, still 1,042 reads.</b></figcaption>
+        </figure>
+      </div>
+
+      <p>
+        Twice the speed here, identical reads. Which is exactly why the "just make it seek" instinct is
+        unreliable — as the next pair of hints proves.
+      </p>
+
+      <h3 class="step">FORCESEEK / FORCESCAN</h3>
+      <p>
+        The mirror image of <code class="inl">INDEX()</code>: force the <b>operator</b> and let the
+        optimizer choose the index.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 10-35 · no WHERE clause, so: scans</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.Name <span class="kw">AS</span> ComponentName,
+       p2.Name <span class="kw">AS</span> AssemblyName,
+       bom.StartDate,
+       bom.EndDate
+<span class="kw">FROM</span> Production.BillOfMaterials <span class="kw">AS</span> bom
+    <span class="kw">JOIN</span> Production.Product <span class="kw">AS</span> p
+        <span class="kw">ON</span> p.ProductID = bom.ComponentID
+    <span class="kw">JOIN</span> Production.Product <span class="kw">AS</span> p2
+        <span class="kw">ON</span> p2.ProductID = bom.ProductAssemblyID;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-31-scan-only-plan.png"
+             alt="Plan with index scans and a Hash Match, no WHERE clause filtering.">
+        <figcaption><b>Figure 10-31</b> — With no filter, scans are correct. The biggest cost is the scan of BillOfMaterials. <b>~145 ms, 34 reads.</b></figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 10-36 · FORCESEEK</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.Name <span class="kw">AS</span> ComponentName,
+       p2.Name <span class="kw">AS</span> AssemblyName,
+       bom.StartDate,
+       bom.EndDate
+<span class="kw">FROM</span> Production.BillOfMaterials <span class="kw">AS</span> bom <span class="kw">WITH</span> (<span class="kw">FORCESEEK</span>)
+    <span class="kw">JOIN</span> Production.Product <span class="kw">AS</span> p
+        <span class="kw">ON</span> p.ProductID = bom.ComponentID
+    <span class="kw">JOIN</span> Production.Product <span class="kw">AS</span> p2
+        <span class="kw">ON</span> p2.ProductID = bom.ProductAssemblyID;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter10/fig-10-32-forceseek-plan.png"
+             alt="Plan with a forced seek on BillOfMaterials and Nested Loops replacing the Hash Match.">
+        <figcaption><b>Figure 10-32</b> — The scan becomes a seek, and the Hash Match becomes Nested Loops. It looks like the "better" plan.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>The numbers that end the argument</b>
+        <b>145 ms → 290 ms. 34 reads → 1,160.</b> Taking the scan away forced a plan that re-reads the
+        same data thousands of times. "Seeks are always better than scans" is one of the most expensive
+        myths in T-SQL, and this is the chapter's best demolition of it.
+      </div>
+    </section>
+
+    <section class="card" id="ch10-cheatsheet">
+      <h2><span class="num">★</span> Chapter 10 cheat sheet</h2>
+
+      <table>
+        <thead><tr><th>Hint</th><th>What it forces</th><th>What the book measured</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">HASH GROUP</code></td><td>Hash Match for every aggregation</td><td>Usually already the optimizer's choice — the safe direction.</td></tr>
+          <tr><td><code class="inl">ORDER GROUP</code></td><td>Stream Aggregate — adds a Sort if data isn't ordered</td><td><b>9.7 ms → 18 ms</b>, cost <b>+39%</b>. Fix with an index instead.</td></tr>
+          <tr><td><code class="inl">MERGE UNION</code></td><td>Merge Join (Union) — removes the Distinct Sort, adds input Sorts</td><td><b>121 → 193 ms</b>, reads <b>29 → 41</b>. Worse.</td></tr>
+          <tr><td><code class="inl">HASH UNION</code></td><td>Hash Match (Union) — no Sorts at all</td><td><b>121 → 99 ms</b>, same reads. Works only if the probe input has no duplicates; never applies to <code class="inl">UNION ALL</code>.</td></tr>
+          <tr><td><code class="inl">LOOP JOIN</code></td><td>Nested Loops everywhere</td><td>Reads <b>485 → 1,250</b>, runtime flat — but a much smaller memory grant.</td></tr>
+          <tr><td><code class="inl">MERGE JOIN</code></td><td>Merge Joins everywhere (adds Sorts)</td><td>Fewest reads yet (<b>116</b>), same runtime: three Sorts + a many-to-many worktable in tempdb.</td></tr>
+          <tr><td><code class="inl">HASH JOIN</code></td><td>Hash Match everywhere</td><td>Best reads (<b>97</b>), same runtime, memory grant up to ~<b>6 MB</b>.</td></tr>
+          <tr><td><code class="inl">FAST n</code></td><td>Plan optimised for the first <i>n</i> rows (treated like <code class="inl">TOP (n)</code>)</td><td>First rows faster, total worse: reads <b>1,935 → 106,505</b>, Sort estimated at 2.6 rows for 31,465 actual.</td></tr>
+          <tr><td><code class="inl">FORCE ORDER</code></td><td>Join order exactly as written</td><td>For optimizer timeouts and runaway recompiles. Here: <b>149 → 166 ms</b>.</td></tr>
+          <tr><td><code class="inl">MAXDOP n</code></td><td>Degree of parallelism for this query only</td><td>For the occasional bad parallel plan once cost threshold and database MAXDOP are properly tuned.</td></tr>
+          <tr><td><code class="inl">OPTIMIZE FOR</code></td><td>Plan built for a value you choose — or <code class="inl">UNKNOWN</code> for a generic plan</td><td>Requires knowing your data; the value can go stale. <code class="inl">UNKNOWN</code> is usually more stable.</td></tr>
+          <tr><td><code class="inl">RECOMPILE</code></td><td>A fresh plan for the current values, every execution</td><td>Fixes sniffing, costs compiles; ad hoc plans aren't cached at all.</td></tr>
+          <tr><td><code class="inl">EXPAND VIEWS</code></td><td>Ignore indexed views (skip view matching)</td><td><b>54 → 189 ms.</b> Enterprise only; <code class="inl">NOEXPAND</code> is the opposite and usually the better bet.</td></tr>
+          <tr><td><code class="inl">IGNORE_NONCLUSTERED_<br>COLUMNSTORE_INDEX</code></td><td>Skip nonclustered columnstore indexes for the query</td><td>For point lookups that shouldn't have been given a columnstore. Doesn't affect clustered columnstore.</td></tr>
+          <tr><td><b>Join hint</b> <code class="inl">LEFT HASH JOIN</code></td><td>One join's method — and, implicitly, the join order</td><td>Best result in the chapter: <b>485 → 34 reads</b>. No Adaptive Join can be forced.</td></tr>
+          <tr><td><code class="inl">INDEX(name)</code> / <code class="inl">INDEX(a,b)</code></td><td>A specific index — or <b>all</b> listed indexes in order</td><td><b>217 → 103 ms</b>, same reads. <code>0</code> = scan clustered/heap, <code>1</code> = clustered only, errors on a heap.</td></tr>
+          <tr><td><code class="inl">FORCESEEK</code> / <code class="inl">FORCESCAN</code></td><td>The operator, not the index</td><td><b>145 → 290 ms, 34 → 1,160 reads.</b> The seek myth, disproved.</td></tr>
+          <tr><td><code class="inl">WITH (NOEXPAND)</code></td><td>Don't expand <i>this</i> indexed view</td><td><b>189 → 162 ms</b>, reads 6 → 4. The only way to use an indexed view on Standard Edition.</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>Hints are commands.</b> The optimizer will obey, or fail with an error — it will not quietly do the sensible thing.</li>
+        <li><b>A hint removes the optimizer's ability to improve later.</b> Data changes, patches land, upgrades happen; the hint doesn't.</li>
+        <li><b>Most hints in this chapter made things worse.</b> That's not a coincidence of the book's examples; it's the base rate.</li>
+        <li><b>Fewer reads ≠ faster, and faster ≠ cheaper.</b> Compare reads, elapsed time, and memory grant — then choose which one you actually need.</li>
+        <li><b>Always ask what the real problem is.</b> Every join-hint experiment above still had a non-SARGable <code class="inl">LIKE '%Mountain%'</code> at its centre.</li>
+        <li><b>Document and re-test.</b> A hint without a note explaining why is a landmine with a timer on it.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        The optimizer is usually right and sometimes wrong. When it's wrong and you can't change the code,
+        query, join and table hints can take control — but the data is always changing, so anything you
+        force today can become tomorrow's problem. Test before you apply, document why, re-test after every
+        upgrade, and treat hints as a last resort rather than standard practice.
       </div>
     </section>
 
