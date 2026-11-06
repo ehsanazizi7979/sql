@@ -7,8 +7,8 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1 through 11** — 113 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 105 syntax-highlighted,
+One self-contained HTML file covering **Chapters 1 through 12** — 123 figures embedded as inline
+base64 images (works offline, no server, no external assets) and 111 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -24,6 +24,7 @@ copyable T-SQL listings.
 | 9 | tempdb Usage and Performance | 263–292 | 9-1 … 9-8 | 9-1 … 9-14 |
 | 10 | Latches | 293–306 | 10-1 … 10-8 | 10-1 … 10-5 |
 | 11 | Transaction Log | 307–330 | 11-1 … 11-12 | 11-1 … 11-5 |
+| 12 | AlwaysOn Availability Groups | 331–356 | 12-1 … 12-10 | 12-1 … 12-6 |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -307,6 +308,28 @@ Write-ahead logging, the cost of auto-committed transactions, VLF management,
 - Listing 11-3 — Analyzing VLFs in the database
 - Listing 11-4 — Analyzing the `log_reuse_wait_desc` column in `sys.databases`
 - Listing 11-5 — Getting active transactions
+
+### Chapter 12 — AlwaysOn Availability Groups
+
+Send and redo queues, the cost of synchronous commit, xEvent forensics, the hidden
+price of readable secondaries, and why failovers happen (or don't).
+
+- Figure 12-1 — Example of an Availability Group setup
+- Figure 12-2 — Availability Group queues
+- Figure 12-3 — Output from the Availability Group monitoring script
+- Figure 12-4 — Synchronous commit data flow
+- Figure 12-5 — Waits before and after a SQL Server 2016 upgrade
+- Figure 12-6 — Availability Group communication flow in synchronous mode
+- Figure 12-7 — xEvents from the primary node
+- Figure 12-8 — xEvents from the secondary node
+- Figure 12-9 — Asynchronous commit data flow
+- Figure 12-10 — Index statistics (ghost records on the primary)
+- Listing 12-1 — Availability Group monitoring code
+- Listing 12-2 — Creating xEvent sessions for AG performance troubleshooting
+- Listing 12-3 — Readable secondaries: table creation
+- Listing 12-4 — Readable secondaries: starting a transaction on the secondary node
+- Listing 12-5 — Readable secondaries: deleting data and performing a clustered index scan
+- Listing 12-6 — Readable secondaries: checking the index stats
 
 ## Viewing it
 
