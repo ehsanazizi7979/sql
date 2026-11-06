@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 1 Summary — Anatomy of an Index (SQL Performance Explained)</title>
+<style>
+  :root { --accent:#2563eb; --ink:#1f2937; --muted:#6b7280; --bg:#f8fafc; --card:#ffffff; }
+  * { box-sizing: border-box; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: var(--ink); background: var(--bg); margin: 0; line-height: 1.7; }
+  header { background: linear-gradient(135deg,#1e3a8a,#2563eb); color: #fff; padding: 3rem 1.5rem; text-align: center; }
+  header h1 { margin: 0 0 .4rem; font-size: 2rem; }
+  header p { margin: 0; color: #dbeafe; }
+  main { max-width: 880px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  section { background: var(--card); border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem 1.75rem; margin-bottom: 1.75rem; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+  h2 { color: var(--accent); border-bottom: 2px solid #dbeafe; padding-bottom: .35rem; margin-top: 0; }
+  figure { margin: 1.25rem 0; text-align: center; }
+  figure img { max-width: 100%; height: auto; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; }
+  figcaption { color: var(--muted); font-size: .9rem; margin-top: .5rem; font-style: italic; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 1rem 1.25rem; border-radius: 8px; overflow-x: auto; font-size: .9rem; line-height: 1.5; }
+  code { font-family: 'Courier New', monospace; }
+  pre code .kw { color: #7dd3fc; font-weight: bold; }
+  .callout { background: #eff6ff; border-left: 4px solid var(--accent); padding: .75rem 1rem; border-radius: 0 8px 8px 0; margin: 1rem 0; }
+  .key { background: #fef9c3; border-left: 4px solid #eab308; padding: .75rem 1rem; border-radius: 0 8px 8px 0; margin: 1rem 0; }
+  ul { padding-left: 1.4rem; }
+  table { border-collapse: collapse; margin: 1rem auto; }
+  th, td { border: 1px solid #d1d5db; padding: .4rem .9rem; text-align: center; }
+  th { background: #f1f5f9; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Chapter 1: Anatomy of an Index</h1>
+  <p>A simple-terms summary of Chapter 1 of <em>SQL Performance Explained</em> by Markus Winand</p>
+</header>
+<main>
+
+<section>
+  <h2>The Big Idea</h2>
+  <p>Saying “an index makes the query fast” is true, but too shallow. A database <strong>index</strong> is a separate structure built with the <code>CREATE INDEX</code> statement. It takes up its own disk space and holds a <em>copy</em> of the indexed data — so it is pure redundancy, just like the index at the back of a book. Creating an index never changes the table itself.</p>
+  <p>Think of a telephone directory: all entries are in a well-defined <strong>order</strong>, and that order is what makes finding something fast. A database index works the same way — but it must also handle constant inserts, deletes, and updates immediately, without physically moving large amounts of data.</p>
+  <pre><code><span class="kw">CREATE INDEX</span> idx_name <span class="kw">ON</span> employees (last_name);</code></pre>
+</section>
+
+<section>
+  <h2>1. Index Leaf Nodes — the doubly linked list</h2>
+  <p>The index can't store data physically in sorted order, because every insert would have to shift all following entries. Instead, the database keeps a <strong>logical order</strong> using a <strong>doubly linked list</strong>: each node points to its predecessor and successor, like a chain. A new entry is inserted just by re-pointing a few links — no big data movement.</p>
+  <p>These chained nodes are called <strong>index leaf nodes</strong>. Each leaf node lives in a database <em>block/page</em> (a few KB), packed with as many sorted entries as fit. So the sort order exists on two levels: entries within each leaf node, and the leaf nodes linked to each other.</p>
+  <figure>
+    <img src="ch1_assets/figure_1_1.png" alt="Figure 1.1: Index leaf nodes sorted and linked, pointing to unsorted table rows via ROWID">
+    <figcaption>Figure 1.1 from the book: sorted index leaf nodes (linked together) each point to their table row via ROWID — the table itself is an unsorted heap.</figcaption>
+  </figure>
+  <p>Each index entry contains the indexed column (the <em>key</em>) plus a pointer to the table row (ROWID/RID). The table data is stored as an unsorted heap with no connection between rows.</p>
+</section>
+
+<section>
+  <h2>2. The Search Tree (B-Tree) — finding the right leaf node</h2>
+  <p>Leaf nodes sit on disk in arbitrary physical order — like a phone book with shuffled pages. To find the right page quickly, the database adds a second structure on top: a <strong>balanced search tree (B-tree)</strong>. Branch-node entries hold the biggest value of each leaf node they point to, and layers repeat until a single <strong>root node</strong> remains. Because the tree is balanced, every leaf is the same number of steps away from the root.</p>
+  <figure>
+    <img src="ch1_assets/figure_1_2.png" alt="Figure 1.2: B-tree structure with root, branch and leaf nodes">
+    <figcaption>Figure 1.2 from the book: the B-tree structure — root and branch nodes above, leaf nodes (doubly linked) at the bottom.</figcaption>
+  </figure>
+  <figure>
+    <img src="ch1_assets/figure_1_3.png" alt="Figure 1.3: B-tree traversal searching for the key 57">
+    <figcaption>Figure 1.3 from the book: traversing the tree to find the key “57” — at each node, scan until an entry is &gt;= the search term, then follow that reference down.</figcaption>
+  </figure>
+  <div class="callout"><strong>First power of indexing:</strong> the tree traversal is almost instant, even on millions of rows, because the tree grows <em>logarithmically</em> — real-world indexes rarely exceed a depth of 4–5.</div>
+</section>
+
+<section>
+  <h2>3. Why indexes can still be slow</h2>
+  <p>The myth of the “degenerated index” blames a broken tree — but the tree is fine. An index lookup has <strong>three steps</strong>, and only the first is bounded:</p>
+  <ol>
+    <li><strong>Tree traversal</strong> — fast, bounded by the tree depth.</li>
+    <li><strong>Following the leaf node chain</strong> — if many entries match, the database must read the next leaf nodes too.</li>
+    <li><strong>Fetching the table data</strong> — one table access per hit, and matching rows are usually scattered across many table blocks.</li>
+  </ol>
+  <div class="key"><strong>Key takeaway:</strong> a slow query with an index is usually caused by steps 2 and 3 (many matches + many table lookups), not by a “broken” index. Rebuilding it won't help.</div>
+  <p>Oracle's explain plan shows these steps explicitly:</p>
+  <pre><code><span class="kw">INDEX UNIQUE SCAN</span>          -- tree traversal only (at most one match)
+<span class="kw">INDEX RANGE SCAN</span>           -- tree traversal + leaf node chain
+<span class="kw">TABLE ACCESS BY INDEX ROWID</span> -- fetch the actual row, once per match</code></pre>
+</section>
+
+<section>
+  <h2>Logarithmic Scalability at a Glance</h2>
+  <table>
+    <tr><th>Tree Depth</th><th>Index Entries (4 per node)</th></tr>
+    <tr><td>3</td><td>64</td></tr>
+    <tr><td>5</td><td>1,024</td></tr>
+    <tr><td>8</td><td>65,536</td></tr>
+    <tr><td>10</td><td>1,048,576</td></tr>
+  </table>
+  <p style="text-align:center; color:var(--muted)">Tree depth = log<sub>entries-per-node</sub>(number of index entries) — adding a level multiplies capacity; real indexes hold hundreds of entries per node, so depth grows extremely slowly.</p>
+</section>
+
+<section id="chapter2">
+  <h2>Chapter 2: The WHERE Clause</h2>
+  <p>This chapter explains how the database <em>uses</em> an index when filtering rows — and when it can't. The WHERE clause is split into two kinds of conditions: <strong>access predicates</strong> (which locate the start of the index range) and <strong>filter predicates</strong> (which just discard rows after they're read).</p>
+
+  <h3>Equality (=) and primary keys</h3>
+  <p>An equality condition on an indexed column is the ideal case: the B-tree traversal lands directly on the matching entries.</p>
+  <pre><code><span class="kw">SELECT</span> first_name, last_name
+  <span class="kw">FROM</span> employees
+ <span class="kw">WHERE</span> employee_id = 123;</code></pre>
+
+  <h3>Concatenated (multi-column) indexes</h3>
+  <p>A concatenated index is <strong>one index across multiple columns</strong>, sorted like a phone book: by the first column, then the second, and so on. Consequence: it only supports queries that constrain the <em>leftmost</em> column(s) — you cannot search efficiently on the second column alone.</p>
+  <pre><code><span class="kw">CREATE INDEX</span> emp_sub_emp <span class="kw">ON</span> employees (subsidiary_id, employee_id);</code></pre>
+  <figure>
+    <img src="ch2_assets/figure_2_1.png" alt="Figure 2.1: Concatenated index on EMPLOYEE_ID, SUBSIDIARY_ID">
+    <figcaption>Figure 2.1 from the book: in a concatenated index, entries for one subsidiary are scattered — the tree can't help a query on SUBSIDIARY_ID alone.</figcaption>
+  </figure>
+
+  <h3>Ranges: &gt;, &lt; and BETWEEN</h3>
+  <p>Range conditions still use the index, but they stop the “exact lookup” behavior: everything after the range column is only a <em>filter</em>, not an access path. <strong>Rule of thumb: put equality columns first in the index, range columns last.</strong></p>
+  <figure>
+    <img src="ch2_assets/figure_2_2.png" alt="Figure 2.2: range scan when the range column is first">
+    <figcaption>Figure 2.2 from the book: with the range column first, the whole date range across all subsidiaries is scanned.</figcaption>
+  </figure>
+  <figure>
+    <img src="ch2_assets/figure_2_3.png" alt="Figure 2.3: range scan when equality column is first">
+    <figcaption>Figure 2.3 from the book: equality first (SUBSIDIARY_ID = 27), then range — the scan stays inside one small range.</figcaption>
+  </figure>
+
+  <h3>Functions on columns defeat the index</h3>
+  <p>Wrapping an indexed column in a function makes it a “black box” — the index on the raw column cannot be used:</p>
+  <pre><code><span class="kw">SELECT</span> first_name, last_name, phone_number
+  <span class="kw">FROM</span> employees
+ <span class="kw">WHERE</span> <span class="kw">UPPER</span>(last_name) = <span class="kw">UPPER</span>(<span style="color:#fbbf24">'winand'</span>);   <span style="color:#64748b">-- index on LAST_NAME is NOT used</span></code></pre>
+  <p>The fix is a <strong>function-based index</strong> on exactly the expression used:</p>
+  <pre><code><span class="kw">CREATE INDEX</span> emp_up_name
+    <span class="kw">ON</span> employees (<span class="kw">UPPER</span>(last_name));</code></pre>
+
+  <h3>LIKE filters</h3>
+  <p>Only the part <em>before the first wildcard</em> can use the index. <code>LIKE 'WINA%'</code> is index-friendly; <code>LIKE '%TERM'</code> (leading wildcard) cannot use the index at all and forces a full scan.</p>
+  <figure>
+    <img src="ch2_assets/figure_2_4.png" alt="Figure 2.4: Various LIKE searches and their scanned index ranges">
+    <figcaption>Figure 2.4 from the book: a longer prefix before the wildcard narrows the scanned index range; the wildcard tail is only a filter.</figcaption>
+  </figure>
+
+  <h3>NULL handling</h3>
+  <p>Most databases (except Oracle) do not index NULL values, so <code>IS NULL</code> cannot use a regular index. Oracle treats empty strings as NULL and does index them. Workarounds: a <code>NOT NULL</code> constraint with a default, or a partial/filtered index like:</p>
+  <pre><code><span class="kw">CREATE INDEX</span> idx_processed
+    <span class="kw">ON</span> messages (processed)
+ <span class="kw">WHERE</span> processed = <span style="color:#fbbf24">'N'</span>;   <span style="color:#64748b">-- partial index (PostgreSQL)</span></code></pre>
+
+  <h3>Obfuscated conditions</h3>
+  <ul>
+    <li><strong>Dates:</strong> never wrap the column — <code>WHERE TRUNC(sale_date) = ...</code> kills the index; use a range instead: <code>sale_date &gt;= TRUNC(...) AND sale_date &lt; TRUNC(...) + 1</code>.</li>
+    <li><strong>Numeric strings:</strong> compare numbers as numbers (<code>col = 42</code>), not as strings (<code>col = '42'</code>), or the index on the number can't be used.</li>
+    <li><strong>Math:</strong> <code>col * 2 = 10</code> → rewrite as <code>col = 5</code> so the index applies.</li>
+  </ul>
+  <div class="key"><strong>Key takeaway:</strong> an index is only used for conditions the database can translate into an index range — equality on leading columns first, then at most one range column; anything wrapped in a function, math, or a leading-wildcard LIKE becomes a filter, not an access path.</div>
+</section>
+
+<section id="chapter3">
+  <h2>Chapter 3: Performance and Scalability</h2>
+  <p><strong>Scalability</strong> = how performance changes when something grows (data volume, system load). A single fast measurement means little — you need the whole curve.</p>
+
+  <h3>The test query</h3>
+  <p>The chapter benchmarks one query with two different indexes while growing the data volume:</p>
+  <pre><code><span class="kw">SELECT</span> <span class="kw">count</span>(*)
+  <span class="kw">FROM</span> scale_data
+ <span class="kw">WHERE</span> section = ?
+   <span class="kw">AND</span> id2 = ?</code></pre>
+  <figure>
+    <img src="ch3_assets/figure_3_1.png" alt="Figure 3.1: performance comparison fast vs slow index">
+    <figcaption>Figure 3.1 from the book: at a small data volume, the “slow” index is 0.055s vs 0.029s — both seem fine. But this is only one data point!</figcaption>
+  </figure>
+
+  <h3>Data volume grows → sloppy indexing explodes</h3>
+  <p>With 100× more data, the well-designed index barely slows down (logarithmic B-tree growth), while the sloppy one — which uses a <em>filter predicate</em> instead of an access predicate — gets 20× slower:</p>
+  <figure>
+    <img src="ch3_assets/figure_3_2.png" alt="Figure 3.2: scalability by data volume">
+    <figcaption>Figure 3.2 from the book: response time vs data volume — the “slow” index line climbs steeply, the “fast” one stays nearly flat.</figcaption>
+  </figure>
+  <figure>
+    <img src="ch3_assets/figure_3_5.png" alt="Figure 3.5: response time by data volume, same comparison">
+    <figcaption>Figure 3.5 from the book: the same comparison summarized — proper indexing exploits the B-tree's logarithmic scalability.</figcaption>
+  </figure>
+
+  <h3>Check the execution plan for hidden filter predicates</h3>
+  <p>Often the plan looks fine, but the predicate info is hidden in a tooltip. A condition shown as just “Predicate” (not “Seek Predicate”) means the index located the range but the database still checks every row — that's what makes an index “slow” under load:</p>
+  <figure>
+    <img src="ch3_assets/figure_3_3.png" alt="Figure 3.3: predicate information as a tool tip in SQL Server">
+    <figcaption>Figure 3.3 from the book: hovering the Index Seek shows SECTION as “Seek Predicate” but ID2 only as “Predicate” (filter) — the hidden cause of slowness.</figcaption>
+  </figure>
+
+  <h3>System load makes it worse</h3>
+  <p>Under concurrent load (25 parallel queries), the sloppy index balloons to 32 seconds — 30× slower than with no load — while the clean index stays under 2 seconds. Even a full copy of production data in dev won't reproduce this; you must also reproduce the <em>load</em>:</p>
+  <figure>
+    <img src="ch3_assets/figure_3_4.png" alt="Figure 3.4: scalability by system load">
+    <figcaption>Figure 3.4 from the book: response time vs concurrent queries — the filter-predicate index degrades sharply under load.</figcaption>
+  </figure>
+
+  <h3>Response time vs throughput — bigger hardware isn't faster</h3>
+  <ul>
+    <li>Bigger hardware is like a <strong>wider highway, not a faster car</strong>: it handles more load (throughput), but a single query won't get faster (response time).</li>
+    <li>Single-core CPU speed stopped improving around 2000; multi-core helps concurrency, not one query.</li>
+    <li>More infrastructure (firewalls, separate app/DB servers) adds network latencies — production can even be slower than a dev laptop.</li>
+    <li>Disk seek time (~ms on HDD, ~10× less on SSD) happens once per B-tree level — 4 levels ≈ a few dozen ms, but joins can trigger thousands of seeks.</li>
+  </ul>
+  <div class="key"><strong>Key takeaway:</strong> proper indexing is the best way to reduce response time — in SQL and NoSQL systems alike. More hardware improves throughput, not latency, and can't compensate for a sloppy index.</div>
+</section>
+
+<section id="chapter4">
+  <h2>Chapter 4: The Join Operation</h2>
+  <p>A join combines two tables into a denormalized result. All join algorithms process <strong>only two tables at a time</strong> — bigger joins are chains of two-table joins. Join order doesn't change the result, but it changes performance, and the optimizer tries all permutations (n! growth — another reason to use bind parameters).</p>
+
+  <h3>1. Nested Loops</h3>
+  <p>The most fundamental join: run an outer query, then for <em>each</em> row run a second query against the other table — like two nested loops. Fast when the driving query returns few rows; it needs an <strong>index on the inner table's join column</strong>. Beware the <strong>N+1 selects problem</strong>: ORM tools that loop in application code and query per row (N+1 queries) are slow because every extra query adds network + disk latency. Fix: execute joins in the database (e.g. eager fetching):</p>
+  <pre><code><span class="kw">SELECT</span> me.employee_id, me.subsidiary_id, me.last_name
+  <span class="kw">FROM</span> employees me
+  <span class="kw">LEFT JOIN</span> sales s <span class="kw">ON</span> (s.employee_id = me.employee_id)
+ <span class="kw">WHERE</span> <span class="kw">UPPER</span>(me.last_name) <span class="kw">LIKE</span> <span style="color:#fbbf24">'WIN%'</span>
+ <span class="kw">ORDER BY</span> s.employee_id, s.subsidiary_id;</code></pre>
+
+  <h3>2. Hash Join</h3>
+  <p>Aims at nested loops' weak spot — the many B-tree traversals. It loads one side of the join into an in-memory <strong>hash table</strong> and probes it for each row of the other side. <strong>Do NOT index the join columns for a hash join</strong> — only index the <em>independent</em> WHERE predicates:</p>
+  <pre><code><span class="kw">SELECT</span> *
+  <span class="kw">FROM</span> sales s
+  <span class="kw">JOIN</span> employees e <span class="kw">ON</span> (s.subsidiary_id = e.subsidiary_id
+                  <span class="kw">AND</span>  s.employee_id   = e.employee_id)
+ <span class="kw">WHERE</span> s.sale_date &gt; <span class="kw">trunc</span>(sysdate) - <span class="kw">INTERVAL</span> <span style="color:#fbbf24">'6'</span> <span class="kw">MONTH</span>
+<span style="color:#64748b">-- only SALE_DATE is an independent predicate → index THAT, not the join columns</span></code></pre>
+
+  <h3>3. Sort Merge</h3>
+  <p>Merges two <strong>sorted</strong> lists like a zipper. Needs the same indexes as hash join (independent predicates only), plus its unique trait: <strong>absolute symmetry</strong> — join order and outer-join direction don't matter, and it can even do FULL OUTER JOIN. It's rarely used because sorting both sides is expensive, but it shines when the inputs are <em>already sorted</em> (e.g. via index order, avoiding the sort entirely — see Chapter 6).</p>
+
+  <div class="key"><strong>Key takeaway:</strong> which index you need depends on the join algorithm — index the inner join column for nested loops; index only independent WHERE predicates for hash join and sort merge. And always join in the database, not with N+1 application-side queries.</div>
+</section>
+
+<section id="chapter5">
+  <h2>Chapter 5: Clustering Data (The Second Power of Indexing)</h2>
+  <p><strong>Clustering data</strong> = storing consecutively-accessed data close together so fewer I/O operations are needed. An index automatically clusters rows with similar values together (sorted leaf nodes) — the book calls this the <em>second power of indexing</em>.</p>
+
+  <h3>1. Using filter predicates intentionally</h3>
+  <p>A filter predicate is usually a sign of a wrong column order — but sometimes you add one on purpose to <em>group</em> the rows you'll read. A leading-wildcard LIKE can't narrow the index range, so put it into the index as a trailing (filter) column after the real access column:</p>
+  <pre><code><span class="kw">CREATE INDEX</span> empsubupnam <span class="kw">ON</span> employees
+     (subsidiary_id, <span class="kw">UPPER</span>(last_name));
+
+<span class="kw">SELECT</span> first_name, last_name, subsidiary_id, phone_number
+  <span class="kw">FROM</span> employees
+ <span class="kw">WHERE</span> subsidiary_id = ?
+   <span class="kw">AND UPPER</span>(last_name) <span class="kw">LIKE</span> <span style="color:#fbbf24">'%INA%'</span>;</code></pre>
+  <p>SUBSIDIARY_ID narrows the scan; the LIKE is applied as a filter while reading — all matching rows sit next to each other in the leaf nodes.</p>
+
+  <h3>2. Index-Only Scan (covering index)</h3>
+  <p>If the index contains <strong>all columns the query needs</strong> (WHERE <em>and</em> SELECT list), the database never touches the table at all — one of the most powerful tuning tricks:</p>
+  <pre><code><span class="kw">CREATE INDEX</span> sales_sub_eur <span class="kw">ON</span> sales (subsidiary_id, eur_value);
+
+<span class="kw">SELECT SUM</span>(eur_value)
+  <span class="kw">FROM</span> sales
+ <span class="kw">WHERE</span> subsidiary_id = ?;   <span style="color:#64748b">-- plan: INDEX RANGE SCAN only, no TABLE ACCESS</span></code></pre>
+  <p>In SQL Server you can add extra "nonkey" columns (leaf-only, not searchable) with <code>INCLUDE</code> purely to make the index covering:</p>
+  <pre><code><span class="kw">CREATE INDEX</span> empsubupnam <span class="kw">ON</span> employees (subsidiary_id, last_name)
+<span class="kw">INCLUDE</span>(phone_number, first_name);</code></pre>
+
+  <h3>3. Index-Organized Tables (IOT) / Clustered Indexes</h3>
+  <p>Take the covering-index idea to the extreme: store the <strong>whole table inside a B-tree</strong> (no heap). Benefits: saves the heap's space, and every lookup is automatically index-only. Drawback: a <em>secondary</em> index on an IOT must store the logical key instead of a physical ROWID, so each row access costs a full extra tree traversal:</p>
+  <figure>
+    <img src="ch5_assets/figure_5_1.png" alt="Figure 5.1: index-based access on a heap table via ROWID">
+    <figcaption>Figure 5.1 from the book: on a heap table, the index stores a physical ROWID → one direct jump to the row (INDEX RANGE SCAN + TABLE ACCESS BY INDEX ROWID).</figcaption>
+  </figure>
+  <figure>
+    <img src="ch5_assets/figure_5_2.png" alt="Figure 5.2: secondary index on an index-organized table">
+    <figcaption>Figure 5.2 from the book: on an IOT, the secondary index stores only the logical key → an extra INDEX UNIQUE SCAN through the clustered B-tree for every row.</figcaption>
+  </figure>
+  <div class="key"><strong>Key takeaway:</strong> cluster data with indexes — either via filter columns that group rows, covering indexes that avoid the table entirely, or (in SQL Server/MySQL-InnoDB/Oracle IOT) a clustered index as the table itself. Beware: secondary indexes on IOTs pay a double tree traversal per row.</div>
+</section>
+
+<section id="chapter6">
+  <h2>Chapter 6: Sorting and Grouping (The Third Power of Indexing)</h2>
+  <p>Sorting is expensive: the database must buffer the <em>complete</em> input before producing the first output row. But an index is already sorted — so if the index order matches the <code>ORDER BY</code>, the sort disappears <em>and</em> results stream out immediately (pipelined). That's the <strong>third power of indexing</strong>.</p>
+
+  <h3>Indexing ORDER BY</h3>
+  <p>The index used for the WHERE clause must also cover the ORDER BY columns:</p>
+  <pre><code><span class="kw">CREATE INDEX</span> sales_dt_pr <span class="kw">ON</span> sales (sale_date, product_id);
+
+<span class="kw">SELECT</span> sale_date, product_id, quantity
+  <span class="kw">FROM</span> sales
+ <span class="kw">WHERE</span> sale_date = <span class="kw">TRUNC</span>(sysdate) - <span class="kw">INTERVAL</span> <span style="color:#fbbf24">'1'</span> <span class="kw">DAY</span>
+ <span class="kw">ORDER BY</span> sale_date, product_id;   <span style="color:#64748b">-- SORT ORDER BY vanishes from the plan</span></code></pre>
+  <figure>
+    <img src="ch6_assets/figure_6_1.png" alt="Figure 6.1: sort order in the relevant index range">
+    <figcaption>Figure 6.1 from the book: within the scanned range (one day), rows are already sorted by PRODUCT_ID — the sort can be skipped even for ORDER BY product_id alone.</figcaption>
+  </figure>
+
+  <h3>ASC / DESC and reverse scans</h3>
+  <p>Databases can read an index <strong>backwards</strong> (thanks to the doubly linked leaf nodes), so <code>ORDER BY ... DESC</code> works with a plain ASC index via an INDEX RANGE SCAN DESCENDING. But <em>mixed</em> directions (ASC, DESC) need a mixed-order index:</p>
+  <pre><code><span class="kw">CREATE INDEX</span> sales_dt_pr <span class="kw">ON</span> sales (sale_date <span class="kw">ASC</span>, product_id <span class="kw">DESC</span>);</code></pre>
+  <figure>
+    <img src="ch6_assets/figure_6_2.png" alt="Figure 6.2: reverse index scan">
+    <figcaption>Figure 6.2 from the book: reading the leaf chain backwards serves a fully DESCENDING order by.</figcaption>
+  </figure>
+  <figure>
+    <img src="ch6_assets/figure_6_3.png" alt="Figure 6.3: impossible pipelined order by with mixed directions on a plain index">
+    <figcaption>Figure 6.3 from the book: ASC date + DESC product on a plain ASC/ASC index would need an "impossible index jump" — hence an explicit sort.</figcaption>
+  </figure>
+  <figure>
+    <img src="ch6_assets/figure_6_4.png" alt="Figure 6.4: mixed-order index (sale_date ASC, product_id DESC)">
+    <figcaption>Figure 6.4 from the book: with the mixed-order index, no jump is needed — the pipelined ORDER BY works.</figcaption>
+  </figure>
+
+  <h3>NULLS FIRST / LAST and database support</h3>
+  <figure>
+    <img src="ch6_assets/figure_6_5.png" alt="Figure 6.5: database/feature matrix for ASC/DESC/NULLS support">
+    <figcaption>Figure 6.5 from the book: which databases support backward index reads, ASC/DESC in indexes, and NULLS FIRST/LAST.</figcaption>
+  </figure>
+
+  <h3>Indexing GROUP BY</h3>
+  <p>GROUP BY has two algorithms: hash (materializes a hash table) and sort/group. The sort/group variant can skip the sort if an index already delivers rows grouped by the key — making GROUP BY pipelined too:</p>
+  <pre><code><span class="kw">SELECT</span> product_id, <span class="kw">sum</span>(eur_value)
+  <span class="kw">FROM</span> sales
+ <span class="kw">WHERE</span> sale_date = <span class="kw">TRUNC</span>(sysdate) - <span class="kw">INTERVAL</span> <span style="color:#fbbf24">'1'</span> <span class="kw">DAY</span>
+ <span class="kw">GROUP BY</span> product_id;   <span style="color:#64748b">-- served in index order by sales_dt_pr, no sort needed</span></code></pre>
+  <div class="key"><strong>Key takeaway:</strong> align your index column order (and ASC/DESC modifiers) with the ORDER BY / GROUP BY clause — then the database skips the sort entirely and can even return the first rows before reading all input (the basis for efficient pagination in Chapter 7).</div>
+</section>
+
+<section id="chapter7">
+  <h2>Chapter 7: Partial Results (Top-N &amp; Pagination)</h2>
+  <p>Sometimes you only need the first few rows (e.g. the 10 most recent messages) — or the next page of them. Thanks to the <em>pipelined ORDER BY</em> from Chapter 6, these queries can stop early instead of sorting everything.</p>
+
+  <h3>Top-N queries</h3>
+  <p>Syntax varies by database, but all rely on a pipelined ORDER BY to stop after N rows (Oracle shows this as <code>COUNT STOPKEY</code>):</p>
+  <pre><code><span style="color:#64748b">-- PostgreSQL / MySQL</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> sales <span class="kw">ORDER BY</span> sale_date <span class="kw">DESC</span> <span class="kw">LIMIT</span> 10;
+<span style="color:#64748b">-- SQL standard (Oracle 12c+, SQL Server 2012+)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> sales <span class="kw">ORDER BY</span> sale_date <span class="kw">DESC</span> <span class="kw">FETCH FIRST</span> 10 <span class="kw">ROWS ONLY</span>;
+<span style="color:#64748b">-- SQL Server</span>
+<span class="kw">SELECT TOP</span> 10 * <span class="kw">FROM</span> sales <span class="kw">ORDER BY</span> sale_date <span class="kw">DESC</span>;
+<span style="color:#64748b">-- Oracle &lt; 12c</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> ( <span class="kw">SELECT</span> * <span class="kw">FROM</span> sales <span class="kw">ORDER BY</span> sale_date <span class="kw">DESC</span> ) <span class="kw">WHERE</span> ROWNUM &lt;= 10;</code></pre>
+  <figure>
+    <img src="ch7_assets/figure_7_1.png" alt="Figure 7.1: scalability of Top-N queries, pipelined vs materialized">
+    <figcaption>Figure 7.1 from the book: a pipelined Top-N query stays ~constant regardless of table size; the materialized (full sort) variant grows linearly.</figcaption>
+  </figure>
+
+  <h3>Fetching the next page: OFFSET vs SEEK</h3>
+  <p><strong>Offset method</strong> — simple, but re-reads and discards all previous rows, so deeper pages get slower and pages "drift" when new rows are inserted:</p>
+  <pre><code><span class="kw">SELECT</span> * <span class="kw">FROM</span> sales <span class="kw">ORDER BY</span> sale_date <span class="kw">DESC</span>
+<span class="kw">OFFSET</span> 10 <span class="kw">FETCH NEXT</span> 10 <span class="kw">ROWS ONLY</span>;   <span style="color:#64748b">-- or: LIMIT 10 OFFSET 10</span></code></pre>
+  <figure>
+    <img src="ch7_assets/figure_7_2.png" alt="Figure 7.2: offset method scans an ever-growing range">
+    <figcaption>Figure 7.2 from the book: each deeper page scans a bigger index range — offset grows with page number.</figcaption>
+  </figure>
+  <p><strong>Seek method</strong> — uses the last row of the previous page as the starting point (keyset pagination), so every page costs the same. Works with row-value comparison:</p>
+  <pre><code><span class="kw">SELECT</span> * <span class="kw">FROM</span> sales
+ <span class="kw">WHERE</span> (sale_date, sale_id) &lt; (?, ?)   <span style="color:#64748b">-- values of the last row of the previous page</span>
+ <span class="kw">ORDER BY</span> sale_date <span class="kw">DESC</span>, sale_id <span class="kw">DESC</span>
+ <span class="kw">FETCH FIRST</span> 10 <span class="kw">ROWS ONLY</span>;</code></pre>
+  <figure>
+    <img src="ch7_assets/figure_7_3.png" alt="Figure 7.3: seek method starts each page right after the previous one">
+    <figcaption>Figure 7.3 from the book: the seek method starts each page directly after the previous page's last row — constant work per page.</figcaption>
+  </figure>
+  <figure>
+    <img src="ch7_assets/figure_7_4.png" alt="Figure 7.4: offset vs seek response time over pages">
+    <figcaption>Figure 7.4 from the book: offset degrades as you page deeper; seek stays flat — ideal for infinite scrolling.</figcaption>
+  </figure>
+  <div class="key"><strong>Key takeaway:</strong> Top-N via pipelined ORDER BY is nearly independent of table size; for paging, prefer the seek (keyset) method over OFFSET — it's stable, drift-free, and perfect for infinite scroll.</div>
+</section>
+
+<section id="chapter8">
+  <h2>Chapter 8: Modifying Data (INSERT / DELETE / UPDATE)</h2>
+  <p>Indexes speed up <em>reads</em> but slow down <em>writes</em>: an index is pure redundancy, so every write must keep the index copies consistent too. The number of indexes on a table is the dominant cost factor for writes.</p>
+
+  <h3>INSERT</h3>
+  <p>Cannot benefit from indexes (no WHERE clause). The row goes into any heap block with free space — fast. But the new entry must be added to <strong>every index</strong> on the table, each requiring a B-tree traversal and possibly node splits. One index can already slow an insert ~100×; each additional index multiplies the cost:</p>
+  <figure>
+    <img src="ch8_assets/figure_8_1.png" alt="Figure 8.1: insert performance by number of indexes">
+    <figcaption>Figure 8.1 from the book: insert time grows with each additional index (0.0003s without any → 0.08s with five).</figcaption>
+  </figure>
+
+  <h3>DELETE</h3>
+  <p>Works like a SELECT (WHERE can use indexes to <em>find</em> rows) plus removal of the row and its index entries, keeping the trees balanced. So delete performance also grows with the number of indexes. Special case: <code>TRUNCATE TABLE</code> deletes all rows in one shot — very fast, but it does an implicit commit and fires no triggers. MVCC note: PostgreSQL only flags rows deleted and cleans up indexes later during VACUUM, so its delete speed doesn't depend on index count.</p>
+  <figure>
+    <img src="ch8_assets/figure_8_2.png" alt="Figure 8.2: delete performance by number of indexes">
+    <figcaption>Figure 8.2 from the book: like insert, delete cost rises with each index on the table.</figcaption>
+  </figure>
+
+  <h3>UPDATE</h3>
+  <p>An update relocates changed index entries: remove the old entry, insert the new one — cost ≈ delete + insert. It only touches indexes that contain the <em>updated columns</em>, so updating a single column is much cheaper than updating all columns (beware ORMs that set every column unless dynamic-update is on):</p>
+  <figure>
+    <img src="ch8_assets/figure_8_3.png" alt="Figure 8.3: update performance by index count and column count">
+    <figcaption>Figure 8.3 from the book: updating all columns scales with index count; updating one column stays nearly flat.</figcaption>
+  </figure>
+  <div class="key"><strong>Key takeaway:</strong> indexes are a read optimization paid for at write time — keep the number of indexes minimal, and in UPDATE statements only touch the columns that actually changed.</div>
+</section>
+
+<section id="appendixA">
+  <h2>Appendix A: Execution Plans</h2>
+  <p>The optimizer works like a compiler: it translates SQL into an <strong>execution plan</strong> — the first place to look when a statement is slow. Every database can show it; the syntax differs:</p>
+
+  <h3>Oracle</h3>
+  <pre><code><span class="kw">EXPLAIN PLAN FOR</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> employees <span class="kw">WHERE</span> employee_id = 123;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">TABLE</span>(dbms_xplan.display);   <span style="color:#64748b">-- prints the plan table</span></code></pre>
+
+  <h3>PostgreSQL</h3>
+  <pre><code><span class="kw">EXPLAIN</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> employees <span class="kw">WHERE</span> employee_id = 123;
+<span class="kw">EXPLAIN ANALYZE</span> ...;   <span style="color:#64748b">-- actually runs it and shows real row counts/times</span>
+<span style="color:#64748b">-- with bind variables, prepare first (PG ≥ 9.2 plans at execute time):</span>
+<span class="kw">PREPARE</span> stmt(<span class="kw">int</span>) <span class="kw">AS</span> <span class="kw">SELECT</span> $1;
+<span class="kw">EXPLAIN EXECUTE</span> stmt(1);</code></pre>
+
+  <h3>SQL Server</h3>
+  <p>Use the graphical or tabular plan in SQL Server Management Studio ("Include Actual Execution Plan"), or <code>SET SHOWPLAN_TEXT ON</code> / <code>SET STATISTICS PROFILE ON</code>. In tabular plans, hover an index operation to see <strong>Seek Predicates</strong> vs plain <strong>Predicate</strong> (filter) in the tooltip.</p>
+
+  <h3>MySQL</h3>
+  <pre><code><span class="kw">EXPLAIN</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> employees <span class="kw">WHERE</span> employee_id = 123;</code></pre>
+
+  <h3>Reading plans: access vs filter predicates</h3>
+  <ul>
+    <li><strong>Access predicate</strong> (Oracle: <code>access</code>, PostgreSQL: <code>Index Cond</code>, SQL Server: <code>Seek Predicate</code>) — defines the start/stop of the index range traversal. This is what makes a lookup fast.</li>
+    <li><strong>Index filter predicate</strong> (Oracle: <code>filter</code> on index ops) — applied during the leaf scan but does <em>not</em> narrow the scanned range.</li>
+    <li><strong>Table filter predicate</strong> (PostgreSQL: <code>Filter</code>) — evaluated only after the row is fetched from the table.</li>
+  </ul>
+  <p>Common operations to recognize: <code>INDEX UNIQUE SCAN</code>, <code>INDEX RANGE SCAN</code> (…<code>DESCENDING</code>), <code>TABLE ACCESS BY INDEX ROWID</code>, <code>TABLE ACCESS FULL</code>, <code>HASH JOIN</code> / <code>NESTED LOOPS</code> / <code>MERGE JOIN</code>, <code>SORT ORDER BY</code> (…<code>STOPKEY</code>), <code>COUNT STOPKEY</code> for Top-N.</p>
+  <div class="key"><strong>Key takeaway:</strong> if a plan shows a filter predicate where you expected an access predicate, the index column order is likely wrong (Chapter 2) — fix the index, don't rebuild it.</div>
+</section>
+
+<section id="glossary">
+  <h2>Index (Glossary)</h2>
+  <p>The final pages of the book are a glossary of terms (PLAN_TABLE, ROWID, clustering factor, MVCC, etc.). The concepts behind the important ones are covered in the chapter summaries above.</p>
+</section>
+
+</main>
+</body>
+</html>
