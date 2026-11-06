@@ -7,8 +7,8 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1 through 12** — 123 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 111 syntax-highlighted,
+One self-contained HTML file covering **Chapters 1 through 13** — 125 figures embedded as inline
+base64 images (works offline, no server, no external assets) and 118 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -25,6 +25,7 @@ copyable T-SQL listings.
 | 10 | Latches | 293–306 | 10-1 … 10-8 | 10-1 … 10-5 |
 | 11 | Transaction Log | 307–330 | 11-1 … 11-12 | 11-1 … 11-5 |
 | 12 | AlwaysOn Availability Groups | 331–356 | 12-1 … 12-10 | 12-1 … 12-6 |
+| 13 | Other Notable Wait Types | 357–370 | 13-1 … 13-2 | 13-1 … 13-7 |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -330,6 +331,21 @@ price of readable secondaries, and why failovers happen (or don't).
 - Listing 12-4 — Readable secondaries: starting a transaction on the secondary node
 - Listing 12-5 — Readable secondaries: deleting data and performing a clustered index scan
 - Listing 12-6 — Readable secondaries: checking the index stats
+
+### Chapter 13 — Other Notable Wait Types
+
+The waits that don't belong to any earlier chapter: client-side consumption,
+worker starvation, backups, batch-mode hash tables and preemptive calls.
+
+- Figure 13-1 — Connection error when the worker pool is exhausted
+- Figure 13-2 — Output of the `sys.dm_os_waiting_tasks` view
+- Listing 13-1 — Code pattern that triggers an `ASYNC_NETWORK_IO` wait
+- Listing 13-2 — Code pattern that reduces an `ASYNC_NETWORK_IO` wait
+- Listing 13-3 — Enabling a remote DAC and reducing the number of workers
+- Listing 13-4 — `THREADPOOL` wait: creating a test table and acquiring an IX lock
+- Listing 13-5 — `THREADPOOL` wait: altering the table
+- Listing 13-6 — `THREADPOOL` wait: generating multiple sessions and blocking
+- Listing 13-7 — `THREADPOOL` wait: querying `sys.dm_os_waiting_tasks`
 
 ## Viewing it
 
