@@ -230,9 +230,9 @@
       figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">8 chapters covered</span>
-      <span class="badge">80 book listings</span>
-      <span class="badge">182 figures</span>
+      <span class="badge">9 chapters covered</span>
+      <span class="badge">109 book listings</span>
+      <span class="badge">208 figures</span>
       <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
@@ -318,6 +318,16 @@
     <a class="mini" href="#ch8-columnstore">Columnstore indexes</a>
     <a class="mini" href="#ch8-inmemory">Memory-optimized indexes</a>
     <a class="mini" href="#ch8-cheatsheet">Cheat sheet</a>
+
+    <div class="grp">Chapter 9 · Exploring Plan Reuse</div>
+    <a class="mini" href="#ch9-cache">The plan cache</a>
+    <a class="mini" href="#ch9-adhoc">Ad hoc queries</a>
+    <a class="mini" href="#ch9-simple-param">Simple parameterization</a>
+    <a class="mini" href="#ch9-prepared">Prepared statements &amp; procs</a>
+    <a class="mini" href="#ch9-adhoc-workloads">Fixing it without code</a>
+    <a class="mini" href="#ch9-plan-guides">Plan guides</a>
+    <a class="mini" href="#ch9-forcing">Plan forcing</a>
+    <a class="mini" href="#ch9-cheatsheet">Cheat sheet</a>
   </nav>
 
   <main>
@@ -5289,6 +5299,1090 @@ read-ahead reads 0.</code></pre>
         estimates but no plan reuse; sniffing gives exact estimates and reuse — until the next parameter
         value is wildly different from the one the plan was built for. Everything here is a trade-off, and
         there is not always a single correct answer.
+      </div>
+    </section>
+
+    <div class="chapterbar" id="chapter9">
+      <span class="cnum">Chapter 9</span>
+      <div>
+        <h2>Exploring Plan Reuse</h2>
+        <p>Compiling a plan costs CPU. The plan cache exists so SQL Server pays that cost once — and
+        this chapter is about all the ordinary things we do that make it pay again and again. Then the
+        three escape hatches for when you can't change the code: optimize for ad hoc workloads, forced
+        parameterization, and plan guides.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch9-cache">
+      <h2><span class="num">1</span> The plan cache, and how to look inside it</h2>
+      <p class="lede">A plan is an asset. Reusing it is the whole point; the cache is where it's stored, and three DMOs are how you audit it.</p>
+
+      <p>
+        A simple query's plan can be built in under a millisecond — but an OLTP system runs thousands of
+        them per second, and a reporting query can take far longer. So SQL Server stores every compiled
+        plan in a slice of the buffer pool called the <b>plan cache</b>, and on the next identical query
+        it hands the ready-made plan straight to the execution engine. The win is obvious: CPU spent
+        executing instead of planning.
+      </p>
+
+      <div class="plain">
+        <div><span>CACHESTORE_SQLCP — SQL plans</span>Ad hoc queries (<code class="inl">objtype = Adhoc</code>), auto-parameterized queries and prepared statements (<code class="inl">Prepared</code>). No Object ID.</div>
+        <div><span>CACHESTORE_OBJCP — Object plans</span>Procedures, functions and triggers, each with an <b>Object ID</b>. <code class="inl">Proc</code> for procedures and UDFs, <code class="inl">Trigger</code> for triggers.</div>
+      </div>
+
+      <p>
+        Every cached plan is identified by a <code class="inl">plan_handle</code>, which you feed to
+        <code class="inl">sys.dm_exec_sql_text()</code> for the SQL text and
+        <code class="inl">sys.dm_exec_query_plan()</code> for the plan as XML. The two DMOs you'll use
+        constantly:
+      </p>
+      <ul>
+        <li><code class="inl">sys.dm_exec_cached_plans</code> — one row per cached plan: its type, its size, and <b>usecounts</b>.</li>
+        <li><code class="inl">sys.dm_exec_query_stats</code> — one row per <b>statement inside</b> a cached plan, with execution counters aggregated while the plan has been in cache.</li>
+      </ul>
+      <p>
+        Plus the object-specific versions of the same thing:
+        <code class="inl">sys.dm_exec_procedure_stats</code>, <code class="inl">sys.dm_exec_trigger_stats</code>
+        and <code class="inl">sys.dm_exec_function_stats</code>. Two wrinkles worth remembering: a
+        <b>multi-statement TVF</b> has a plan with an object_id but appears only in
+        <code class="inl">sys.dm_exec_query_stats</code>; an <b>inline TVF or view</b> has no plan of its
+        own at all, because it's folded into the query that uses it (Chapter 7). And for queries
+        <i>currently running</i>, <code class="inl">sys.dm_exec_requests</code> carries the plan_handle —
+        useful when the server is under pressure right now.
+      </p>
+    </section>
+
+    <section class="card" id="ch9-adhoc">
+      <h2><span class="num">2</span> Ad hoc queries defeat reuse</h2>
+      <p class="lede">Three queries, identical hashes, one cached plan. The litmus test for whether a plan <i>could</i> be reused is not whether the plans look the same — it's whether the text matches.</p>
+
+      <p>
+        On submission the engine computes a <code class="inl">QueryHash</code>, finds candidates in
+        cache, then compares the <b>full SQL text</b>. Identical text, identical SET options, same
+        database ID — and compilation is skipped entirely.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-1 · three queries that differ only in a literal and some white space</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">ALTER DATABASE SCOPED CONFIGURATION CLEAR PROCEDURE_CACHE</span>;
+<span class="kw">GO</span>
+<span class="kw">SELECT</span> <span class="fn">ISNULL</span>(p.Title, '') + ' ' + p.FirstName + ' ' + p.LastName
+<span class="kw">FROM</span> Person.Person <span class="kw">AS</span> p
+<span class="kw">WHERE</span> p.BusinessEntityID = 5;
+<span class="kw">SELECT</span> <span class="fn">ISNULL</span>(p.Title, '') + ' ' + p.FirstName + ' ' + p.LastName
+<span class="kw">FROM</span> Person.Person <span class="kw">AS</span> p
+<span class="kw">WHERE</span> p.BusinessEntityID = 6;
+<span class="kw">SELECT</span> <span class="fn">ISNULL</span>(p.Title, '') + ' ' + p.FirstName + ' ' + p.LastName
+<span class="kw">FROM</span> Person.Person <span class="kw">AS</span> p <span class="kw">WHERE</span> p.BusinessEntityID = 6;
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 9-2 · the plan cache audit query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> cp.usecounts,
+       cp.objtype,
+       cp.plan_handle,
+       <span class="fn">DB_NAME</span>(st.dbid) <span class="kw">AS</span> DatabaseName,
+       <span class="fn">OBJECT_NAME</span>(st.objectid, st.dbid) <span class="kw">AS</span> ObjectName,
+       st.text,
+       qp.query_plan
+<span class="kw">FROM</span> sys.dm_exec_cached_plans <span class="kw">AS</span> cp
+    <span class="kw">CROSS APPLY</span> sys.dm_exec_sql_text(cp.plan_handle) <span class="kw">AS</span> st
+    <span class="kw">CROSS APPLY</span> sys.dm_exec_query_plan(cp.plan_handle) <span class="kw">AS</span> qp
+<span class="kw">WHERE</span> st.text <span class="kw">LIKE</span> '%Person%'
+      <span class="kw">AND</span> st.dbid = <span class="fn">DB_ID</span>('AdventureWorks2014')
+      <span class="kw">AND</span> st.text <span class="kw">NOT LIKE</span> '%dm[_]exec[_]%' ;</code></pre>
+        <div class="cap">The DMOs here are server-scoped, so the database context doesn't matter — the <code>st.dbid</code> filter does.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-1-plan-cache-results.png"
+             alt="Result grid with usecounts, objtype, plan_handle, DatabaseName, ObjectName, text, query_plan for one row.">
+        <figcaption><b>Figure 9-1</b> — One row for three queries. <code class="inl">usecounts = 1</code>: the batch was compiled once, as a single unit.</figcaption>
+      </figure>
+
+      <p>
+        That's the first important idea: a batch of several statements is compiled <b>as a batch</b>, and
+        the cached <code class="inl">text</code> is the whole batch — with individual plans for each
+        statement inside it.
+      </p>
+
+      <figure>
+        <img src="images/chapter9/fig-9-2-three-identical-plans.png"
+             alt="Three nearly identical execution plans, each a Clustered Index Seek plus SELECT.">
+        <figcaption><b>Figure 9-2</b> — Three plans that look the same, from three queries that were <i>not</i> the same. Identical <code class="inl">QueryHash</code> and <code class="inl">QueryPlanHash</code>, different text.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>What reuse actually requires</b>
+        The exact same batch text — <b>same formatting, same literal values</b>. Change one space, change
+        one number, or re-run just the last statement on its own, and you get a new cache entry and a new
+        compile.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 9-3 · per-statement view of the same cache</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> <span class="fn">SUBSTRING</span>(
+                    dest.text,
+                    (deqs.statement_start_offset / 2) + 1,
+                    (<span class="kw">CASE</span> deqs.statement_end_offset
+                         <span class="kw">WHEN</span> -1 <span class="kw">THEN</span>
+                             <span class="fn">DATALENGTH</span>(dest.text)
+                         <span class="kw">ELSE</span>
+                             deqs.statement_end_offset - deqs.statement_start_offset
+                     <span class="kw">END</span>
+                    ) / 2 + 1
+                ) <span class="kw">AS</span> QueryStatement,
+       deqs.creation_time,
+       deqs.execution_count,
+       deqp.query_plan
+<span class="kw">FROM</span> sys.dm_exec_query_stats <span class="kw">AS</span> deqs
+    <span class="kw">CROSS APPLY</span> sys.dm_exec_query_plan(deqs.plan_handle) <span class="kw">AS</span> deqp
+    <span class="kw">CROSS APPLY</span> sys.dm_exec_sql_text(deqs.plan_handle) <span class="kw">AS</span> dest
+<span class="kw">WHERE</span> dest.text <span class="kw">LIKE</span> '%Person%'
+      <span class="kw">AND</span> deqp.dbid = <span class="fn">DB_ID</span>('AdventureWorks2016')
+      <span class="kw">AND</span> dest.text <span class="kw">NOT LIKE</span> '%dm[_]exec[_]%'
+<span class="kw">ORDER BY</span> deqs.execution_count <span class="kw">DESC</span>,
+         deqs.creation_time;</code></pre>
+        <div class="cap">The offsets are in bytes, hence the <code>/ 2</code> for <code>nvarchar</code>. Note the book's filter here says <code>AdventureWorks2016</code> — a typo for 2014; adjust to your database.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-3-multiple-executions.png"
+             alt="Query Store style result grid showing per-statement execution counts.">
+        <figcaption><b>Figure 9-3</b> — After running the whole batch once and the final statement twice more: per-statement counts, per statement, from one cached batch.</figcaption>
+      </figure>
+
+      <p>
+        This DMO also exposes aggregated reads, writes and CPU per statement — the columns you'd use to
+        find the most expensive statement in a cached procedure.
+      </p>
+
+      <h3 class="step">What all those one-off compiles cost</h3>
+      <p>
+        The worst offenders are unparameterized ad hoc queries generated by a poorly written library or a
+        badly configured ORM — including ORMs that build different parameter definitions per string
+        length (<code class="inl">VARCHAR(3)</code> for <code class="inl">'Dog'</code>,
+        <code class="inl">VARCHAR(5)</code> for <code class="inl">'Horse'</code>).
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-4 · 500 iterations, two ways</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> @ii <span class="kw">INT</span>;
+<span class="kw">DECLARE</span> @IterationsToDo <span class="kw">INT</span> = 500;
+<span class="kw">DECLARE</span> @id <span class="kw">VARCHAR</span>(8);
+<span class="kw">SELECT</span> @ii = 1;
+<span class="kw">WHILE</span> @ii &lt;= @IterationsToDo
+<span class="kw">BEGIN</span>
+    <span class="kw">SELECT</span> @ii = @ii + 1,
+           @id = <span class="fn">CONVERT</span>(<span class="kw">VARCHAR</span>(5), @ii);
+    <span class="kw">EXECUTE</span> ('<span class="kw">SELECT</span> <span class="fn">ISNULL</span>(Title, '''') + '' '' + FirstName + '' '' + LastName <span class="kw">FROM</span> Person.Person <span class="kw">WHERE</span> BusinessEntityID =' + @id);
+<span class="kw">END</span>;
+<span class="kw">GO</span>
+<span class="kw">DECLARE</span> @ii <span class="kw">INT</span>;
+<span class="kw">DECLARE</span> @IterationsToDo <span class="kw">INT</span> = 500;
+<span class="kw">DECLARE</span> @id <span class="kw">VARCHAR</span>(8);
+<span class="kw">SELECT</span> @ii = 1;
+<span class="kw">WHILE</span> @ii &lt;= @IterationsToDo
+<span class="kw">BEGIN</span>
+    <span class="kw">SELECT</span> @ii = @ii + 1,
+           @id = <span class="fn">CONVERT</span>(<span class="kw">VARCHAR</span>(5), @ii);
+    <span class="kw">EXEC</span> sys.sp_executesql N'
+  <span class="kw">SELECT</span> <span class="fn">ISNULL</span>(Title, '''') + '' '' + FirstName + '' '' + LastName
+<span class="kw">FROM</span> Person.Person <span class="kw">WHERE</span> BusinessEntityID = @id',
+N'@id int',
+@id = @ii;
+<span class="kw">END</span>;
+<span class="kw">GO</span></code></pre>
+        <div class="cap">Both loops are still the wrong answer — the result set needs one set-based query, not 500. The comparison is only about what the optimizer is asked to do.</div>
+      </div>
+
+      <div class="note warn">
+        <b>The measurement</b>
+        Measured with Extended Events: <b>unparameterized ≈ 3,500 logical reads, 368,890 µs</b>;
+        <b>sp_executesql ≈ 1,500 logical reads, 26,329 µs</b>. That's <b>14×</b> the elapsed time.
+        And <code class="inl">STATISTICS IO</code> won't show you the difference — it reports work done
+        <i>by</i> the query, not work done <i>on behalf of</i> it. Only about <b>4 extra reads per
+        iteration</b> are attributable to cache management, but the compile CPU is the real cost.
+      </div>
+
+      <p>
+        Scale that up and you get the classic trio of symptoms: 500 single-use copies of the same plan,
+        wasted buffer pool memory, and <b>cache churn</b> — useful plans evicted to make room for
+        one-shot ones, eventually memory pressure.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-5 · what proportion of the cache is ad hoc?</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> decp.objtype,
+       <span class="fn">CAST</span>(100.0 * <span class="fn">COUNT</span>(*) / <span class="fn">SUM</span>(<span class="fn">COUNT</span>(*)) <span class="kw">OVER</span> () <span class="kw">AS DECIMAL</span>(5, 2)) <span class="kw">AS</span> plans_In_Cache
+<span class="kw">FROM</span> sys.dm_exec_cached_plans <span class="kw">AS</span> decp
+<span class="kw">GROUP BY</span> decp.objtype
+<span class="kw">ORDER BY</span> plans_In_Cache;</code></pre>
+        <div class="cap">A single reading means nothing. Trend it alongside Batch Requests/sec and SQL Compilations/sec — or read the same breakdown out of Query Store.</div>
+      </div>
+    </section>
+
+    <section class="card" id="ch9-simple-param">
+      <h2><span class="num">3</span> Simple parameterization — cautious, and easily deterred</h2>
+      <p class="lede">Sometimes the optimizer quietly turns your literal into <code>@1</code>. There are rules, and the chapter's best trick is a plan that <i>looks</i> parameterized and isn't.</p>
+
+      <p>
+        For very simple one-table queries, the optimizer may recognise that a parameter would let it reuse
+        a plan, and auto-create one. But it only dares do this for <b>trivial plans</b> (Chapter 1),
+        because only there can it be sure the same plan works for every possible value.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-6 · a textbook trivial query</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> a.AddressID,
+       a.AddressLine1,
+       a.City
+<span class="kw">FROM</span> Person.Address <span class="kw">AS</span> a
+<span class="kw">WHERE</span> a.AddressID = 42;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-4-simple-parameterization-query.png"
+             alt="Plan with the statement text shown as WHERE AddressID = @1, highlighted, with a Clustered Index Seek.">
+        <figcaption><b>Figure 9-4</b> — The first visual clue: the statement text in the plan says <code class="inl">WHERE [a].[AddressID] = @1</code>, not <code class="inl">= 42</code>.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter9/fig-9-5-simple-parameterization-props.png"
+             alt="SELECT properties: Optimization Level TRIVIAL, Parameter List with @1 compiled value (42), Parameter Data Type tinyint, runtime value (42), StatementParameterizationType 2.">
+        <figcaption><b>Figure 9-5</b> — The authoritative view: <b>Optimization Level = TRIVIAL</b>, a Parameter List with <code class="inl">@1</code> (tinyint), and <b>StatementParameterizationType = 2</b> — the code for simple parameterization.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>StatementParameterizationType — the cheat code</b>
+        <b>0</b> = no parameterization · <b>1</b> = explicit (you parameterized it) ·
+        <b>2</b> = simple · <b>3</b> = forced. It only appears if Query Store is enabled, and only in
+        <b>actual</b> plans, because it's a runtime value. Keep it in mind — it's the tie-breaker later
+        in this chapter.
+      </div>
+
+      <p>
+        You control neither the parameter names (they're numbered in creation order) nor the data types.
+        For integers the optimizer picks the <b>smallest type that fits</b>: 42 becomes a
+        <code class="inl">tinyint</code>, and a value of 300 would have become a
+        <code class="inl">smallint</code>. So even successful simple parameterization can leave more than
+        one plan in cache for the same query.
+      </p>
+
+      <figure>
+        <img src="images/chapter9/fig-9-6-usecounts-plan-cache.png"
+             alt="Plan cache rows showing two placeholder ad hoc entries and one parameterized entry with usecounts 2.">
+        <figcaption><b>Figure 9-6</b> — Re-running the query with 42 replaced by 100: the bottom entry shows <b>usecounts = 2</b>, and its text contains <code class="inl">@1</code> as a <code class="inl">tinyint</code>. The plan was reused.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>Those first two rows are decoys</b>
+        They're the pre-parameterization lookups — exact-text matches are checked <b>before</b>
+        parameterization. Their plans consist of nothing but a <b>SELECT operator</b>, and they are never
+        completed or executed. Listing 9-3 confirms only one real plan exists, executed twice.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 9-7 · the same story from Query Store</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> qsqt.query_sql_text,
+       qsq.query_parameterization_type_desc,
+       qsq.count_compiles,
+       qsp.is_trivial_plan,
+       qsrs.count_executions
+<span class="kw">FROM</span> sys.query_store_query <span class="kw">AS</span> qsq
+    <span class="kw">JOIN</span> sys.query_store_query_text <span class="kw">AS</span> qsqt
+        <span class="kw">ON</span> qsqt.query_text_id = qsq.query_text_id
+    <span class="kw">JOIN</span> sys.query_store_plan <span class="kw">AS</span> qsp
+        <span class="kw">ON</span> qsp.query_id = qsq.query_id
+    <span class="kw">JOIN</span> sys.query_store_runtime_stats <span class="kw">AS</span> qsrs
+        <span class="kw">ON</span> qsrs.plan_id = qsp.plan_id
+<span class="kw">WHERE</span> qsqt.query_sql_text <span class="kw">LIKE</span> '%@1%';</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-7-query-store-executions.png"
+             alt="Query Store result row: parameterized text, parameterization type SIMPLE, compile count 1, is_trivial_plan 1, execution count 2.">
+        <figcaption><b>Figure 9-7</b> — Query Store agrees: <b>count_compiles = 1</b>, <b>count_executions = 2</b>, parameterization type SIMPLE, <code class="inl">is_trivial_plan</code> set.</figcaption>
+      </figure>
+
+      <h3 class="step">It's easy to break</h3>
+      <p>
+        The optimizer is "very cautious and easily deterred". Two ways to kill it, both mundane:
+      </p>
+      <ul>
+        <li><b>Wrap the column in a function.</b> The queries in Listing 9-1 also get trivial plans — but no Parameter List, because of the <code class="inl">ISNULL()</code>. Remove it and it works. (A <code class="inl">LIKE</code> predicate did the same thing back in Chapter 3.)</li>
+        <li><b>Join anything.</b> Add one join and the Optimization Level becomes <b>FULL</b>, and since TRIVIAL is a precondition, there are no parameters.</li>
+      </ul>
+
+      <div class="code">
+        <header><span>Listing 9-8 · one join is enough to lose it</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> a.AddressID,
+       a.AddressLine1,
+       a.City,
+       bea.BusinessEntityID
+<span class="kw">FROM</span> Person.Address <span class="kw">AS</span> a
+    <span class="kw">JOIN</span> Person.BusinessEntityAddress <span class="kw">AS</span> bea
+        <span class="kw">ON</span> bea.AddressID = a.AddressID
+<span class="kw">WHERE</span> a.AddressID = 42;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-8-optimization-level-full.png"
+             alt="SELECT properties showing Optimization Level FULL.">
+        <figcaption><b>Figure 9-8</b> — <b>Optimization Level = FULL</b>, and therefore no parameters. Other killers from the book's list: <code class="inl">GROUP BY</code>, <code class="inl">DISTINCT</code>, <code class="inl">TOP</code>, <code class="inl">UNION</code>, <code class="inl">INTO</code>, <code class="inl">BULK INSERT</code>, <code class="inl">COMPUTE</code>.</figcaption>
+      </figure>
+
+      <h3 class="step">The trap: parameterization that was undone</h3>
+      <div class="code">
+        <header><span>Listing 9-9 · parameterized, or isn't it?</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> Person.FirstName + ' ' + Person.LastName,
+       Person.Title
+<span class="kw">FROM</span> Person.Person
+<span class="kw">WHERE</span> Person.LastName = 'Diaz';</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-9-parameterized-but-not-really.png"
+             alt="SELECT properties showing FULL optimization level, a Parameter List with 'Diaz' as varchar(8000), and StatementParameterizationType 0.">
+        <figcaption><b>Figure 9-9</b> — Looks parameterized. Isn't. <b>Optimization Level = FULL</b>, and the giveaway at the bottom: <b>StatementParameterizationType = 0</b>. Change 'Diaz' to 'Brown' and you get two separate unparameterized plans.</figcaption>
+      </figure>
+
+      <p>
+        The book's reconstruction: two phases. First, a pre-compilation pass looks only at the <b>text</b>
+        for a long list of disqualifying keywords; if clean, it parameterizes and hands the query to the
+        optimizer. The optimizer then checks TRIVIAL — and this time it also considers constraints,
+        indexes and so on. If it concludes parameterization would be <b>unsafe</b>, it <i>undoes</i> the
+        parameterization and compiles the original query. But SSMS and Query Store still display the
+        parameterized shape, so the plan you're looking at is not the plan that ran. Only
+        <code class="inl">StatementParameterizationType = 0</code> tells you.
+      </p>
+      <div class="note tip">
+        <b>Why <code class="inl">Title</code> made it unsafe</b>
+        Including <code class="inl">Title</code> means the query needs a <b>Key Lookup</b>, so there's a
+        row count above which a clustered index scan becomes the better plan — an unstable plan. Drop
+        <code class="inl">Title</code> and the index covers the query and will always be used, so the
+        parameterization survives.
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-10-successful-simple-parameterization.png"
+             alt="SELECT properties showing successful simple parameterization with a string parameter.">
+        <figcaption><b>Figure 9-10</b> — With <code class="inl">Title</code> removed, simple parameterization succeeds. Note the string parameter's very long data type — chosen so the plan can be reused for much longer input strings.</figcaption>
+      </figure>
+    </section>
+
+    <section class="card" id="ch9-prepared">
+      <h2><span class="num">4</span> Programming for reuse: prepared statements and procedures</h2>
+      <p class="lede">Four ways to parameterize the same query — and they produce three different plans, because of when compilation happens and whether values are available.</p>
+
+      <p>
+        Hard-coding a literal into dynamic SQL is both unreusable and a <b>SQL injection</b> hole. The
+        fix is to send the text once with parameters: from application code (ODBC / ADO.NET / OLEDB
+        prepared statements), or from T-SQL with <code class="inl">sp_executesql</code> or
+        <code class="inl">sp_prepare</code>. In SQL Server itself, the best option for anything complex —
+        and for parameters both in and out — is a stored procedure or function.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-10 · sp_executesql</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> @sql <span class="kw">NVARCHAR</span>(400);
+<span class="kw">DECLARE</span> @param <span class="kw">NVARCHAR</span>(400);
+<span class="kw">SELECT</span> @sql =
+  N'<span class="kw">SELECT</span>  p.Name,
+            p.ProductNumber,
+            th.ReferenceOrderID
+    <span class="kw">FROM</span>    Production.Product <span class="kw">AS</span> p
+    <span class="kw">JOIN</span>    Production.TransactionHistory <span class="kw">AS</span> th
+            <span class="kw">ON</span> th.ProductID = p.ProductID
+    <span class="kw">WHERE</span>   th.ReferenceOrderID = @ReferenceOrderID;';
+<span class="kw">SELECT</span> @param = N'@ReferenceOrderID int';
+<span class="kw">EXEC</span> sys.sp_executesql @sql, @param, 53465;</code></pre>
+      </div>
+
+      <p>
+        The batch is compiled first, variables set, then <code class="inl">EXECUTE</code> runs — at which
+        point the parameter value <b>can be sniffed</b>. The estimate is therefore accurate (72 rows) and
+        the plan is built for that value.
+      </p>
+
+      <figure>
+        <img src="images/chapter9/fig-9-11-sniffed-parameters-plan.png"
+             alt="Plan with Merge Join and Index Seek, built for the sniffed parameter value.">
+        <figcaption><b>Figure 9-11</b> — The sniffed-parameter plan: a Merge Join, appropriate for 72 rows.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 9-11 · the same thing from application code (C#)</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">using</span> System.Data;
+<span class="kw">using</span> System.Data.SqlClient;
+
+<span class="kw">namespace</span> ExecuteSQL
+{
+    <span class="kw">class</span> Program
+    {
+        <span class="kw">static void</span> Main(<span class="kw">string</span>[] args)
+        {
+            <span class="kw">string</span> connectionString = <span class="str">"Data Source=MySQLInstance;Database=AdventureWorks2014;Integrated Security=true"</span>;
+            <span class="kw">try</span>
+            {
+                <span class="kw">using</span> (SqlConnection myConnection = <span class="kw">new</span> SqlConnection(connectionString))
+                {
+                    myConnection.Open();
+                    SqlCommand prepStatement = myConnection.CreateCommand();
+                    prepStatement.CommandText = <span class="str">@"SELECT p.Name, p.ProductNumber,
+                                 th.ReferenceOrderID
+                                 FROM Production.Product AS p
+                                 JOIN Production.TransactionHistory AS th
+                                 ON th.ProductID = p.ProductID
+                                 WHERE th.ReferenceOrderID = @ReferenceOrderID"</span>;
+                    prepStatement.Parameters.Add(<span class="str">"@ReferenceOrderID"</span>, SqlDbType.Int);
+                    prepStatement.Prepare();
+                    prepStatement.Parameters[<span class="str">"@ReferenceOrderID"</span>].Value = 53465;
+                    prepStatement.ExecuteReader();
+                }
+            }
+            <span class="kw">catch</span> (SqlException e)
+            {
+                Console.WriteLine(e.Message);
+                Console.Read();
+            }
+        }
+    }
+}</code></pre>
+        <div class="cap">Note <code>Prepare()</code> <b>after</b> the parameter is declared but <b>before</b> the value is assigned — this ordering matters, as the next listing shows.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-12-prepared-statement-parameterization.png"
+             alt="SELECT properties for the prepared statement showing @ReferenceOrderID, compiled value 53465, StatementParameterizationType 1.">
+        <figcaption><b>Figure 9-12</b> — Same plan as Figure 9-11, and <b>StatementParameterizationType = 1</b>: explicitly parameterized. The value was sniffed (compile value 53465).</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 9-12 · sp_prepare / sp_execute / sp_unprepare</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> @sql <span class="kw">NVARCHAR</span>(400);
+<span class="kw">DECLARE</span> @param <span class="kw">NVARCHAR</span>(400);
+<span class="kw">DECLARE</span> @PreparedStatement <span class="kw">INT</span>;
+<span class="kw">DECLARE</span> @MyID <span class="kw">INT</span>;
+<span class="kw">SELECT</span> @sql =
+  N'<span class="kw">SELECT</span>  p.Name,
+            p.ProductNumber,
+            th.ReferenceOrderID
+    <span class="kw">FROM</span>    Production.Product <span class="kw">AS</span> p
+    <span class="kw">JOIN</span>    Production.TransactionHistory <span class="kw">AS</span> th
+            <span class="kw">ON</span> th.ProductID = p.ProductID
+    <span class="kw">WHERE</span>   th.ReferenceOrderID = @ReferenceOrderID;';
+<span class="kw">SELECT</span> @param = N'@ReferenceOrderID int';
+<span class="kw">SELECT</span> @MyID = 53465;
+<span class="kw">EXEC</span> sp_prepare @PreparedStatement <span class="kw">OUTPUT</span>, @param, @sql;
+<span class="kw">EXEC</span> sp_execute @PreparedStatement, @MyID;
+<span class="kw">EXEC</span> sp_unprepare @PreparedStatement;</code></pre>
+      </div>
+
+      <div class="note warn">
+        <b>Prepare-then-execute means no sniffer</b>
+        Compilation happens at <b>prepare</b>, when there are no values. The parameter is treated exactly
+        like a <b>local variable</b> — so the optimizer uses the density graph (3.05 rows here) and you
+        get the <b>unknown-value</b> plan, not the sniffed one. Clear the cache before testing, or you'll
+        just see the reused plan from Listing 9-10, since the SQL text is identical.
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-13-sp-prepare-plan.png"
+             alt="Simple nested loops plan for estimated 3 rows.">
+        <figcaption><b>Figure 9-13</b> — The 3.05-row plan: plain Nested Loops. It degrades as the top input grows — but here it's good enough for every value that can be passed in.</figcaption>
+      </figure>
+
+      <h3 class="step">Stored procedures</h3>
+      <div class="code">
+        <header><span>Listing 9-13 · the same query, wrapped</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE OR ALTER PROC</span> dbo.ProductTransactionHistoryByReference (@ReferenceOrderID <span class="kw">INT</span>)
+<span class="kw">AS</span>
+<span class="kw">BEGIN</span>
+    <span class="kw">SELECT</span> p.Name,
+           p.ProductNumber,
+           th.ReferenceOrderID
+    <span class="kw">FROM</span> Production.Product <span class="kw">AS</span> p
+        <span class="kw">JOIN</span> Production.TransactionHistory <span class="kw">AS</span> th
+            <span class="kw">ON</span> th.ProductID = p.ProductID
+    <span class="kw">WHERE</span> th.ReferenceOrderID = @ReferenceOrderID;
+<span class="kw">END</span>
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 9-14 · first call decides the plan</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> dbo.ProductTransactionHistoryByReference @ReferenceOrderID = 41798;</code></pre>
+      </div>
+
+      <p>
+        The procedure's plan lives in the object cache, keyed by object ID — which makes it retrievable
+        directly. This first call compiles for a small row count, so the leftmost join is Nested Loops
+        (Figure 9-13).
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-15 · best way to inspect a procedure's plan and timings</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> <span class="fn">DB_NAME</span>(deps.database_id) <span class="kw">AS</span> DatabaseName,
+       deps.cached_time,
+       deps.min_elapsed_time,
+       deps.max_elapsed_time,
+       deps.last_elapsed_time,
+       deps.total_elapsed_time,
+       deqp.query_plan
+<span class="kw">FROM</span> sys.dm_exec_procedure_stats <span class="kw">AS</span> deps
+    <span class="kw">CROSS APPLY</span> sys.dm_exec_query_plan(deps.plan_handle) <span class="kw">AS</span> deqp
+<span class="kw">WHERE</span> deps.object_id = <span class="fn">OBJECT_ID</span>('AdventureWorks2014.dbo.ProductTransactionHistoryByReference');</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-14-stored-proc-exec-metrics.png"
+             alt="Row of min/max/last/total elapsed time in microseconds for the procedure.">
+        <figcaption><b>Figure 9-14</b> — After two executions: <b>6,900 µs</b> then <b>80 µs</b>. The first includes compile time; the second is pure execution. Counters keep accumulating while the plan stays in cache.</figcaption>
+      </figure>
+
+      <p>
+        Execute a third time with <code class="inl">@ReferenceOrderID = 53465</code> and
+        <code class="inl">last_elapsed_time</code> jumps to roughly <b>12 ms</b> — the plan built for 3
+        rows is now returning 72. Not a crisis here, but this is exactly the shape of the bad
+        parameter-sniffing problem from Chapter 8.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-16 · per-statement view inside a procedure</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  dest.text,
+       deqp.query_plan,
+       deqs.execution_count,
+       deqs.max_worker_time,
+       deqs.max_logical_reads,
+       deqs.max_logical_writes
+<span class="kw">FROM</span> sys.dm_exec_query_stats <span class="kw">AS</span> deqs
+    <span class="kw">CROSS APPLY</span> sys.dm_exec_query_plan(deqs.plan_handle) <span class="kw">AS</span> deqp
+    <span class="kw">CROSS APPLY</span> sys.dm_exec_sql_text(deqs.sql_handle) <span class="kw">AS</span> dest
+<span class="kw">WHERE</span> dest.text <span class="kw">LIKE</span> 'CREATE PROC dbo.ProductTransactionHistoryByReference%';</code></pre>
+        <div class="cap">The <code>CREATE…</code> filter is needed because for objects the <code>text</code> column holds the <b>object definition</b>, not the statement.</div>
+      </div>
+    </section>
+
+    <section class="card" id="ch9-adhoc-workloads">
+      <h2><span class="num">5</span> Fixing it without touching the code</h2>
+      <p class="lede">Two database-wide levers for two different problems: one shrinks the cache cost of one-shot plans, the other forces reuse whether it's good for you or not.</p>
+
+      <p>
+        Two distinct problems need fixing when vendor code can't change: (1) memory and CPU pressure from
+        a flood of unreusable ad hoc plans; (2) erratic performance from <b>bad parameter sniffing</b> on
+        plans that <i>are</i> being reused.
+      </p>
+
+      <h3 class="step">optimize for ad hoc workloads</h3>
+      <p>
+        The first thing to try for problem (1). It's a <b>server-wide</b> setting (since SQL Server 2016
+        also available per database), so test its impact carefully before production.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-17 · enable it server-wide</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXECUTE</span> sp_configure 'show advanced options', '1';
+<span class="kw">RECONFIGURE</span>;
+<span class="kw">GO</span>
+<span class="kw">EXECUTE</span> sp_configure 'optimize for ad hoc workloads', 1;
+<span class="kw">RECONFIGURE</span>;
+<span class="kw">DBCC FREEPROCCACHE</span>;
+<span class="kw">GO</span></code></pre>
+        <div class="cap">The <code>DBCC</code> is for demonstration only. In real life, pass a plan_handle or use <code>ALTER DATABASE SCOPED CONFIGURATION CLEAR PROCEDURE_CACHE</code>.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 9-18 · the database-scoped version (Azure SQL Database)</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">ALTER DATABASE SCOPED CONFIGURATION SET</span> OPTIMIZE_FOR_AD_HOC_WORKLOADS = <span class="kw">ON</span>;
+<span class="kw">ALTER DATABASE SCOPED CONFIGURATION CLEAR PROCEDURE_CACHE</span>;</code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 9-19 · a query with several literals</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> 42 <span class="kw">AS</span> TheAnswer,
+       em.EmailAddress,
+       a.City
+<span class="kw">FROM</span> Person.BusinessEntityAddress <span class="kw">AS</span> bea
+    <span class="kw">JOIN</span> Person.Address <span class="kw">AS</span> a
+        <span class="kw">ON</span> bea.AddressID = a.AddressID
+    <span class="kw">JOIN</span> Person.StateProvince <span class="kw">AS</span> sp
+        <span class="kw">ON</span> a.StateProvinceID = sp.StateProvinceID
+    <span class="kw">JOIN</span> Person.EmailAddress <span class="kw">AS</span> em
+        <span class="kw">ON</span> bea.BusinessEntityID = em.BusinessEntityID
+<span class="kw">WHERE</span> em.EmailAddress <span class="kw">LIKE</span> 'david%'
+      <span class="kw">AND</span> sp.StateProvinceCode = 'WA';</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-15-optimize-adhoc-plan.png"
+             alt="Plan with three Nested Loops joins, seeks on EmailAddress, Address, StateProvince and BusinessEntityAddress, and a Compute Scalar.">
+        <figcaption><b>Figure 9-15</b> — No parameterization occurred: the statement text in the plan matches what was submitted, and there's no Parameter List.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter9/fig-9-16-cache-stub-no-plan.png"
+               alt="Plan cache row with a small size and no plan.">
+          <figcaption><b>Figure 9-16</b> — First execution: a <b>424-byte plan stub</b> and nothing else. The plan was compiled, then thrown away.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter9/fig-9-17-cache-with-plan.png"
+               alt="Plan cache row now containing the full plan.">
+          <figcaption><b>Figure 9-17</b> — Second execution of the exact same text: compiled again, and this time <b>stored</b>.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note tip">
+        <b>What the setting actually does</b>
+        Optimize as usual, but store a <b>stub</b> instead of the full plan. If the same query comes back
+        a second time, compile again and cache it. You pay one extra compile per reusable query and save
+        the memory of every plan that was only ever used once. Note that <code class="inl">usecounts</code>
+        doesn't tick up when the real plan is stored — it's effectively a new cache entry.
+      </div>
+
+      <div class="code">
+        <header><span>Listing 9-20 · turn it back off</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXECUTE</span> sp_configure 'show advanced options', 1;
+<span class="kw">RECONFIGURE</span>;
+<span class="kw">GO</span>
+<span class="kw">EXECUTE</span> sp_configure 'optimize for ad hoc workloads', 0;
+<span class="kw">RECONFIGURE</span>;
+<span class="kw">GO</span>
+<span class="kw">EXECUTE</span> sp_configure 'show advanced options', 0;
+<span class="kw">RECONFIGURE</span>;
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <h3 class="step">Forced parameterization</h3>
+      <p>
+        If compilation CPU is the problem and the queries can't change, you can force the optimizer to
+        replace <b>all</b> literals with parameters. The exceptions are important:
+      </p>
+      <ul>
+        <li>Literals in the <b>select list</b> are not replaced.</li>
+        <li>No parameterization inside statements of procedures, triggers and UDFs — they get their own plans anyway.</li>
+        <li>The <code class="inl">pattern</code> and <code class="inl">escape_character</code> of a <code class="inl">LIKE</code> are left alone.</li>
+        <li>XQuery literals are left alone.</li>
+      </ul>
+
+      <div class="code">
+        <header><span>Listing 9-21 · a query that gets no simple parameterization</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> <span class="fn">ISNULL</span>(Person.Title, '') + ' ' + Person.FirstName + ' ' + Person.LastName
+<span class="kw">FROM</span> Person.Person
+<span class="kw">WHERE</span> Person.BusinessEntityID = 278;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-18-no-parameterization-cache.png"
+             alt="Plan cache row showing an unparameterized query.">
+        <figcaption><b>Figure 9-18</b> — Before: one cache entry, no parameters, because of the <code class="inl">ISNULL()</code>.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 9-22 · switch the database to forced parameterization</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">ALTER DATABASE</span> AdventureWorks2014 <span class="kw">SET PARAMETERIZATION FORCED</span>;
+<span class="kw">GO</span></code></pre>
+        <div class="cap">Changing the option clears the cache for the database automatically.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-19-forced-parameterization-props.png"
+             alt="SELECT properties with a Parameter List and StatementParameterizationType 3.">
+        <figcaption><b>Figure 9-19</b> — Now it parameterizes: Parameter List present, and <b>StatementParameterizationType = 3</b> — forced.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter9/fig-9-20-parameterized-query-cached.png"
+             alt="Plan cache showing the parameterized query with usecounts 2.">
+        <figcaption><b>Figure 9-20</b> — Run it with a different literal and the plan is <b>reused</b> (<code class="inl">usecounts = 2</code>). For this query that's a pure win: a clustered index seek, the same plan at any value.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>But it's a blunt instrument</b>
+        It parameterizes <b>everything</b> on the database, including queries that legitimately need
+        different plans per value. You may trade compilation cost for bad parameter sniffing. And again
+        you control neither the parameter names (created in the order the literals appear) nor their data
+        types.
+      </div>
+
+      <p>
+        Re-run Listing 9-19 under forced parameterization and the plan is unchanged — but the stored text
+        isn't. It now reads <code class="inl">sp.StateProvinceCode = @0</code>. Because
+        <code class="inl">LIKE</code> is on the exception list, the <code class="inl">'david%'</code>
+        literal stays hard-coded, so this plan will only ever be reused for searches for <i>david</i>, in
+        any state. Great or terrible depending on your workload.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-23 · put it back</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">ALTER DATABASE</span> AdventureWorks2014 <span class="kw">SET PARAMETERIZATION SIMPLE</span>;
+<span class="kw">GO</span></code></pre>
+      </div>
+    </section>
+
+    <section class="card" id="ch9-plan-guides">
+      <h2><span class="num">6</span> Plan guides: hints you can't put in the code</h2>
+      <p class="lede">Three flavours, one purpose: apply a hint to code you can't edit — narrowly, instead of across a whole database.</p>
+
+      <p>
+        Available on every edition except Express. Advantage over the two settings above: a plan guide
+        affects <b>only the objects or queries you apply it to</b>. They come in three types —
+        <b>object</b>, <b>SQL</b> and <b>template</b> guides — and the customary warning applies with
+        extra force: hints are <b>commands, not suggestions</b>. A plan guide should be a last resort,
+        retested over time as data changes.
+      </p>
+
+      <h3 class="step">Template plan guide → localized forced parameterization</h3>
+      <p>
+        You want forced parameterization for <b>one</b> vendor query, not the database. Generate the
+        template with <code class="inl">sp_get_query_template</code> (its outputs mimic the
+        forced-parameterized form), then hand those outputs to <code class="inl">sp_create_plan_guide</code>:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-24 · template plan guide applying PARAMETERIZATION FORCED</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> @templateout <span class="kw">NVARCHAR</span>(<span class="kw">MAX</span>),
+        @paramsout <span class="kw">NVARCHAR</span>(<span class="kw">MAX</span>);
+<span class="kw">EXEC</span> sys.sp_get_query_template @querytext = N'<span class="kw">SELECT</span>  42 <span class="kw">AS</span> TheAnswer
+       ,em.EmailAddress
+       ,e.BirthDate
+       ,a.City
+<span class="kw">FROM</span>    Person.Person <span class="kw">AS</span> p
+        <span class="kw">JOIN</span> HumanResources.Employee e
+            <span class="kw">ON</span> p.BusinessEntityID = e.BusinessEntityID
+        <span class="kw">JOIN</span> Person.BusinessEntityAddress <span class="kw">AS</span> bea
+            <span class="kw">ON</span> p.BusinessEntityID = bea.BusinessEntityID
+        <span class="kw">JOIN</span> Person.Address a
+            <span class="kw">ON</span> bea.AddressID = a.AddressID
+        <span class="kw">JOIN</span> Person.StateProvince <span class="kw">AS</span> sp
+            <span class="kw">ON</span> a.StateProvinceID = sp.StateProvinceID
+        <span class="kw">JOIN</span> Person.EmailAddress <span class="kw">AS</span> em
+        <span class="kw">ON</span> e.BusinessEntityID = em.BusinessEntityID
+<span class="kw">WHERE</span>   em.EmailAddress <span class="kw">LIKE</span> ''david%''
+        <span class="kw">AND</span> sp.StateProvinceCode = ''WA'';',
+                               @templatetext = @templateout <span class="kw">OUTPUT</span>,
+                               @parameters = @paramsout <span class="kw">OUTPUT</span>;
+<span class="kw">EXEC</span> sys.sp_create_plan_guide
+    @name = N'MyTemplatePlanGuide',
+    @stmt = @templateout,
+    @type = N'TEMPLATE',
+    @module_or_batch = <span class="kw">NULL</span>,
+    @params = @paramsout,
+    @hints = N'<span class="kw">OPTION</span>(PARAMETERIZATION FORCED)';</code></pre>
+      </div>
+
+      <p>The parameters of <code class="inl">sp_create_plan_guide</code>, in plain words:</p>
+      <table>
+        <thead><tr><th>Parameter</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">@name</code></td><td>Guide name. Scoped to the <b>database</b>, not the server.</td></tr>
+          <tr><td><code class="inl">@stmt</code></td><td>Must match the query the optimizer sees. White space and carriage returns don't matter; everything else does.</td></tr>
+          <tr><td><code class="inl">@type</code></td><td><code class="inl">TEMPLATE</code>, <code class="inl">SQL</code> or <code class="inl">OBJECT</code>.</td></tr>
+          <tr><td><code class="inl">@module_or_batch</code></td><td>The target object for an object guide; <code class="inl">NULL</code> otherwise.</td></tr>
+          <tr><td><code class="inl">@params</code></td><td>Template guides only: comma-separated parameter names and types.</td></tr>
+          <tr><td><code class="inl">@hints</code></td><td>The hint(s) to apply — e.g. <code class="inl">OPTION(PARAMETERIZATION FORCED)</code>.</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Rerun Listing 9-19 and it's now forcibly parameterized. One quirk: a template plan guide is
+        <b>not</b> identified inside the execution plan, so use the Extended Event
+        <code class="inl">plan_guide_successful</code> to confirm it fired.
+      </p>
+
+      <h3 class="step">SQL plan guide → OPTIMIZE FOR UNKNOWN</h3>
+      <p>
+        Now the opposite problem: parameterized queries with <b>bad sniffing</b>. Recall the prepared
+        statement from Listing 9-10 — a few rows gives simple Nested Loops (Figure 9-13), 72 rows gives a
+        Merge Join (Figure 9-11). If the simpler plan is best for most values, force a generic plan:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-25 · SQL plan guide with OPTIMIZE FOR UNKNOWN</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> sys.sp_create_plan_guide
+  @name = N'MySQLPlanGuide',
+  @stmt = N'<span class="kw">SELECT</span>  p.Name,
+            p.ProductNumber,
+            th.ReferenceOrderID
+    <span class="kw">FROM</span>    Production.Product <span class="kw">AS</span> p
+    <span class="kw">JOIN</span>    Production.TransactionHistory <span class="kw">AS</span> th
+            <span class="kw">ON</span> th.ProductID = p.ProductID
+    <span class="kw">WHERE</span>   th.ReferenceOrderID = @ReferenceOrderID;',
+  @type = N'SQL',
+  @module_or_batch = <span class="kw">NULL</span>,
+  @params = N'@ReferenceOrderID int',
+  @hints = N'<span class="kw">OPTION</span> (<span class="kw">OPTIMIZE FOR UNKNOWN</span>)';</code></pre>
+        <div class="cap">Why UNKNOWN rather than <code>OPTIMIZE FOR (@ReferenceOrderID = 41798)</code>? Because a specific value's plan can go wrong when the data changes. The generic plan is stable.</div>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-21-plan-guide-optimize-for-unknown.png"
+             alt="Plan resulting from the OPTIMIZE FOR UNKNOWN plan guide.">
+        <figcaption><b>Figure 9-21</b> — No sniffer: the plan is built from average statistics, giving the simpler shape.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter9/fig-9-22-plan-guide-in-use.png"
+             alt="SELECT properties showing the plan guide name.">
+        <figcaption><b>Figure 9-22</b> — The SELECT properties name the guide. This is how you prove a plan guide was applied — and how you find inherited guides on a database you've just taken over.</figcaption>
+      </figure>
+
+      <h3 class="step">Object plan guide → RECOMPILE</h3>
+      <p>
+        Same idea, applied to a statement <b>inside</b> a procedure you can't edit. Only valid for
+        statements in T-SQL procedures, scalar UDFs, multi-statement TVFs and DML triggers. Here the
+        target is AdventureWorks' <code class="inl">dbo.uspGetManagerEmployees</code>:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-26 · object plan guide applying RECOMPILE</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>-- The @stmt below must match the procedure's statement exactly.
+-- Trimmed here to the essential shape; see Chapter 7 for the full recursive CTE.
+<span class="kw">EXEC</span> sys.sp_create_plan_guide
+    @name = N'MyObjectPlanGuide',
+    @stmt = N'<span class="kw">WITH</span> [EMP_cte]([BusinessEntityID], [OrganizationNode],
+                              [FirstName], [LastName], [RecursionLevel])
+<span class="kw">AS</span> (
+<span class="kw">SELECT</span> e.[BusinessEntityID], e.[OrganizationNode], p.[FirstName],
+       p.[LastName], 0
+<span class="kw">FROM</span> [HumanResources].[Employee] e
+     <span class="kw">INNER JOIN</span> [Person].[Person] p
+            <span class="kw">ON</span> p.[BusinessEntityID] = e.[BusinessEntityID]
+<span class="kw">WHERE</span> e.[BusinessEntityID] = @BusinessEntityID
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> e.[BusinessEntityID], e.[OrganizationNode], p.[FirstName],
+       p.[LastName], [RecursionLevel] + 1
+<span class="kw">FROM</span> [HumanResources].[Employee] e
+     <span class="kw">INNER JOIN</span> [EMP_cte]
+            <span class="kw">ON</span> e.[OrganizationNode].GetAncestor(1) = [EMP_cte].[OrganizationNode]
+    <span class="kw">INNER JOIN</span> [Person].[Person] p
+           <span class="kw">ON</span> p.[BusinessEntityID] = e.[BusinessEntityID]
+)
+<span class="kw">SELECT</span> [EMP_cte].[RecursionLevel],
+       [EMP_cte].[OrganizationNode].ToString() <span class="kw">as</span> [OrganizationNode],
+       p.[FirstName] <span class="kw">AS</span> ''ManagerFirstName'',
+       p.[LastName] <span class="kw">AS</span> ''ManagerLastName'',
+       [EMP_cte].[BusinessEntityID], [EMP_cte].[FirstName],
+       [EMP_cte].[LastName]
+<span class="kw">FROM</span> [EMP_cte]
+     <span class="kw">INNER JOIN</span> [HumanResources].[Employee] e
+             <span class="kw">ON</span> [EMP_cte].[OrganizationNode].GetAncestor(1) = e.[OrganizationNode]
+     <span class="kw">INNER JOIN</span> [Person].[Person] p
+            <span class="kw">ON</span> p.[BusinessEntityID] = e.[BusinessEntityID]
+<span class="kw">ORDER BY</span> [RecursionLevel], [EMP_cte].[OrganizationNode].ToString()
+<span class="kw">OPTION</span> (MAXRECURSION 25) ',
+    @type = N'OBJECT',
+    @module_or_batch = N'dbo.uspGetManagerEmployees',
+    @params = <span class="kw">NULL</span>,
+    @hints = N'<span class="kw">OPTION</span>(RECOMPILE,MAXRECURSION 25)';</code></pre>
+        <div class="cap">Two subtleties: the original <code>OPTION (MAXRECURSION 25)</code> had to be copied into <code>@stmt</code> for the text to match, and <b>the plan guide replaces the existing OPTION entirely</b> — so MAXRECURSION must be repeated in <code>@hints</code> or it's lost.</div>
+      </div>
+      <p>
+        From now on that statement recompiles every execution, with no edit to the procedure. One catch:
+        <b>you can't alter a procedure that has a plan guide</b>.
+      </p>
+
+      <h3 class="step">Housekeeping</h3>
+      <div class="code">
+        <header><span>Listing 9-27 · list them</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  *
+<span class="kw">FROM</span>    sys.plan_guides;</code></pre>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 9-28 · validate them after an upgrade</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> pg.plan_guide_id,
+       pg.name,
+       fvpg.message,
+       fvpg.severity,
+       fvpg.state
+<span class="kw">FROM</span> sys.plan_guides <span class="kw">AS</span> pg
+    <span class="kw">OUTER APPLY</span> sys.fn_validate_plan_guide(pg.plan_guide_id) <span class="kw">AS</span> fvpg;</code></pre>
+        <div class="cap">Valid guides return no row — so this query lists exactly the guides with errors. Run it after cumulative updates, upgrades and deployments.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 9-29 · drop them all</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> sys.sp_control_plan_guide @operation = N'DROP ALL', @name = N'*';</code></pre>
+        <div class="cap"><code>sp_control_plan_guide</code> can also <code>DISABLE</code> / <code>ENABLE</code> one guide or all of them — disabling keeps the definition but stops it being used.</div>
+      </div>
+    </section>
+
+    <section class="card" id="ch9-forcing">
+      <h2><span class="num">7</span> Plan forcing</h2>
+      <p class="lede">When a hint still leaves the optimizer a choice, take the choice away — with an XML plan in a plan guide, or far more easily through Query Store.</p>
+
+      <p>
+        Hints constrain the optimizer, but they still leave it room to pick among candidate plans, and you
+        can't control which. When you need to <b>strong-arm</b> it and can't touch the code, force the
+        plan.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-30 · the target procedure</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE PROCEDURE</span> Sales.CreditInfoBySalesPerson (@SalesPersonID <span class="kw">INT</span>)
+<span class="kw">AS</span>
+<span class="kw">SELECT</span> soh.AccountNumber,
+       soh.CreditCardApprovalCode,
+       soh.CreditCardID,
+       soh.OnlineOrderFlag
+<span class="kw">FROM</span> Sales.SalesOrderHeader <span class="kw">AS</span> soh
+<span class="kw">WHERE</span> soh.SalesPersonID = @SalesPersonID;</code></pre>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter9/fig-9-23-scan-large-dataset.png"
+               alt="Plan with a Clustered Index Scan for SalesOrderHeader.">
+          <figcaption><b>Figure 9-23</b> — <code class="inl">@SalesPersonID = 277</code>: a Clustered Index Scan for a large data set.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter9/fig-9-24-seek-key-lookup-small.png"
+               alt="Plan with an Index Seek and Key Lookup for a small data set.">
+          <figcaption><b>Figure 9-24</b> — Clear the cache, use <b>285</b>: an Index Seek with Key Lookup. Thinner pipes = fewer rows.</figcaption>
+        </figure>
+      </div>
+
+      <p>
+        Testing says the seek-and-lookup plan is much faster for <i>most</i> SalesPersonIDs. Rather than
+        recompile or <code class="inl">OPTIMIZE FOR</code>, capture the plan you want as XML:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-31 · capture the XML of the plan you prefer</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SET STATISTICS XML ON</span>;
+<span class="kw">GO</span>
+<span class="kw">SELECT</span> soh.AccountNumber,
+       soh.CreditCardApprovalCode,
+       soh.CreditCardID,
+       soh.OnlineOrderFlag
+<span class="kw">FROM</span> Sales.SalesOrderHeader <span class="kw">AS</span> soh
+<span class="kw">WHERE</span> soh.SalesPersonID = 285;
+<span class="kw">GO</span>
+<span class="kw">SET STATISTICS XML OFF</span>;
+<span class="kw">GO</span></code></pre>
+        <div class="cap">A 117-line XML plan here. You can also right-click a graphical plan → Show Execution Plan XML.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 9-32 · force it with a plan guide</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> sys.sp_create_plan_guide
+    @name = N'UsePlanPlanGuide',
+    @stmt = N'<span class="kw">SELECT</span> soh.AccountNumber,
+       soh.CreditCardApprovalCode,
+       soh.CreditCardID,
+       soh.OnlineOrderFlag
+<span class="kw">FROM</span> Sales.SalesOrderHeader <span class="kw">AS</span> soh
+<span class="kw">WHERE</span> soh.SalesPersonID = @SalesPersonID;',
+    @type = N'OBJECT',
+    @module_or_batch = N'Sales.CreditInfoBySalesPerson',
+    @params = <span class="kw">NULL</span>,
+    @hints = N'&lt;ShowPlanXML xmlns="http://sche..." ... &gt;';</code></pre>
+        <div class="cap">Paste the captured XML as <code>@hints</code> and <code>sp_create_plan_guide</code> interprets it as a <b>USE PLAN</b> hint automatically.</div>
+      </div>
+
+      <div class="code">
+        <header><span>Listing 9-33 · prove it worked</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> Sales.CreditInfoBySalesPerson @SalesPersonID = 277;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-25-forced-seek-plan.png"
+             alt="The seek and key lookup plan, now used for the large data set value too.">
+        <figcaption><b>Figure 9-25</b> — Value 277, but the seek plan. The <b>fatter pipes</b> than Figure 9-24 are the tell: more data is moving through, because 277 returns far more rows. That's the trade you chose, knowingly.</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <b>The limits of USE PLAN</b>
+        You cannot force a plan on <b>INSERT, UPDATE, DELETE or MERGE</b> queries, nor on queries using
+        cursors other than static, fast_forward, forward_only or insensitive. And you shouldn't paste the
+        XML straight into the query: XML plans are large, and anything over <b>8 KB</b> exceeds the string
+        literal cache limit so the query can't be cached. That's precisely why USE PLAN belongs in a plan
+        guide — plus you avoid thousand-line queries and redeploying code to change a plan.
+      </div>
+
+      <h3 class="step">Query Store plan forcing — the easier way</h3>
+      <p>
+        On Azure SQL Database or SQL Server 2016+, force plans from Query Store instead. First find the
+        plan you want:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 9-34 · list the plans Query Store knows about</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> <span class="fn">Object_Name</span>(qsq.object_id) <span class="kw">AS</span> ObjectName,
+  <span class="fn">Cast</span>(qsp.query_plan <span class="kw">AS XML</span>) <span class="kw">AS</span> xmlplan, qsq.query_id, qsp.plan_id
+  <span class="kw">FROM</span> sys.query_store_query <span class="kw">AS</span> qsq
+    <span class="kw">JOIN</span> sys.query_store_plan <span class="kw">AS</span> qsp
+      <span class="kw">ON</span> qsp.query_id = qsq.query_id
+  <span class="kw">WHERE</span> qsq.object_id = <span class="fn">Object_Id</span>('Sales.CreditInfoBySalesPerson');</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter9/fig-9-26-three-plans-query-store.png"
+             alt="Three rows: one query_id with three different plan_id values.">
+        <figcaption><b>Figure 9-26</b> — One <code class="inl">query_id</code>, three <code class="inl">plan_id</code>s: the plans for 277 and 285, plus a third entry for the forced plan. Note the query text is unchanged — because a plan guide was used, not an edited query.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 9-35 · force a plan (and 9-36 to undo it)</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">EXEC</span> sys.sp_query_store_force_plan @query_id = 5004, @plan_id = 5111;
+<span class="kw">GO</span>
+<span class="cm">-- later, to release it:</span>
+<span class="kw">EXEC</span> sp_query_store_unforce_plan @query_id = 5004, @plan_id = 5111;</code></pre>
+      </div>
+
+      <p>
+        Execute the procedure with 285 and you now get the <b>Clustered Index Scan</b> — even though
+        <code class="inl">UsePlanPlanGuide</code> is still in place forcing the seek. <b>Query Store plan
+        forcing takes precedence over a plan guide.</b>
+      </p>
+
+      <div class="note tip">
+        <b>"Temporary" is the operative word</b>
+        Every forcing technique in this chapter buys you time, not a permanent fix. As data, statistics,
+        indexes and code change, a forced plan that saved you yesterday costs you more and more tomorrow.
+        Re-evaluate forced plans regularly — and prefer Query Store over plan guides for the job.
+      </div>
+    </section>
+
+    <section class="card" id="ch9-cheatsheet">
+      <h2><span class="num">★</span> Chapter 9 cheat sheet</h2>
+
+      <table>
+        <thead><tr><th>Approach</th><th>What gets reused</th><th>What it costs / risks</th></tr></thead>
+        <tbody>
+          <tr><td><b>Ad hoc literal</b></td><td>Nothing, unless the exact text repeats — same format, same values</td><td>A new compile and cache entry per variant. The default cause of cache bloat.</td></tr>
+          <tr><td><b>Simple parameterization</b></td><td>Trivial plans only, if the text contains no disqualifying keyword</td><td>You control neither names nor types (smallest integer type wins). Killed by <code class="inl">ISNULL()</code>, <code class="inl">LIKE</code>, any join, and more.</td></tr>
+          <tr><td><b><code class="inl">sp_executesql</code></b></td><td>Yes — explicit parameters, values sniffed</td><td>Excellent. Also the answer to SQL injection.</td></tr>
+          <tr><td><b><code class="inl">sp_prepare</code> / <code class="inl">sp_execute</code></b></td><td>Yes, but compiled at prepare — no values to sniff</td><td>Always an <b>unknown-value</b> plan: density graph, like a local variable.</td></tr>
+          <tr><td><b>Stored procedure</b></td><td>Yes, keyed by object_id</td><td>Classic parameter sniffing. Inspect with <code class="inl">sys.dm_exec_procedure_stats</code>.</td></tr>
+          <tr><td><b>optimize for ad hoc workloads</b></td><td>Reusable queries still cached; one-shot ones leave only a stub</td><td>Server-wide (or database-scoped in 2016+). One extra compile for anything called twice.</td></tr>
+          <tr><td><b>Forced parameterization</b></td><td>Every literal becomes a parameter — database-wide</td><td>Blunt. May convert a compile problem into a bad-sniffing problem.</td></tr>
+          <tr><td><b>Template plan guide</b></td><td>Forced parameterization for <b>one</b> query</td><td>Not visible in the plan; verify with <code class="inl">plan_guide_successful</code>.</td></tr>
+          <tr><td><b>SQL / object plan guide</b></td><td>A hint you can't put in the code (<code class="inl">OPTIMIZE FOR UNKNOWN</code>, <code class="inl">RECOMPILE</code>)</td><td>Can't alter a procedure that has a guide. Guides silently break on upgrade — validate them.</td></tr>
+          <tr><td><b>USE PLAN in a plan guide</b></td><td>One specific XML plan</td><td>No DML queries. Keep XML out of the query itself (8 KB cache limit).</td></tr>
+          <tr><td><b>Query Store plan forcing</b></td><td>One specific plan, chosen from history</td><td>Easiest of the forcing options, and it <b>overrides plan guides</b>.</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li><b>Reuse requires identical text.</b> One space or one literal is enough to force a new compile.</li>
+        <li><b><code class="inl">usecounts = 1</code> on a repeated query is a finding.</b> So is a cache full of <code class="inl">Adhoc</code>.</li>
+        <li><b>Reuse is measured in microseconds.</b> 500 unparameterized iterations cost ~14× the elapsed time of 500 parameterized ones — and <code class="inl">STATISTICS IO</code> shows none of it.</li>
+        <li><b>A Parameter List is not proof of reuse.</b> Check <code class="inl">StatementParameterizationType</code>: 0 = none, 1 = explicit, 2 = simple, 3 = forced.</li>
+        <li><b>Prepare-then-execute ≠ execute-with-values.</b> The former can't be sniffed and always gets the generic plan.</li>
+        <li><b>Every forcing mechanism is temporary.</b> Data moves; retest. Prefer Query Store, use plan guides as a last resort, and never forget hints are commands.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        Compiling is expensive, so reuse plans wherever you can — parameterized queries, stored procedures,
+        prepared statements. When you can't change the code, <i>optimize for ad hoc workloads</i> and
+        <i>forced parameterization</i> relieve the compilation load, and <i>plan guides</i> and
+        <i>plan forcing</i> take control away from the optimizer entirely. But taking control can
+        introduce problems as big as the ones you're solving: test everything, and keep retesting wherever
+        you've taken direct control.
       </div>
     </section>
 
