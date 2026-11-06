@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapter 1 — Background to T-SQL Querying and Programming | Plain-English Summary</title>
-<meta name="description" content="A plain-English summary of Chapter 1 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with all nine figures and every code sample from the chapter.">
+<title>T-SQL Fundamentals — Chapters 1 &amp; 2 | Plain-English Study Companion</title>
+<meta name="description" content="Plain-English summaries of Chapters 1 and 2 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, and code samples.">
 <style>
   :root{
     --paper:#f7f4ed;
@@ -84,7 +84,9 @@
 
   /* ---------- layout ---------- */
   .shell{max-width:1180px;margin:0 auto;padding:2.2rem 1.25rem 4rem;display:grid;grid-template-columns:250px minmax(0,1fr);gap:2.4rem;align-items:start}
-  .toc{position:sticky;top:74px}
+  .toc{position:sticky;top:74px;max-height:calc(100vh - 90px);overflow-y:auto;padding-right:.35rem;scrollbar-width:thin}
+  .toc-group{font-size:.64rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#8a97a4;margin:.95rem 0 .35rem;padding-left:.55rem}
+  .toc-group:first-child{margin-top:0}
   .toc-title{font-size:.72rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 .7rem}
   .toc nav{display:flex;flex-direction:column;gap:.1rem;border-left:2px solid var(--line);padding-left:.2rem}
   .toc a{display:flex;gap:.6rem;align-items:baseline;text-decoration:none;color:#43505e;font-size:.86rem;padding:.38rem .55rem;border-radius:7px;border-left:2px solid transparent;margin-left:-2px;transition:background .15s,color .15s}
@@ -182,9 +184,22 @@
   .to-top.show{opacity:1;pointer-events:auto}
   .to-top:hover{background:var(--teal-soft)}
 
+  /* ---------- chapter divider ---------- */
+  .part-divider{position:relative;overflow:hidden;margin:0 0 2rem;padding:clamp(1.5rem,4vw,2.4rem);border-radius:16px;background:linear-gradient(135deg,#0b4f49 0%,#0f6b63 55%,#12857a 100%);color:#fff;scroll-margin-top:86px;box-shadow:0 14px 34px rgba(11,79,73,.18)}
+  .part-divider::after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:38px 38px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.6),transparent 90%);pointer-events:none}
+  .part-divider > *{position:relative;z-index:1}
+  .part-divider .part-eyebrow{display:inline-block;font-size:.7rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#bfe9e2;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);padding:.3rem .65rem;border-radius:999px;margin-bottom:.8rem}
+  .part-divider h2{color:#fff;font-size:clamp(1.8rem,3.4vw,2.5rem);margin:.2rem 0 .5rem;letter-spacing:-.015em}
+  .part-divider p{color:#d9f2ee;max-width:780px;margin:0;font-size:1rem}
+  .part-divider .part-chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1rem}
+  .part-divider .part-chips span{font-size:.72rem;color:#e6fbf7;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);padding:.28rem .6rem;border-radius:999px}
+  .part-divider code{background:rgba(255,255,255,.14);color:#eafffb;padding:.1em .35em}
+  .fig-zoom{font-size:.68rem;color:var(--teal);text-decoration:none;font-weight:700;white-space:nowrap}
+  .fig-zoom:hover{text-decoration:underline}
+
   @media (max-width:980px){
     .shell{grid-template-columns:1fr;gap:1.2rem;padding-top:1.2rem}
-    .toc{position:static}
+    .toc{position:static;max-height:none;overflow:visible;padding-right:0}
     .toc nav{flex-direction:row;overflow-x:auto;border-left:0;border-bottom:1px solid var(--line);padding:.2rem 0 .5rem;gap:.25rem}
     .toc a{white-space:nowrap;font-size:.78rem;padding:.35rem .5rem;border-left:0;border-bottom:2px solid transparent;margin-left:0;border-radius:6px 6px 0 0}
     .toc a.active{border-left:0;border-bottom-color:var(--teal);background:var(--teal-soft)}
@@ -215,28 +230,28 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="#top"><span class="brand-mark">1</span> T-SQL Fundamentals · Chapter 1</a>
+    <a class="brand" href="#top"><span class="brand-mark">1–2</span> T-SQL Fundamentals · Chapters 1 &amp; 2</a>
     <div class="topbar-meta">
-      <span>Plain-English summary</span><span class="dot"></span><span>9 figures</span><span class="dot"></span><span>10 code samples</span>
+      <span>Plain-English summaries</span><span class="dot"></span><span>9 figures + 3 tables</span><span class="dot"></span><span>30+ code samples</span>
     </div>
-    <a class="pill" href="#code">Jump to the code ↓</a>
+    <a class="pill" href="#ch2-select">Jump to Chapter 2 ↓</a>
   </div>
 </header>
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <span class="eyebrow">📘 Chapter 1 · Background to T-SQL querying and programming</span>
-    <h1>The “why” before the “how”</h1>
-    <p class="lede">A plain-English summary of Chapter 1 of <em>T-SQL Fundamentals</em> (4th Edition) by Itzik Ben-Gan — with every figure and every code sample from the chapter.</p>
+    <span class="eyebrow">📘 Chapters 1 &amp; 2 · T-SQL Fundamentals, 4th Edition</span>
+    <h1>The ideas behind the queries</h1>
+    <p class="lede">A plain-English study companion for Chapters 1 and 2 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
     <div class="chips">
-      <span class="chip">26 book pages</span>
-      <span class="chip">9 figures from the book</span>
-      <span class="chip">10 code samples</span>
-      <span class="chip">~15 min read</span>
+      <span class="chip">2 chapters · 116 book pages</span>
+      <span class="chip">9 figures + 3 tables from the book</span>
+      <span class="chip">30+ code samples</span>
+      <span class="chip">~30 min read</span>
     </div>
     <div class="hero-quote">
-      <span>The one-sentence version</span>
-      <p>SQL is built on sets and logic, SQL Server organizes everything from instances down to schemas and objects, and good tables start with keys, constraints, and a little normalization.</p>
+      <span>The two-chapter version</span>
+      <p>Chapter 1 gives you the mental model — sets, logic, keys, and how SQL Server is organized. Chapter 2 turns that model into a real query: FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY — plus NULLs, strings, dates, and metadata.</p>
     </div>
   </div>
 </section>
@@ -245,6 +260,7 @@
   <aside class="toc" aria-label="Table of contents">
     <p class="toc-title">On this page</p>
     <nav>
+      <div class="toc-group">Chapter 1 · Background</div>
       <a href="#big-picture"><span class="n">01</span> The big picture</a>
       <a href="#theory"><span class="n">02</span> The theory underneath SQL</a>
       <a href="#relational-model"><span class="n">03</span> Relations &amp; keys</a>
@@ -255,9 +271,20 @@
       <a href="#recap"><span class="n">08</span> Recap</a>
       <a href="#glossary"><span class="n">09</span> Key terms</a>
       <a href="#quiz"><span class="n">10</span> Check yourself</a>
+      <div class="toc-group">Chapter 2 · Single-table queries</div>
+      <a href="#ch2-select"><span class="n">2.1</span> SELECT &amp; logical order</a>
+      <a href="#ch2-window"><span class="n">2.2</span> Window functions</a>
+      <a href="#ch2-predicates"><span class="n">2.3</span> Predicates &amp; CASE</a>
+      <a href="#ch2-nulls"><span class="n">2.4</span> NULLs &amp; all-at-once</a>
+      <a href="#ch2-strings"><span class="n">2.5</span> Character data</a>
+      <a href="#ch2-datetime"><span class="n">2.6</span> Date &amp; time data</a>
+      <a href="#ch2-metadata"><span class="n">2.7</span> Querying metadata</a>
+      <a href="#ch2-practice"><span class="n">2.8</span> Practice: 10 exercises</a>
+      <a href="#ch2-recap"><span class="n">2.9</span> Recap &amp; key terms</a>
+      <a href="#ch2-quiz"><span class="n">2.10</span> Check yourself</a>
     </nav>
     <div class="toc-foot">
-      <strong>Reading tip:</strong> the chapter is theory first, architecture second, hands-on last. If you only have five minutes, read the recap at the end.
+      <strong>Reading tip:</strong> Chapter 1 is theory first, architecture second, hands-on last. Chapter 2 is the query itself. If you only have five minutes, read both recaps.
     </div>
   </aside>
 
@@ -923,6 +950,881 @@ CREATE TABLE dbo.Orders
       </details>
     </section>
 
+    <!-- ================= CHAPTER 2 ================= -->
+    <div class="part-divider" id="chapter-2">
+      <span class="part-eyebrow">Chapter 2 · Single-table queries</span>
+      <h2>Now you write the query</h2>
+      <p>Chapter 1 gave you the vocabulary. Chapter 2 teaches you the <code>SELECT</code> statement: how SQL Server logically processes a query, how to filter and group rows, how to shape the output, and how to handle NULLs, text, dates, and metadata.</p>
+      <div class="part-chips">
+        <span>Book pages 27–116</span>
+        <span>7 listings + 3 tables</span>
+        <span>10 practice exercises</span>
+      </div>
+    </div>
+
+    <!-- 2.1 -->
+    <section class="section" id="ch2-select">
+      <div class="section-head">
+        <div class="sec-num">2.1</div>
+        <div>
+          <div class="kicker">The SELECT statement</div>
+          <h2>One query, a fixed logical order</h2>
+        </div>
+      </div>
+      <p class="lead">You type <code>SELECT</code> first, but SQL Server logically processes <code>FROM</code> first. That single fact explains why column aliases don’t work in <code>WHERE</code>, why <code>WHERE</code> and <code>HAVING</code> do different jobs, and why a query without <code>ORDER BY</code> has no guaranteed order.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Logical phase</th><th>What happens</th><th>Clause</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Choose the source</td><td>Identify the table(s) to read</td><td><code>FROM</code></td></tr>
+            <tr><td>2</td><td>Filter rows</td><td>Keep rows where the predicate is TRUE</td><td><code>WHERE</code></td></tr>
+            <tr><td>3</td><td>Arrange groups</td><td>Group rows by the listed expressions</td><td><code>GROUP BY</code></td></tr>
+            <tr><td>4</td><td>Filter groups</td><td>Keep groups where the predicate is TRUE</td><td><code>HAVING</code></td></tr>
+            <tr><td>5</td><td>Build the result</td><td>Evaluate expressions, aliases, and <code>DISTINCT</code></td><td><code>SELECT</code></td></tr>
+            <tr><td>6</td><td>Sort</td><td>Order the result for presentation</td><td><code>ORDER BY</code></td></tr>
+            <tr><td>7</td><td>Filter by count</td><td>Keep a number/percentage of rows, or skip a range</td><td><code>TOP</code> / <code>OFFSET-FETCH</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <strong>The book’s analogy</strong>
+        An English instruction starts with the object: “Bring me the car keys from the top-left kitchen drawer.” A robot needs the location first: “Go to the kitchen; open the top-left drawer; grab the keys; bring them to me.” The keyed-in query order is English-like; logical processing is robot-like.
+      </div>
+
+      <h3 class="subhead">FROM — where the rows come from <span class="tag">p. 29</span></h3>
+      <p>The <code>FROM</code> clause names the table. Always schema-qualify it: <code>Sales.Orders</code>, not just <code>Orders</code>. This is the first phase, so it runs before any filter or grouping.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · basic query</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, custid, empid, orderdate, freight
+FROM Sales.Orders;</code></pre>
+      </div>
+
+      <h3 class="subhead">WHERE — filter individual rows <span class="tag">p. 31</span></h3>
+      <p><code>WHERE</code> keeps only rows for which the predicate evaluates to <strong>TRUE</strong>. Rows that evaluate to FALSE or UNKNOWN are discarded. In the sample database, customer 71 has 31 orders out of 830.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · row filter</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, empid, orderdate, freight
+FROM Sales.Orders
+WHERE custid = 71;</code></pre>
+      </div>
+
+      <h3 class="subhead">GROUP BY — arrange rows into groups <span class="tag">p. 32</span></h3>
+      <p><code>GROUP BY</code> creates one group per distinct combination of the listed expressions. After grouping, each group is represented by one row in the result. Non-grouped columns may appear only inside an aggregate function such as <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, or <code>MAX</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · grouped aggregate</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT
+  empid,
+  YEAR(orderdate) AS orderyear,
+  SUM(freight) AS totalfreight,
+  COUNT(*) AS numorders
+FROM Sales.Orders
+WHERE custid = 71
+GROUP BY empid, YEAR(orderdate);</code></pre>
+      </div>
+      <div class="warn">
+        <strong>COUNT(*) vs. COUNT(column)</strong>
+        <code>COUNT(*)</code> counts rows, including rows with NULLs. <code>COUNT(qty)</code> counts only known (non-NULL) values. <code>COUNT(DISTINCT qty)</code> counts distinct known values. Aggregates ignore NULLs.
+      </div>
+
+      <h3 class="subhead">HAVING — filter groups <span class="tag">p. 36</span></h3>
+      <p><code>WHERE</code> filters rows before grouping; <code>HAVING</code> filters groups after grouping. That is why <code>HAVING</code> can use aggregates. In the sample query, <code>COUNT(*) &gt; 1</code> keeps only employee/year groups with more than one order.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · group filter</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, YEAR(orderdate) AS orderyear
+FROM Sales.Orders
+WHERE custid = 71
+GROUP BY empid, YEAR(orderdate)
+HAVING COUNT(*) &gt; 1;</code></pre>
+      </div>
+
+      <h3 class="subhead">SELECT — shape the result <span class="tag">p. 37</span></h3>
+      <p>The <code>SELECT</code> clause builds the result columns. Use <code>AS</code> to name expressions. A <code>SELECT</code> list can return duplicates (SQL is based on multiset theory), so <code>DISTINCT</code> removes them. Avoid <code>SELECT *</code>: list the columns you need.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · aliases and DISTINCT</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT DISTINCT empid, YEAR(orderdate) AS orderyear
+FROM Sales.Orders
+WHERE custid = 71;</code></pre>
+      </div>
+      <div class="warn">
+        <strong>Aliases are created late</strong>
+        You cannot refer to a SELECT alias in <code>WHERE</code>, <code>GROUP BY</code>, or <code>HAVING</code>, because those phases run before <code>SELECT</code>. You also cannot reuse an alias in another expression in the same <code>SELECT</code> list. Repeat the expression instead.
+      </div>
+
+      <h3 class="subhead">ORDER BY — sort for presentation <span class="tag">p. 43</span></h3>
+      <p><code>ORDER BY</code> is the only phase that can see SELECT aliases. It sorts the output; it does not change which rows are returned. Without it, row order is not guaranteed. Use <code>ASC</code> (default) or <code>DESC</code>, and prefer column names over ordinal positions like <code>ORDER BY 1, 2</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · presentation order</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, YEAR(orderdate) AS orderyear, COUNT(*) AS numorders
+FROM Sales.Orders
+WHERE custid = 71
+GROUP BY empid, YEAR(orderdate)
+HAVING COUNT(*) &gt; 1
+ORDER BY empid, orderyear;</code></pre>
+      </div>
+      <div class="note">
+        <strong>Table vs. cursor</strong>
+        A query with <code>ORDER BY</code> returns an ordered result (a cursor), not a table. Some SQL constructs expect a table result, which is one reason the book recommends using table expressions when you need ordering inside a query.
+      </div>
+
+      <h3 class="subhead">TOP and OFFSET-FETCH — filter by row count <span class="tag">p. 44</span></h3>
+      <p><code>TOP</code> is a proprietary T-SQL filter. <code>OFFSET-FETCH</code> is the standard alternative and supports paging. Both rely on <code>ORDER BY</code> to define which rows are chosen.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · TOP (n)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT TOP (5) orderid, orderdate, custid, empid
+FROM Sales.Orders
+ORDER BY orderdate DESC;</code></pre>
+      </div>
+      <p>If the <code>ORDER BY</code> list is not unique, the result is nondeterministic. Add a tiebreaker such as <code>orderid DESC</code> to make it deterministic. <code>WITH TIES</code> keeps extra rows that tie with the last row; <code>PERCENT</code> returns a percentage of rows, rounded up.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · deterministic TOP</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT TOP (5) orderid, orderdate, custid, empid
+FROM Sales.Orders
+ORDER BY orderdate DESC, orderid DESC;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · OFFSET-FETCH paging</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, orderdate, custid, empid
+FROM Sales.Orders
+ORDER BY orderdate, orderid
+OFFSET 50 ROWS FETCH NEXT 25 ROWS ONLY;</code></pre>
+      </div>
+      <p><code>OFFSET-FETCH</code> requires <code>ORDER BY</code>. T-SQL requires <code>OFFSET</code> before <code>FETCH</code> (use <code>OFFSET 0 ROWS</code> if you don’t want to skip). <code>ROW</code>/<code>ROWS</code> and <code>FIRST</code>/<code>NEXT</code> are interchangeable. T-SQL does not support <code>PERCENT</code> or <code>WITH TIES</code> with <code>OFFSET-FETCH</code>.</p>
+    </section>
+
+    <!-- 2.2 -->
+    <section class="section" id="ch2-window">
+      <div class="section-head">
+        <div class="sec-num">2.2</div>
+        <div>
+          <div class="kicker">A quick look</div>
+          <h2>Window functions</h2>
+        </div>
+      </div>
+      <p class="lead">A window function computes a value for each row using a set of related rows, without collapsing those rows into a group. The <code>OVER</code> clause defines the window.</p>
+      <p>The book demonstrates with <code>ROW_NUMBER</code>, which assigns sequential integers to rows within each partition. <code>PARTITION BY</code> defines the partitions; the window <code>ORDER BY</code> defines the numbering order.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · ROW_NUMBER</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, custid, val,
+  ROW_NUMBER() OVER(PARTITION BY custid
+                    ORDER BY val) AS rownum
+FROM Sales.OrderValues
+ORDER BY custid, val;</code></pre>
+      </div>
+      <div class="warn">
+        <strong>Make it deterministic</strong>
+        If the window <code>ORDER BY</code> is not unique, <code>ROW_NUMBER</code> is nondeterministic. Add a tiebreaker such as <code>orderid</code> to guarantee a stable result.
+      </div>
+      <div class="note">
+        <strong>Window order ≠ presentation order</strong>
+        The <code>OVER</code> clause’s <code>ORDER BY</code> controls the calculation, not the output order. If you need the result sorted, add a separate presentation <code>ORDER BY</code>.
+      </div>
+    </section>
+
+    <!-- 2.3 -->
+    <section class="section" id="ch2-predicates">
+      <div class="section-head">
+        <div class="sec-num">2.3</div>
+        <div>
+          <div class="kicker">Predicates and operators</div>
+          <h2>Filtering, comparing, and CASE expressions</h2>
+        </div>
+      </div>
+      <p class="lead">Predicates are logical expressions that evaluate to TRUE, FALSE, or UNKNOWN. You can combine them with <code>AND</code>, <code>OR</code>, and <code>NOT</code>, and use comparison operators, <code>IN</code>, <code>BETWEEN</code>, and <code>LIKE</code>.</p>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · IN, BETWEEN, LIKE</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, empid, orderdate
+FROM Sales.Orders
+WHERE orderid IN(10248, 10249, 10250);
+
+SELECT orderid, empid, orderdate
+FROM Sales.Orders
+WHERE orderid BETWEEN 10300 AND 10310;
+
+SELECT empid, firstname, lastname
+FROM HR.Employees
+WHERE lastname LIKE N'D%';</code></pre>
+      </div>
+
+      <h3 class="subhead">Arithmetic and precedence</h3>
+      <p>T-SQL supports <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, and <code>%</code> (modulo). Division between two integers yields an integer, so <code>5/2</code> is <code>2</code>, not <code>2.5</code>. Cast to a numeric type when you need decimals. Parentheses have the highest precedence; use them even when not required.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · arithmetic</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, productid, qty, unitprice, discount,
+  qty * unitprice * (1 - discount) AS val
+FROM Sales.OrderDetails;</code></pre>
+      </div>
+
+      <h3 class="subhead">CASE expressions</h3>
+      <p><code>CASE</code> is a scalar expression, not a statement. It returns a value and can be used in <code>SELECT</code>, <code>WHERE</code>, <code>HAVING</code>, <code>ORDER BY</code>, and <code>CHECK</code> constraints. There are two forms: <strong>simple</strong> (compare one value to a list) and <strong>searched</strong> (evaluate predicates). If no <code>ELSE</code> is specified, the default is <code>ELSE NULL</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · simple CASE</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT supplierid, COUNT(*) AS numproducts,
+  CASE COUNT(*) % 2
+    WHEN 0 THEN 'Even'
+    WHEN 1 THEN 'Odd'
+    ELSE 'Unknown'
+  END AS countparity
+FROM Production.Products
+GROUP BY supplierid;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · searched CASE</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, custid, val,
+  CASE
+    WHEN val &lt; 1000.00  THEN 'Less than 1000'
+    WHEN val &lt;= 3000.00 THEN 'Between 1000 and 3000'
+    WHEN val &gt; 3000.00  THEN 'More than 3000'
+    ELSE 'Unknown'
+  END AS valuecate
+FROM Sales.OrderValues;</code></pre>
+      </div>
+      <p>T-SQL also has the nonstandard <code>IIF</code> and <code>CHOOSE</code> functions, added for easier migrations from Microsoft Access. <code>IIF(condition, a, b)</code> returns <code>a</code> when the condition is TRUE, otherwise <code>b</code>. <code>CHOOSE(index, a, b, ...)</code> returns the expression at the specified position.</p>
+    </section>
+
+    <!-- 2.4 -->
+    <section class="section" id="ch2-nulls">
+      <div class="section-head">
+        <div class="sec-num">2.4</div>
+        <div>
+          <div class="kicker">Three-valued logic</div>
+          <h2>NULLs, GREATEST/LEAST, and all-at-once operations</h2>
+        </div>
+      </div>
+      <p class="lead">NULL is a marker for a missing value, not a value. Comparisons involving NULL yield UNKNOWN. SQL treats UNKNOWN differently in filters and constraints — one of the most important practical lessons in the chapter.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Where the predicate appears</th><th>TRUE</th><th>FALSE</th><th>UNKNOWN</th></tr></thead>
+          <tbody>
+            <tr><td><code>WHERE</code> / <code>HAVING</code> filter</td><td>returned</td><td>discarded</td><td>discarded</td></tr>
+            <tr><td><code>CHECK</code> constraint</td><td>accepted</td><td>rejected</td><td>accepted</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>So a row with a NULL salary is discarded by <code>WHERE salary &gt; 0</code>, but accepted by a <code>CHECK(salary &gt; 0)</code> constraint. Negating UNKNOWN still yields UNKNOWN: <code>NOT (salary &gt; 0)</code> does not turn a NULL into TRUE.</p>
+
+      <h3 class="subhead">Use IS NULL, not = NULL</h3>
+      <p><code>NULL = NULL</code> evaluates to UNKNOWN, so <code>WHERE region = NULL</code> returns no rows. Use the <code>IS NULL</code> / <code>IS NOT NULL</code> predicates instead.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · finding NULLs</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, country, region, city
+FROM Sales.Customers
+WHERE region IS NULL;</code></pre>
+      </div>
+      <p>SQL Server 2022 adds the standard <code>IS [NOT] DISTINCT FROM</code> predicate, which treats NULL like a comparable value. It is especially useful when comparing a column to a parameter that might be NULL.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · distinct predicate (SQL Server 2022+)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, country, region, city
+FROM Sales.Customers
+WHERE region IS NOT DISTINCT FROM N'WA';</code></pre>
+      </div>
+      <div class="note">
+        <strong>NULLs in grouping and sorting</strong>
+        For <code>GROUP BY</code> and <code>ORDER BY</code>, two NULLs are treated as equal. T-SQL sorts NULLs before non-NULL values in ascending order. For a <code>UNIQUE</code> constraint, T-SQL treats NULL like a value, so a single-column unique constraint allows only one NULL.
+      </div>
+
+      <h3 class="subhead">COALESCE and string concatenation</h3>
+      <p>Concatenating a string with NULL yields NULL. <code>COALESCE</code> returns the first non-NULL argument; <code>CONCAT</code> automatically treats NULL as an empty string.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · substituting NULLs</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, country, region, city,
+  country + COALESCE(N',' + region, N'') + N',' + city AS location
+FROM Sales.Customers;</code></pre>
+      </div>
+
+      <h3 class="subhead">GREATEST and LEAST (SQL Server 2022+)</h3>
+      <p><code>MAX</code> and <code>MIN</code> are grouped aggregates: they operate across rows in a group. <code>GREATEST</code> and <code>LEAST</code> are row-level alternatives: they compare expressions across columns for each row. They accept 1–254 arguments and ignore NULLs (returning NULL only if all inputs are NULL).</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · row-level max/min</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, requireddate, shippeddate,
+  GREATEST(requireddate, shippeddate) AS latestdate,
+  LEAST(requireddate, shippeddate) AS earliestdate
+FROM Sales.Orders
+WHERE custid = 8;</code></pre>
+      </div>
+
+      <h3 class="subhead">All-at-once operations</h3>
+      <p>SQL is set-based. The clauses describe a result; the engine is free to evaluate expressions in any order. That is why you cannot rely on left-to-right short-circuiting in <code>WHERE</code>. The order of <code>WHEN</code> clauses in a <code>CASE</code> expression, however, is guaranteed.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · guard a division with CASE</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT col1, col2
+FROM dbo.T1
+WHERE
+  CASE
+    WHEN col1 = 0 THEN 'no'
+    WHEN col2/col1 &gt; 2 THEN 'yes'
+    ELSE 'no'
+  END = 'yes';</code></pre>
+      </div>
+      <p>The first <code>WHEN</code> is evaluated before the second, so the division is never attempted when <code>col1</code> is zero. A more mathematical workaround is to avoid division altogether: <code>(col1 &gt; 0 AND col2 &gt; 2*col1) OR (col1 &lt; 0 AND col2 &lt; 2*col1)</code>.</p>
+    </section>
+
+    <!-- 2.5 -->
+    <section class="section" id="ch2-strings">
+      <div class="section-head">
+        <div class="sec-num">2.5</div>
+        <div>
+          <div class="kicker">Character data</div>
+          <h2>Working with text: types, collation, functions, LIKE</h2>
+        </div>
+      </div>
+      <p class="lead">SQL Server has two families of character types, a set of collation rules that control comparison and sorting, and a rich library of string functions. The book covers the ones you will use every day.</p>
+
+      <h3 class="subhead">Data types: regular vs. N-kind</h3>
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="mini">Regular types</div>
+          <h3>CHAR / VARCHAR</h3>
+          <p>Use the collation’s code page. SQL Server 2019+ supports UTF-8 with a UTF8 collation. A size in parentheses is in bytes. Fixed-length <code>CHAR</code> pads to the defined size; variable-length <code>VARCHAR</code> stores only what is needed plus two bytes of offset data.</p>
+        </div>
+        <div class="card">
+          <div class="mini">N-kind types</div>
+          <h3>NCHAR / NVARCHAR</h3>
+          <p>Unicode. A size in parentheses is in byte pairs (two bytes each). Use the <code>N</code> prefix for literals: <code>N'Itzik'</code>. <code>NVARCHAR(MAX)</code> can hold up to 2 GB in a single value.</p>
+        </div>
+      </div>
+      <p><code>MAX</code> lets a single value reach up to 2 GB. Values up to 8,000 bytes are stored inline; larger values are stored as large objects (LOBs). The book recommends explicit sizes and the <code>N</code> prefix for Unicode literals.</p>
+
+      <h3 class="subhead">Collation</h3>
+      <p>Collation bundles language support, dictionary sort order, case sensitivity, and accent sensitivity. For example, <code>Latin1_General_CI_AS</code> means code page 1252, dictionary sorting, case-insensitive (<code>CI</code>), accent-sensitive (<code>AS</code>). Collation can be set at the instance, database, column, and expression levels (Azure SQL Database: database, column, expression). The lowest level wins.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · force a case-sensitive comparison</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, firstname, lastname
+FROM HR.Employees
+WHERE lastname COLLATE Latin1_General_CS_AS = N'davis';</code></pre>
+      </div>
+      <div class="note">
+        <strong>Metadata follows the database collation</strong>
+        Object and column names use the database collation. Variable and parameter names use the instance collation. That is why a case-sensitive database can still reject two variables named <code>@p</code> and <code>@P</code> on a case-insensitive instance.
+      </div>
+
+      <h3 class="subhead">String concatenation</h3>
+      <p>The <code>+</code> operator follows the standard: concatenating NULL yields NULL. <code>CONCAT</code> substitutes NULL with an empty string. <code>CONCAT_WS</code> takes the separator once and then the values.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · concatenation</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, firstname + N' ' + lastname AS fullname
+FROM HR.Employees;
+
+SELECT custid, country, region, city,
+  CONCAT(country, N',' + region, N',' + city) AS location
+FROM Sales.Customers;
+
+SELECT custid, country, region, city,
+  CONCAT_WS(N',', country, region, city) AS location
+FROM Sales.Customers;</code></pre>
+      </div>
+
+      <h3 class="subhead">The most useful string functions</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>SUBSTRING(s, start, length)</code></td><td>Extracts a substring.</td></tr>
+            <tr><td><code>LEFT(s, n)</code> / <code>RIGHT(s, n)</code></td><td>Extracts from the left or right end.</td></tr>
+            <tr><td><code>LEN(s)</code> / <code>DATALENGTH(s)</code></td><td>Characters (excluding trailing spaces) vs. bytes.</td></tr>
+            <tr><td><code>CHARINDEX(sub, s)</code></td><td>Position of a substring; 0 if not found.</td></tr>
+            <tr><td><code>PATINDEX(pattern, s)</code></td><td>Position of a LIKE-style pattern.</td></tr>
+            <tr><td><code>REPLACE(s, a, b)</code></td><td>Replaces all occurrences of <code>a</code> with <code>b</code>.</td></tr>
+            <tr><td><code>TRANSLATE(s, from, to)</code></td><td>Performs multiple one-to-one character replacements.</td></tr>
+            <tr><td><code>STUFF(s, pos, len, insert)</code></td><td>Deletes a substring and inserts another.</td></tr>
+            <tr><td><code>UPPER</code> / <code>LOWER</code> / <code>TRIM</code></td><td>Case conversion and trimming.</td></tr>
+            <tr><td><code>STRING_SPLIT</code> / <code>STRING_AGG</code></td><td>Split a delimited list / concatenate a group.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · string functions</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT SUBSTRING('abcde', 1, 3);
+SELECT RIGHT('abcde', 3);
+SELECT LEN(N'abcde');
+SELECT DATALENGTH(N'abcde');
+SELECT CHARINDEX(' ', 'Itzik Ben-Gan');
+SELECT PATINDEX('%[0-9]%', 'abcd123efgh');
+SELECT REPLACE('1-a 2-b', '-', ':');
+SELECT TRANSLATE('123.456.789,00', '.,', ',.');
+SELECT STUFF('xyz', 2, 1, 'abc');
+SELECT RTRIM(LTRIM('   abc   '));
+SELECT TRIM('   abc   ');</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · split and aggregate</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT CAST(value AS INT) AS myvalue
+FROM STRING_SPLIT('10248,10249,10250', ',') AS S;
+
+SELECT custid,
+  STRING_AGG(CAST(orderid AS VARCHAR(10)), ',')
+    WITHIN GROUP(ORDER BY orderdate DESC, orderid DESC) AS custorders
+FROM Sales.Orders
+GROUP BY custid;</code></pre>
+      </div>
+      <div class="warn">
+        <strong>FORMAT is convenient but slow</strong>
+        <code>FORMAT</code> uses .NET format strings and is much more expensive than alternatives such as <code>REPLICATE</code> and <code>RIGHT</code>. The book measured close to a minute on a million rows versus under a second.
+      </div>
+
+      <h3 class="subhead">The LIKE predicate</h3>
+      <p><code>LIKE</code> checks a character string against a pattern. <code>%</code> matches any string (including empty); <code>_</code> matches one character; <code>[ABC]</code> matches one listed character; <code>[A-E]</code> matches a range; <code>[^A-E]</code> matches anything not in the range. Use <code>ESCAPE</code> to search for a wildcard character itself.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · LIKE patterns</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, lastname
+FROM HR.Employees
+WHERE lastname LIKE N'D%';
+
+SELECT empid, lastname
+FROM HR.Employees
+WHERE lastname LIKE N'_e%';
+
+SELECT empid, lastname
+FROM HR.Employees
+WHERE lastname LIKE N'[ABC]%';
+
+SELECT empid, lastname
+FROM HR.Employees
+WHERE lastname LIKE N'[A-E]%';
+
+SELECT empid, lastname
+FROM HR.Employees
+WHERE lastname LIKE N'[^A-E]%';</code></pre>
+      </div>
+      <p>Case sensitivity depends on the collation. <code>LIKE</code> often optimizes better than <code>SUBSTRING</code>, especially when the pattern starts with a known prefix.</p>
+    </section>
+
+    <!-- 2.6 -->
+    <section class="section" id="ch2-datetime">
+      <div class="section-head">
+        <div class="sec-num">2.6</div>
+        <div>
+          <div class="kicker">Date and time data</div>
+          <h2>Six types, neutral literals, and SARGable filters</h2>
+        </div>
+      </div>
+      <p class="lead">Dates and times are where T-SQL code often breaks across languages and time zones. The book’s rules are simple: use the right type, use language-neutral literals, and avoid wrapping the filtered column in a function.</p>
+
+      <h3 class="subhead">The six date and time types</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Storage</th><th>Date range</th><th>Precision</th></tr></thead>
+          <tbody>
+            <tr><td><code>DATETIME</code> (legacy)</td><td>8 bytes</td><td>1753–9999</td><td>3 1/3 ms</td></tr>
+            <tr><td><code>SMALLDATETIME</code> (legacy)</td><td>4 bytes</td><td>1900–2079</td><td>1 min</td></tr>
+            <tr><td><code>DATE</code></td><td>3 bytes</td><td>0001–9999</td><td>1 day</td></tr>
+            <tr><td><code>TIME</code></td><td>3–5 bytes</td><td>—</td><td>100 ns</td></tr>
+            <tr><td><code>DATETIME2</code></td><td>6–8 bytes</td><td>0001–9999</td><td>100 ns</td></tr>
+            <tr><td><code>DATETIMEOFFSET</code></td><td>8–10 bytes</td><td>0001–9999</td><td>100 ns + offset</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">TABLE 2-1</span><span class="fig-src">From the book · p. 84 · <a class="fig-zoom" href="images/table-2-1.png" target="_blank" rel="noopener">full size ↗</a></span></div>
+          <img class="fig-img" src="images/table-2-1.png" alt="Table 2-1 from the book: date and time data types with storage, date range, precision, and recommended entry format and example.">
+          <div class="fig-body">
+            <p class="fig-cap">Date and time data types</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the book’s reference table for the six types. <code>DATETIME</code> and <code>SMALLDATETIME</code> are legacy types with inseparable date and time parts. <code>DATE</code> and <code>TIME</code> separate the two. <code>DATETIME2</code> improves range and precision, and <code>DATETIMEOFFSET</code> adds the UTC offset.</p>
+          </div>
+        </div>
+      </figure>
+      <p>For <code>TIME</code>, <code>DATETIME2</code>, and <code>DATETIMEOFFSET</code>, you can specify fractional-second precision from 0 to 7 (default 7). Converting to a lower precision rounds to the nearest expressible value.</p>
+
+      <h3 class="subhead">Literals: use language-neutral formats</h3>
+      <p>T-SQL has no date/time literal; you write a character string and SQL Server converts it. Some formats are language-dependent: <code>'02/12/2022'</code> is February 12 under US English and December 2 under British English. Use a language-neutral format such as <code>'20220212'</code> or <code>'2022-02-12'</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · language-dependent vs. neutral</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SET LANGUAGE British;
+SELECT CAST('02/12/2022' AS DATE);
+SET LANGUAGE us_english;
+SELECT CAST('02/12/2022' AS DATE);
+
+SET LANGUAGE British;
+SELECT CAST('20220212' AS DATE);
+SET LANGUAGE us_english;
+SELECT CAST('20220212' AS DATE);</code></pre>
+      </div>
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">TABLE 2-2</span><span class="fig-src">From the book · p. 86 · <a class="fig-zoom" href="images/table-2-2.png" target="_blank" rel="noopener">full size ↗</a></span></div>
+          <img class="fig-img" src="images/table-2-2.png" alt="Table 2-2 from the book: language-neutral date and time data type formats and examples for DATETIME, SMALLDATETIME, DATE, DATETIME2, DATETIMEOFFSET, and TIME.">
+          <div class="fig-body">
+            <p class="fig-cap">Language-neutral date and time formats</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the entry formats that SQL Server always interprets the same way, regardless of the login’s language or <code>DATEFORMAT</code>. The book strongly recommends these formats in application code.</p>
+          </div>
+        </div>
+      </figure>
+      <p>If you must use a language-dependent format, use <code>CONVERT</code> with a style number (101 = MM/DD/YYYY, 103 = DD/MM/YYYY) or <code>PARSE</code> with a culture. <code>PARSE</code> is significantly more expensive than <code>CONVERT</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · explicit styles and cultures</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT CONVERT(DATE, '02/12/2022', 101);
+SELECT CONVERT(DATE, '02/12/2022', 103);
+SELECT PARSE('02/12/2022' AS DATE USING 'en-US');
+SELECT PARSE('02/12/2022' AS DATE USING 'en-GB');</code></pre>
+      </div>
+
+      <h3 class="subhead">Filtering date ranges: avoid functions on the column</h3>
+      <p>Wrapping the filtered column in <code>YEAR()</code> or <code>MONTH()</code> usually prevents SQL Server from using an index efficiently. Use a half-open range instead: <code>&gt;= start</code> and <code>&lt; next start</code>. This is called a SARGable predicate.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · SARGable date-range filter</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT orderid, custid, empid, orderdate
+FROM Sales.Orders
+WHERE orderdate >= '20210101' AND orderdate &lt; '20220101';
+
+SELECT orderid, custid, empid, orderdate
+FROM Sales.Orders
+WHERE orderdate >= '20220201' AND orderdate &lt; '20220301';</code></pre>
+      </div>
+      <div class="warn">
+        <strong>Why <code>&gt;=</code> and <code>&lt;</code>, not <code>BETWEEN</code></strong>
+        If <code>orderdate</code> includes a time component, <code>BETWEEN '20220201' AND '20220228'</code> misses orders later on February 28. The half-open range <code>&gt;= '20220201' AND &lt; '20220301'</code> includes the whole month, regardless of time precision.
+      </div>
+
+      <h3 class="subhead">Current date and time functions</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Returns</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>GETDATE()</code></td><td><code>DATETIME</code></td><td>Current date and time.</td></tr>
+            <tr><td><code>CURRENT_TIMESTAMP</code></td><td><code>DATETIME</code></td><td>Standard; same as <code>GETDATE</code>, no parentheses.</td></tr>
+            <tr><td><code>GETUTCDATE()</code></td><td><code>DATETIME</code></td><td>Current UTC date and time.</td></tr>
+            <tr><td><code>SYSDATETIME()</code></td><td><code>DATETIME2</code></td><td>Higher precision.</td></tr>
+            <tr><td><code>SYSUTCDATETIME()</code></td><td><code>DATETIME2</code></td><td>Current UTC date and time.</td></tr>
+            <tr><td><code>SYSDATETIMEOFFSET()</code></td><td><code>DATETIMEOFFSET</code></td><td>Current date/time with UTC offset.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">TABLE 2-3</span><span class="fig-src">From the book · p. 91 · <a class="fig-zoom" href="images/table-2-3.png" target="_blank" rel="noopener">full size ↗</a></span></div>
+          <img class="fig-img" src="images/table-2-3.png" alt="Table 2-3 from the book: functions returning the current date and time, with return type and description.">
+          <div class="fig-body">
+            <p class="fig-cap">Functions returning current date and time</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the six niladic functions. The book recommends <code>CURRENT_TIMESTAMP</code> when you want the standard option, and <code>SYSDATETIME</code> when you need <code>DATETIME2</code> precision. None returns only a date or only a time; cast to <code>DATE</code> or <code>TIME</code> for that.</p>
+          </div>
+        </div>
+      </figure>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · current date and time</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT
+  GETDATE()           AS [GETDATE],
+  CURRENT_TIMESTAMP   AS [CURRENT_TIMESTAMP],
+  GETUTCDATE()        AS [GETUTCDATE],
+  SYSDATETIME()       AS [SYSDATETIME],
+  SYSUTCDATETIME()    AS [SYSUTCDATETIME],
+  SYSDATETIMEOFFSET() AS [SYSDATETIMEOFFSET];
+
+SELECT
+  CAST(SYSDATETIME() AS DATE) AS [current_date],
+  CAST(SYSDATETIME() AS TIME) AS [current_time];</code></pre>
+      </div>
+
+      <h3 class="subhead">The date/time function toolbox</h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · date/time functions</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT DATEADD(year, 1, '20220212');
+SELECT DATEDIFF(day, '20210212', '20220212');
+SELECT DATEPART(month, '20220212');
+SELECT DATENAME(month, '20220212');
+SELECT DATETRUNC(month, '20220212');
+SELECT EOMONTH(SYSDATETIME());
+
+DECLARE @startdate AS DATE = '20220101', @enddate AS DATE = '20221231';
+SELECT DATEADD(day, value, @startdate) AS dt
+FROM GENERATE_SERIES(0, DATEDIFF(day, @startdate, @enddate)) AS N;</code></pre>
+      </div>
+      <p><code>DATEADD</code> adds units; <code>DATEDIFF</code> returns the difference (use <code>DATEDIFF_BIG</code> for differences beyond INT range); <code>DATEPART</code> returns an integer; <code>DATENAME</code> returns a name; <code>DATETRUNC</code> (SQL Server 2022+) floors to the start of a part; <code>EOMONTH</code> returns the last day of the month; <code>GENERATE_SERIES</code> (SQL Server 2022+) produces a sequence of numbers that you can turn into dates.</p>
+    </section>
+
+    <!-- 2.7 -->
+    <section class="section" id="ch2-metadata">
+      <div class="section-head">
+        <div class="sec-num">2.7</div>
+        <div>
+          <div class="kicker">Querying metadata</div>
+          <h2>Ask the database about itself</h2>
+        </div>
+      </div>
+      <p class="lead">SQL Server exposes metadata through catalog views, information schema views, and system stored procedures and functions. You can query them like any other table.</p>
+
+      <h3 class="subhead">Catalog views</h3>
+      <p>Catalog views provide detailed, SQL Server-specific information. <code>sys.tables</code> lists tables; <code>sys.columns</code> lists columns. Use <code>SCHEMA_NAME</code>, <code>TYPE_NAME</code>, and <code>OBJECT_ID</code> to translate IDs into names.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · catalog views</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+SELECT SCHEMA_NAME(schema_id) AS table_schema_name, name AS table_name
+FROM sys.tables;
+
+SELECT
+  name AS column_name,
+  TYPE_NAME(system_type_id) AS column_type,
+  max_length,
+  collation_name,
+  is_nullable
+FROM sys.columns
+WHERE object_id = OBJECT_ID(N'Sales.Orders');</code></pre>
+      </div>
+
+      <h3 class="subhead">Information schema views</h3>
+      <p>These views live in the <code>INFORMATION_SCHEMA</code> schema and are defined by the SQL standard. They cover cross-platform metadata but not SQL Server-specific features such as indexes.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · information schema</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT TABLE_SCHEMA, TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE = N'BASE TABLE';
+
+SELECT
+  COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH,
+  COLLATION_NAME, IS_NULLABLE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = N'Sales'
+  AND TABLE_NAME = N'Orders';</code></pre>
+      </div>
+
+      <h3 class="subhead">System stored procedures and functions</h3>
+      <p><code>sp_help</code> returns a digest of an object: columns, indexes, constraints, and more. <code>sp_columns</code> and <code>sp_helpconstraint</code> focus on columns and constraints. Property functions return specific facts.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · system procedures and properties</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>EXEC sys.sp_help
+  @objname = N'Sales.Orders';
+
+SELECT
+  SERVERPROPERTY('Collation');
+
+SELECT
+  DATABASEPROPERTYEX(N'TSQLV6', 'Collation');
+
+SELECT
+  OBJECTPROPERTY(OBJECT_ID(N'Sales.Orders'), 'TableHasPrimaryKey');
+
+SELECT
+  COLUMNPROPERTY(OBJECT_ID(N'Sales.Orders'), N'shipcountry', 'AllowsNull');</code></pre>
+      </div>
+      <div class="note">
+        <strong>Metadata is a large topic</strong>
+        The book gives a starting point, not an exhaustive catalog. The product documentation’s “Querying the SQL Server System Catalog” section is the authoritative reference.
+      </div>
+    </section>
+
+    <!-- 2.8 -->
+    <section class="section" id="ch2-practice">
+      <div class="section-head">
+        <div class="sec-num">2.8</div>
+        <div>
+          <div class="kicker">Practice</div>
+          <h2>Ten exercises, with the book’s solutions</h2>
+        </div>
+      </div>
+      <p class="lead">The chapter ends with ten exercises. Try each one before opening the solution. The sample database is <code>TSQLV6</code>; the tables are <code>Sales.Orders</code>, <code>Sales.OrderDetails</code>, <code>Sales.Customers</code>, and <code>HR.Employees</code>.</p>
+
+      <details>
+        <summary>Exercise 1 · Orders placed in June 2021</summary>
+        <div class="answer">
+          <p>Use a half-open range so the filter can use an index.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT orderid, orderdate, custid, empid
+FROM Sales.Orders
+WHERE orderdate >= '20210601'
+  AND orderdate &lt; '20210701';</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 2 · The day before the last day of the month</summary>
+        <div class="answer">
+          <p><code>EOMONTH</code> gives the last day; <code>DATEADD</code> subtracts one day.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT orderid, orderdate, custid, empid
+FROM Sales.Orders
+WHERE orderdate = DATEADD(day, -1, EOMONTH(orderdate));</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 3 · Last names containing the letter e at least twice</summary>
+        <div class="answer">
+          <p><code>%</code> matches any string, so <code>%e%e%</code> means “at least two e’s somewhere.”</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT empid, firstname, lastname
+FROM HR.Employees
+WHERE lastname LIKE '%e%e%';</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 4 · Orders whose total value exceeds 10,000</summary>
+        <div class="answer">
+          <p>The requirement is about the whole order, not one order line. Group by <code>orderid</code> and filter with <code>HAVING SUM(...)</code>.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT orderid, SUM(qty*unitprice) AS totalvalue
+FROM Sales.OrderDetails
+GROUP BY orderid
+HAVING SUM(qty*unitprice) &gt; 10000
+ORDER BY totalvalue DESC;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 5 · Last names starting with a lowercase a–z</summary>
+        <div class="answer">
+          <p>The sample database is case-insensitive, so force a case-sensitive collation. With dictionary sorting, list the lowercase letters explicitly.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT empid, lastname
+FROM HR.Employees
+WHERE lastname COLLATE Latin1_General_CS_AS
+  LIKE N'[abcdefghijklmnopqrstuvwxyz]%';</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 6 · Explain the difference between the two queries</summary>
+        <div class="answer">
+          <p><strong>Query 1</strong> filters rows before grouping: it counts each employee’s orders placed before May 2022. An employee appears if they had any such orders, even if they also have later orders.</p>
+          <p><strong>Query 2</strong> groups first, then filters groups: it keeps only employees whose <em>latest</em> order is before May 2022. An employee with any order since May 2022 disappears entirely.</p>
+          <p><code>WHERE</code> is a row filter; <code>HAVING</code> is a group filter.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 7 · Top three ship-to countries by average freight in 2021</summary>
+        <div class="answer">
+          <p>Filter the year with a range, group by country, and use <code>TOP (3)</code> with a deterministic order.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT TOP (3) shipcountry, AVG(freight) AS avgfreight
+FROM Sales.Orders
+WHERE orderdate >= '20210101'
+  AND orderdate &lt; '20220101'
+GROUP BY shipcountry
+ORDER BY avgfreight DESC;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 8 · Row numbers per customer by order date</summary>
+        <div class="answer">
+          <p>Partition by <code>custid</code>, order by <code>orderdate</code> with <code>orderid</code> as the tiebreaker.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT custid, orderdate, orderid,
+  ROW_NUMBER() OVER(PARTITION BY custid
+                    ORDER BY orderdate, orderid) AS rownum
+FROM Sales.Orders
+ORDER BY custid, rownum;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 9 · Derive gender from title of courtesy</summary>
+        <div class="answer">
+          <p>A simple <code>CASE</code> maps each title to a gender; everything else becomes <code>'Unknown'</code>.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT empid, firstname, lastname, titleofcourtesy,
+  CASE titleofcourtesy
+    WHEN 'Ms.'  THEN 'Female'
+    WHEN 'Mrs.' THEN 'Female'
+    WHEN 'Mr.'  THEN 'Male'
+    ELSE             'Unknown'
+  END AS gender
+FROM HR.Employees;</code></pre>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Exercise 10 · Sort by region with NULLs last</summary>
+        <div class="answer">
+          <p>T-SQL sorts NULLs first in ascending order. Add a <code>CASE</code> as the first sort key: 1 for NULL, 0 otherwise.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT custid, region
+FROM Sales.Customers
+ORDER BY
+  CASE WHEN region IS NULL THEN 1 ELSE 0 END, region;</code></pre>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- 2.9 -->
+    <section class="section" id="ch2-recap">
+      <div class="section-head">
+        <div class="sec-num">2.9</div>
+        <div>
+          <div class="kicker">Takeaways</div>
+          <h2>Chapter 2 in ten bullets</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li><strong>Logical order matters:</strong> <code>FROM</code> → <code>WHERE</code> → <code>GROUP BY</code> → <code>HAVING</code> → <code>SELECT</code> → <code>DISTINCT</code> → <code>ORDER BY</code> → <code>TOP</code>/<code>OFFSET-FETCH</code>.</li>
+        <li><strong><code>WHERE</code> filters rows; <code>HAVING</code> filters groups.</strong> Only <code>HAVING</code> can use aggregates.</li>
+        <li><strong>Aliases are created in the SELECT phase.</strong> You cannot use them in <code>WHERE</code>, <code>GROUP BY</code>, or <code>HAVING</code>; <code>ORDER BY</code> is the exception.</li>
+        <li><strong>A table has no guaranteed order.</strong> Use <code>ORDER BY</code> for presentation; use a tiebreaker for deterministic <code>TOP</code>.</li>
+        <li><strong><code>DISTINCT</code> removes duplicates.</strong> SQL is based on multiset theory, so query results can contain duplicates even when the source table has a key.</li>
+        <li><strong>NULL is a marker, not a value.</strong> Comparisons yield UNKNOWN; use <code>IS NULL</code> / <code>IS NOT NULL</code>, or <code>IS DISTINCT FROM</code> in SQL Server 2022+.</li>
+        <li><strong>Filters accept TRUE; constraints reject FALSE.</strong> That is why a NULL can pass a <code>CHECK</code> but fail a <code>WHERE</code>.</li>
+        <li><strong>CASE is a scalar expression.</strong> It returns a value; the order of <code>WHEN</code> clauses is guaranteed, unlike the order of expressions in a <code>WHERE</code>.</li>
+        <li><strong>Use language-neutral date/time literals</strong> such as <code>'20220212'</code>, and filter with half-open ranges (<code>&gt;= start</code> and <code>&lt; next</code>).</li>
+        <li><strong>Metadata is queryable:</strong> catalog views, information schema views, and system procedures/functions.</li>
+      </ul>
+
+      <h3 class="subhead">Chapter 2 key terms</h3>
+      <dl class="terms">
+        <div class="term"><dt>Logical query processing</dt><dd>The conceptual order in which SQL defines the phases of a query, regardless of the physical execution plan.</dd></div>
+        <div class="term"><dt>Predicate</dt><dd>A logical expression that evaluates to TRUE, FALSE, or UNKNOWN.</dd></div>
+        <div class="term"><dt>Aggregate function</dt><dd>A function such as <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, or <code>MAX</code> that operates on a group of rows.</dd></div>
+        <div class="term"><dt>Group filter</dt><dd>A filter applied after grouping, such as <code>HAVING</code>.</dd></div>
+        <div class="term"><dt>Window function</dt><dd>A function that computes a value for each row using a window of rows defined by <code>OVER</code>.</dd></div>
+        <div class="term"><dt>PARTITION BY</dt><dd>Divides the window into independent partitions, such as one per customer.</dd></div>
+        <div class="term"><dt>All-at-once operations</dt><dd>The SQL principle that expressions are conceptually evaluated together, with no guaranteed left-to-right order.</dd></div>
+        <div class="term"><dt>Collation</dt><dd>A property controlling language support, sort order, case sensitivity, and accent sensitivity for character data.</dd></div>
+        <div class="term"><dt>Language-neutral literal</dt><dd>A date/time string such as <code>'20220212'</code> that is interpreted the same way under any language setting.</dd></div>
+        <div class="term"><dt>SARGable</dt><dd>A filter that can use an index efficiently, typically because the column itself is not wrapped in a function.</dd></div>
+        <div class="term"><dt>Catalog view</dt><dd>A SQL Server-specific view such as <code>sys.tables</code> or <code>sys.columns</code> that exposes metadata.</dd></div>
+        <div class="term"><dt>Information schema</dt><dd>A standard set of views (<code>INFORMATION_SCHEMA.TABLES</code>, <code>COLUMNS</code>, …) for cross-platform metadata.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 2.10 -->
+    <section class="section" id="ch2-quiz">
+      <div class="section-head">
+        <div class="sec-num">2.10</div>
+        <div>
+          <div class="kicker">Check yourself</div>
+          <h2>Six quick questions</h2>
+        </div>
+      </div>
+      <p class="lead">Try to answer before opening each one. If you can explain it in your own words, you’ve got the chapter.</p>
+
+      <details>
+        <summary>In what logical order are the query clauses processed?</summary>
+        <div class="answer"><code>FROM</code> → <code>WHERE</code> → <code>GROUP BY</code> → <code>HAVING</code> → <code>SELECT</code> (expressions, then <code>DISTINCT</code>) → <code>ORDER BY</code> → <code>TOP</code>/<code>OFFSET-FETCH</code>. The keyed-in order starts with <code>SELECT</code>, which is why aliases are not available earlier.</div>
+      </details>
+      <details>
+        <summary>What is the difference between WHERE and HAVING?</summary>
+        <div class="answer"><code>WHERE</code> filters individual rows before grouping. <code>HAVING</code> filters groups after grouping, so it can use aggregate functions such as <code>COUNT(*) &gt; 1</code>.</div>
+      </details>
+      <details>
+        <summary>Why can’t you use a SELECT alias in the WHERE clause?</summary>
+        <div class="answer">Because <code>WHERE</code> is logically processed before <code>SELECT</code>. The alias does not exist yet. Repeat the expression, or use a table expression if you need to reference the alias.</div>
+      </details>
+      <details>
+        <summary>What does NULL = NULL return, and what should you use instead?</summary>
+        <div class="answer">It returns <strong>UNKNOWN</strong>, because a NULL represents a missing value and you cannot tell whether two missing values are equal. Use <code>IS NULL</code> / <code>IS NOT NULL</code>, or <code>IS [NOT] DISTINCT FROM</code> in SQL Server 2022+.</div>
+      </details>
+      <details>
+        <summary>Why is a half-open date range better than BETWEEN for dates with a time component?</summary>
+        <div class="answer"><code>BETWEEN '20220201' AND '20220228'</code> misses times later on February 28. <code>&gt;= '20220201' AND &lt; '20220301'</code> includes the whole month and is also more likely to use an index (SARGable).</div>
+      </details>
+      <details>
+        <summary>What is the difference between COUNT(*) and COUNT(column)?</summary>
+        <div class="answer"><code>COUNT(*)</code> counts rows, including rows where the column is NULL. <code>COUNT(column)</code> counts only non-NULL values. <code>COUNT(DISTINCT column)</code> counts distinct non-NULL values.</div>
+      </details>
+    </section>
+
   </main>
 </div>
 
@@ -930,12 +1832,12 @@ CREATE TABLE dbo.Orders
   <div class="footer-inner">
     <div>
       <h3>About this summary</h3>
-      <p>A study companion for <strong>Chapter 1 — Background to T-SQL querying and programming</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023), pages 1–26.</p>
-      <p class="fine">All nine figures are reproduced from the chapter PDF in this repository. All code samples are from the chapter. This page is an unofficial study aid; the book remains the authoritative source.</p>
+      <p>A study companion for <strong>Chapters 1 and 2</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26, and Chapter 2, pages 27–116.</p>
+      <p class="fine">All nine figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
     </div>
     <div>
       <h3>Navigate</h3>
-      <p><a href="#big-picture" style="color:#9fe0d6">The big picture</a> · <a href="#theory" style="color:#9fe0d6">Theory</a> · <a href="#architecture" style="color:#9fe0d6">Architecture</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch2-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch2-quiz" style="color:#9fe0d6">Quiz</a></p>
       <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
     </div>
   </div>
@@ -948,9 +1850,9 @@ CREATE TABLE dbo.Orders
   "use strict";
 
   /* ---------- tiny T-SQL highlighter ---------- */
-  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET").split(" "));
-  var TYPES = new Set(["INT","VARCHAR","NVARCHAR","DATE","DATETIME2","MONEY","BIT","DECIMAL","BIGINT","SMALLINT","FLOAT","TEXT","CHAR"]);
-  var FUNCS = new Set(["SYSDATETIME","GETDATE","COUNT","YEAR","CAST","CONVERT","COALESCE","ISNULL"]);
+  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP").split(" "));
+  var TYPES = new Set(["INT","VARCHAR","NVARCHAR","NCHAR","DATE","DATETIME","SMALLDATETIME","DATETIME2","DATETIMEOFFSET","TIME","MONEY","BIT","DECIMAL","NUMERIC","BIGINT","SMALLINT","FLOAT","TEXT","CHAR","VARBINARY"]);
+  var FUNCS = new Set(["SYSDATETIME","GETDATE","GETUTCDATE","SYSUTCDATETIME","SYSDATETIMEOFFSET","COUNT","YEAR","MONTH","DAY","CAST","CONVERT","PARSE","TRY_CAST","TRY_CONVERT","TRY_PARSE","COALESCE","ISNULL","DATEADD","DATEDIFF","DATEDIFF_BIG","DATEPART","DATENAME","DATETRUNC","EOMONTH","GENERATE_SERIES","STRING_SPLIT","STRING_AGG","CONCAT","CONCAT_WS","SUBSTRING","LEFT","RIGHT","LEN","DATALENGTH","CHARINDEX","PATINDEX","REPLACE","TRANSLATE","STUFF","UPPER","LOWER","RTRIM","LTRIM","TRIM","FORMAT","COMPRESS","DECOMPRESS","ROW_NUMBER","OBJECT_ID","OBJECTPROPERTY","COLUMNPROPERTY","SERVERPROPERTY","DATABASEPROPERTYEX","SCHEMA_NAME","TYPE_NAME"]);
 
   function esc(s){
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
