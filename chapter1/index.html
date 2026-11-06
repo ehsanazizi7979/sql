@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 1 — Background to T-SQL Querying and Programming | Plain-English Summary</title>
+<meta name="description" content="A plain-English summary of Chapter 1 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with all nine figures and every code sample from the chapter.">
+<style>
+  :root{
+    --paper:#f7f4ed;
+    --paper-2:#fffdf8;
+    --ink:#1b2430;
+    --muted:#5d6b7a;
+    --line:#e3ddd0;
+    --line-strong:#d3cab8;
+    --teal:#0f6b63;
+    --teal-dark:#0b4f49;
+    --teal-soft:#e4f1ee;
+    --amber:#b45309;
+    --amber-soft:#fdf3e3;
+    --blue:#1d4ed8;
+    --blue-soft:#e8eefc;
+    --code-bg:#101a26;
+    --code-head:#16232f;
+    --code-ink:#dbe7f3;
+    --shadow:0 1px 2px rgba(27,36,48,.05), 0 8px 24px rgba(27,36,48,.06);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:var(--sans);
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(15,107,99,.08), transparent 60%),
+      radial-gradient(900px 400px at -10% 10%, rgba(180,83,9,.06), transparent 60%),
+      var(--paper);
+    line-height:1.65;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:#bfe3dd;color:#0b3b36}
+  a{color:var(--teal)}
+  a:hover{color:var(--teal-dark)}
+  h1,h2,h3,h4{font-family:var(--serif);line-height:1.15;color:var(--ink);margin:0 0 .5em}
+  h1{font-size:clamp(2rem,4.2vw,3.2rem);letter-spacing:-.02em}
+  h2{font-size:clamp(1.55rem,2.6vw,2.05rem);letter-spacing:-.01em}
+  h3{font-size:1.22rem}
+  h4{font-size:1.02rem}
+  p{margin:0 0 .9em}
+  ul,ol{margin:0 0 1em;padding-left:1.3em}
+  li{margin:.28em 0}
+  strong{color:#111b26}
+  code{font-family:var(--mono);font-size:.88em;background:#ece7db;padding:.12em .35em;border-radius:5px;color:#3c2f1a}
+  .skip{position:absolute;left:-9999px;top:0;background:#fff;padding:.7rem 1rem;z-index:100}
+  .skip:focus{left:1rem;top:1rem}
+
+  /* ---------- progress + header ---------- */
+  #progress{position:fixed;top:0;left:0;height:4px;width:0;background:linear-gradient(90deg,var(--teal),#2fa89a);z-index:60;transition:width .08s linear}
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(247,244,237,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .topbar-inner{max-width:1180px;margin:0 auto;padding:.65rem 1.25rem;display:flex;align-items:center;gap:1rem;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:.9rem;letter-spacing:.01em;color:var(--ink);text-decoration:none}
+  .brand-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(145deg,var(--teal),#0a4a44);color:#fff;display:grid;place-items:center;font-family:var(--serif);font-size:1rem;flex:none}
+  .topbar-meta{font-size:.78rem;color:var(--muted);display:flex;gap:.9rem;align-items:center}
+  .topbar-meta .dot{width:4px;height:4px;border-radius:50%;background:var(--line-strong)}
+  .topbar a.pill{font-size:.78rem;text-decoration:none;border:1px solid var(--line-strong);padding:.3rem .65rem;border-radius:999px;color:var(--muted);white-space:nowrap}
+  .topbar a.pill:hover{border-color:var(--teal);color:var(--teal)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#0b4f49 0%,#0f6b63 45%,#12857a 100%);color:#fff}
+  .hero::after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.7),transparent 85%);pointer-events:none}
+  .hero-inner{position:relative;max-width:1180px;margin:0 auto;padding:3.4rem 1.25rem 3rem}
+  .eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-size:.76rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#bfe9e2;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);padding:.35rem .7rem;border-radius:999px;margin-bottom:1.2rem}
+  .hero h1{color:#fff;max-width:900px;margin-bottom:.55rem}
+  .hero .lede{font-size:clamp(1.02rem,1.7vw,1.18rem);color:#d9f2ee;max-width:780px;margin-bottom:1.5rem}
+  .chips{display:flex;flex-wrap:wrap;gap:.5rem}
+  .chip{font-size:.78rem;color:#e6fbf7;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);padding:.35rem .7rem;border-radius:999px}
+  .hero-quote{margin-top:2rem;border-left:3px solid #7fd8cb;background:rgba(255,255,255,.08);padding:1rem 1.15rem;border-radius:0 12px 12px 0;max-width:860px}
+  .hero-quote p{margin:0;color:#f0fffc;font-size:1.02rem}
+  .hero-quote span{display:block;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#a9ded5;margin-bottom:.3rem;font-weight:700}
+
+  /* ---------- layout ---------- */
+  .shell{max-width:1180px;margin:0 auto;padding:2.2rem 1.25rem 4rem;display:grid;grid-template-columns:250px minmax(0,1fr);gap:2.4rem;align-items:start}
+  .toc{position:sticky;top:74px}
+  .toc-title{font-size:.72rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 .7rem}
+  .toc nav{display:flex;flex-direction:column;gap:.1rem;border-left:2px solid var(--line);padding-left:.2rem}
+  .toc a{display:flex;gap:.6rem;align-items:baseline;text-decoration:none;color:#43505e;font-size:.86rem;padding:.38rem .55rem;border-radius:7px;border-left:2px solid transparent;margin-left:-2px;transition:background .15s,color .15s}
+  .toc a .n{font-family:var(--mono);font-size:.7rem;color:#9aa6b2;min-width:1.1rem}
+  .toc a:hover{background:#efeade;color:var(--ink)}
+  .toc a.active{background:var(--teal-soft);color:var(--teal-dark);font-weight:700;border-left-color:var(--teal)}
+  .toc a.active .n{color:var(--teal)}
+  .toc-foot{margin-top:1.2rem;padding:.8rem .85rem;border:1px dashed var(--line-strong);border-radius:10px;font-size:.76rem;color:var(--muted);background:rgba(255,253,248,.6)}
+  .toc-foot strong{color:var(--ink)}
+
+  main{min-width:0}
+  .section{background:var(--paper-2);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:clamp(1.2rem,3vw,2.1rem);margin-bottom:2rem;scroll-margin-top:86px}
+  .section-head{display:flex;gap:.9rem;align-items:flex-start;margin-bottom:1.15rem}
+  .sec-num{flex:none;width:38px;height:38px;border-radius:10px;background:var(--teal-soft);color:var(--teal-dark);display:grid;place-items:center;font-family:var(--mono);font-size:.9rem;font-weight:700;border:1px solid #cfe6e1;margin-top:.15rem}
+  .section-head h2{margin:0}
+  .section-head .kicker{font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--teal);font-weight:800;margin:.15rem 0 .25rem}
+  .section > p.lead{font-size:1.05rem;color:#33414f}
+  .subhead{font-size:1.08rem;margin:1.6rem 0 .55rem;padding-bottom:.3rem;border-bottom:1px solid var(--line)}
+  .subhead .tag{font-family:var(--mono);font-size:.68rem;color:var(--muted);font-weight:400;letter-spacing:0;margin-left:.4rem}
+
+  /* ---------- cards / callouts ---------- */
+  .grid{display:grid;gap:1rem}
+  .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card{border:1px solid var(--line);border-radius:12px;padding:1rem 1.05rem;background:#fffefb}
+  .card h3{margin-top:0;font-size:1.02rem}
+  .card p:last-child{margin-bottom:0}
+  .card .mini{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:.35rem}
+  .note,.warn,.tip{border-radius:11px;padding:.85rem 1rem;margin:1rem 0;font-size:.94rem;border:1px solid}
+  .note{background:var(--teal-soft);border-color:#c9e4de;color:#123f3a}
+  .warn{background:var(--amber-soft);border-color:#f0d9b5;color:#5b3a0c}
+  .tip{background:var(--blue-soft);border-color:#cdd9f7;color:#172f66}
+  .note strong,.warn strong,.tip strong{display:block;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.25rem}
+  .note strong{color:var(--teal-dark)} .warn strong{color:#8a4a06} .tip strong{color:#1e3a8a}
+
+  /* ---------- figures ---------- */
+  figure{margin:1.25rem 0;padding:0}
+  .fig-card{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#fff}
+  .fig-top{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.55rem .8rem;background:#f2eee4;border-bottom:1px solid var(--line)}
+  .fig-label{font-family:var(--mono);font-size:.72rem;font-weight:700;color:var(--teal-dark);letter-spacing:.02em}
+  .fig-src{font-size:.68rem;color:var(--muted)}
+  .fig-img{display:block;width:100%;height:auto;background:#fff;padding:.6rem}
+  .fig-body{padding:.8rem .95rem 1rem}
+  .fig-cap{font-size:.86rem;font-weight:700;color:#26333f;margin:0 0 .35rem}
+  .fig-exp{font-size:.88rem;color:#4b5866;margin:0}
+  .fig-exp strong{color:#26333f}
+
+  /* ---------- tables ---------- */
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:11px;margin:1rem 0}
+  table{border-collapse:collapse;width:100%;font-size:.86rem;min-width:480px;background:#fff}
+  th,td{text-align:left;padding:.55rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f2eee4;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:#4b5866;font-weight:800}
+  tr:last-child td{border-bottom:0}
+  tbody tr:nth-child(even){background:#fbf9f3}
+  td strong{color:#1b2430}
+
+  /* ---------- code ---------- */
+  .code-card{border-radius:12px;overflow:hidden;background:var(--code-bg);margin:1rem 0;border:1px solid #0a121b;box-shadow:0 10px 26px rgba(16,26,38,.18)}
+  .code-head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.45rem .55rem .45rem .85rem;background:var(--code-head);border-bottom:1px solid #22313f}
+  .code-label{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#8fb3c9;font-weight:700}
+  .copy-btn{font-family:var(--sans);font-size:.72rem;font-weight:700;color:#cfe3f1;background:#22313f;border:1px solid #33475a;border-radius:6px;padding:.28rem .6rem;cursor:pointer;transition:background .15s,color .15s}
+  .copy-btn:hover{background:#2d4356;color:#fff}
+  .copy-btn.copied{background:#1c7a6e;border-color:#2aa393;color:#fff}
+  pre{margin:0;padding:.9rem 1rem;overflow-x:auto;font-family:var(--mono);font-size:.82rem;line-height:1.6;color:var(--code-ink);tab-size:2}
+  pre code{font-family:inherit;font-size:inherit;background:none;padding:0;color:inherit;white-space:pre}
+  .tok-kw{color:#7fd1c4;font-weight:600}
+  .tok-type{color:#e8c07d}
+  .tok-fn{color:#9fc6f0}
+  .tok-str{color:#c7e59a}
+  .tok-num{color:#e6a6c1}
+  .tok-com{color:#7d93a6;font-style:italic}
+
+  /* ---------- recap / glossary ---------- */
+  .checklist{list-style:none;padding:0;margin:0;display:grid;gap:.55rem}
+  .checklist li{position:relative;padding:.55rem .7rem .55rem 2.1rem;background:#fbf9f3;border:1px solid var(--line);border-radius:9px;font-size:.9rem}
+  .checklist li::before{content:"✓";position:absolute;left:.65rem;top:.5rem;width:1.15rem;height:1.15rem;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-size:.7rem;font-weight:800}
+  .terms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}
+  .term{border:1px solid var(--line);border-radius:10px;padding:.7rem .8rem;background:#fffefb}
+  .term dt{font-weight:800;font-size:.86rem;color:var(--teal-dark);margin-bottom:.15rem}
+  .term dd{margin:0;font-size:.82rem;color:#4b5866}
+  details{border:1px solid var(--line);border-radius:10px;background:#fffefb;margin:.6rem 0;overflow:hidden}
+  details summary{cursor:pointer;padding:.7rem .9rem;font-weight:700;font-size:.9rem;color:#26333f;list-style:none;display:flex;gap:.6rem;align-items:flex-start}
+  details summary::-webkit-details-marker{display:none}
+  details summary::before{content:"Q";flex:none;width:1.25rem;height:1.25rem;border-radius:6px;background:var(--teal-soft);color:var(--teal-dark);display:grid;place-items:center;font-family:var(--mono);font-size:.72rem;font-weight:800;margin-top:.05rem}
+  details[open] summary{background:#f7f4ec;border-bottom:1px solid var(--line)}
+  details .answer{padding:.75rem .9rem .85rem;font-size:.88rem;color:#43505e}
+  details .answer strong{color:var(--teal-dark)}
+
+  footer{background:#0d1b22;color:#b9c8d2;padding:2.2rem 1.25rem;font-size:.82rem}
+  .footer-inner{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:space-between;align-items:flex-start}
+  footer h3{color:#fff;font-size:1rem;margin-bottom:.4rem}
+  footer p{margin:0 0 .5rem;max-width:640px}
+  footer .fine{color:#7f95a3;font-size:.74rem;max-width:520px}
+  .to-top{position:fixed;right:1.1rem;bottom:1.1rem;width:40px;height:40px;border-radius:50%;border:1px solid var(--line-strong);background:#fffdf8;color:var(--teal-dark);display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s}
+  .to-top.show{opacity:1;pointer-events:auto}
+  .to-top:hover{background:var(--teal-soft)}
+
+  @media (max-width:980px){
+    .shell{grid-template-columns:1fr;gap:1.2rem;padding-top:1.2rem}
+    .toc{position:static}
+    .toc nav{flex-direction:row;overflow-x:auto;border-left:0;border-bottom:1px solid var(--line);padding:.2rem 0 .5rem;gap:.25rem}
+    .toc a{white-space:nowrap;font-size:.78rem;padding:.35rem .5rem;border-left:0;border-bottom:2px solid transparent;margin-left:0;border-radius:6px 6px 0 0}
+    .toc a.active{border-left:0;border-bottom-color:var(--teal);background:var(--teal-soft)}
+    .toc-foot{display:none}
+    .grid-3{grid-template-columns:1fr}
+    .grid-2{grid-template-columns:1fr}
+    .terms{grid-template-columns:1fr}
+    .topbar-meta{display:none}
+  }
+  @media (max-width:560px){
+    .hero-inner{padding:2.2rem 1rem 2rem}
+    .section{padding:1rem;border-radius:13px}
+    .section-head{gap:.6rem}
+    .sec-num{width:32px;height:32px;font-size:.78rem}
+    .fig-img{padding:.35rem}
+    pre{font-size:.76rem}
+    .topbar-inner{padding:.55rem .85rem}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *{transition:none!important}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div id="progress" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#top"><span class="brand-mark">1</span> T-SQL Fundamentals · Chapter 1</a>
+    <div class="topbar-meta">
+      <span>Plain-English summary</span><span class="dot"></span><span>9 figures</span><span class="dot"></span><span>10 code samples</span>
+    </div>
+    <a class="pill" href="#code">Jump to the code ↓</a>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <span class="eyebrow">📘 Chapter 1 · Background to T-SQL querying and programming</span>
+    <h1>The “why” before the “how”</h1>
+    <p class="lede">A plain-English summary of Chapter 1 of <em>T-SQL Fundamentals</em> (4th Edition) by Itzik Ben-Gan — with every figure and every code sample from the chapter.</p>
+    <div class="chips">
+      <span class="chip">26 book pages</span>
+      <span class="chip">9 figures from the book</span>
+      <span class="chip">10 code samples</span>
+      <span class="chip">~15 min read</span>
+    </div>
+    <div class="hero-quote">
+      <span>The one-sentence version</span>
+      <p>SQL is built on sets and logic, SQL Server organizes everything from instances down to schemas and objects, and good tables start with keys, constraints, and a little normalization.</p>
+    </div>
+  </div>
+</section>
+
+<div class="shell">
+  <aside class="toc" aria-label="Table of contents">
+    <p class="toc-title">On this page</p>
+    <nav>
+      <a href="#big-picture"><span class="n">01</span> The big picture</a>
+      <a href="#theory"><span class="n">02</span> The theory underneath SQL</a>
+      <a href="#relational-model"><span class="n">03</span> Relations &amp; keys</a>
+      <a href="#normalization"><span class="n">04</span> Normalization</a>
+      <a href="#workloads"><span class="n">05</span> Two kinds of workloads</a>
+      <a href="#architecture"><span class="n">06</span> SQL Server architecture</a>
+      <a href="#code"><span class="n">07</span> Create tables &amp; integrity</a>
+      <a href="#recap"><span class="n">08</span> Recap</a>
+      <a href="#glossary"><span class="n">09</span> Key terms</a>
+      <a href="#quiz"><span class="n">10</span> Check yourself</a>
+    </nav>
+    <div class="toc-foot">
+      <strong>Reading tip:</strong> the chapter is theory first, architecture second, hands-on last. If you only have five minutes, read the recap at the end.
+    </div>
+  </aside>
+
+  <main id="main">
+
+    <!-- 01 -->
+    <section class="section" id="big-picture">
+      <div class="section-head">
+        <div class="sec-num">01</div>
+        <div>
+          <div class="kicker">Start here</div>
+          <h2>The big picture</h2>
+        </div>
+      </div>
+      <p class="lead">Chapter 1 doesn’t teach you a single query. It gives you the mental model that makes every later query make sense. Ben-Gan builds the chapter in three layers.</p>
+
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="mini">Layer 1 · Theory</div>
+          <h3>Sets + logic</h3>
+          <p>SQL stands on two branches of mathematics: <strong>set theory</strong> (collections of distinct things) and <strong>predicate logic</strong> (statements that are true or false). The relational model combines them.</p>
+        </div>
+        <div class="card">
+          <div class="mini">Layer 2 · Architecture</div>
+          <h3>Instance → database → schema → object</h3>
+          <p>SQL Server is a stack. Knowing the stack explains names like <code>Sales.Orders</code> and tells you where your tables actually live.</p>
+        </div>
+        <div class="card">
+          <div class="mini">Layer 3 · Practice</div>
+          <h3>Create a table, protect its data</h3>
+          <p>The chapter ends with real T-SQL: <code>CREATE TABLE</code> plus primary keys, unique constraints, foreign keys, check constraints, and defaults.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>The mindset shift</strong>
+        T-SQL is more than a language — it’s a way of thinking. The apparent simplicity of SQL is misleading. You can learn the syntax in minutes, but writing <em>correct</em> queries means thinking in sets and understanding how the database engine works.
+      </div>
+
+      <div class="tip">
+        <strong>Why this chapter matters later</strong>
+        Almost every confusing SQL behavior — duplicate rows, unexpected NULL results, a JOIN that returns the wrong number of rows — traces back to an idea in this chapter. Keep it as a reference.
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="section" id="theory">
+      <div class="section-head">
+        <div class="sec-num">02</div>
+        <div>
+          <div class="kicker">Theoretical background</div>
+          <h2>The theory underneath SQL</h2>
+        </div>
+      </div>
+      <p class="lead">Before learning syntax, the book explains what SQL is, where it came from, and the two mathematical ideas it is built on.</p>
+
+      <h3 class="subhead">SQL in 60 seconds <span class="tag">p. 2</span></h3>
+      <ul>
+        <li><strong>SQL</strong> stands for <em>Structured Query Language</em>. It is an ANSI/ISO standard for querying and managing data in relational database management systems (RDBMSs).</li>
+        <li>It is <strong>declarative</strong>, not imperative: you describe <em>what</em> result you want, not <em>how</em> to compute it. SQL Server’s optimizer decides the physical steps.</li>
+        <li><strong>T-SQL</strong> is Microsoft’s dialect/extension of SQL. It runs on SQL Server, Azure SQL Database, Azure SQL Managed Instance, and Azure Synapse Analytics.</li>
+        <li>Statement families: <strong>DDL</strong> (<code>CREATE</code>, <code>ALTER</code>, <code>DROP</code>), <strong>DML</strong> (<code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>TRUNCATE</code>, <code>MERGE</code>), and <strong>DCL</strong> (<code>GRANT</code>, <code>REVOKE</code>). This book focuses on DML.</li>
+      </ul>
+      <div class="warn">
+        <strong>Two common myths</strong>
+        <code>SELECT</code> is DML, not a separate category. And <code>TRUNCATE</code> is DML, not DDL — even though it sounds like a structural change.
+      </div>
+
+      <h3 class="subhead">Set theory: a table is a set <span class="tag">p. 3</span></h3>
+      <p>Cantor’s definition of a set is a collection of distinct, well-defined objects, viewed as a whole. Three words in that definition do all the work:</p>
+      <div class="grid grid-3">
+        <div class="card"><div class="mini">Whole</div><p>Think of the collection, not the individual items. A table of employees is one set of employees.</p></div>
+        <div class="card"><div class="mini">Distinct</div><p>No duplicates. A table without a key can hold duplicate rows, which makes it a multiset (bag), not a set.</p></div>
+        <div class="card"><div class="mini">Unordered</div><p>There is no guaranteed row order. <code>ORDER BY</code> is only for presentation.</p></div>
+      </div>
+      <p>Columns are identified by <strong>name</strong>, not by position. Rows are identified by their <strong>key values</strong>, not by position. This is why a key is not optional in a well-designed table.</p>
+      <div class="note">
+        <strong>Analogy</strong>
+        A table is a team roster, not a queue. The roster tells you who is on the team; it doesn’t promise that “Sara” is listed before “Don.” If you need a specific order, ask for it explicitly.
+      </div>
+
+      <h3 class="subhead">Predicate logic: true, false, or unknown <span class="tag">p. 4</span></h3>
+      <p>A <strong>predicate</strong> is an expression that is either true or false. The relational model uses predicates in two ways:</p>
+      <ul>
+        <li><strong>For integrity:</strong> a constraint such as <code>salary &gt; 0</code> rejects rows that violate the rule.</li>
+        <li><strong>For filtering:</strong> a query filter such as <code>department = 'sales'</code> returns only matching rows.</li>
+      </ul>
+      <p>SQL uses <strong>three-valued logic</strong>: TRUE, FALSE, and UNKNOWN. A comparison involving a missing value yields UNKNOWN. That missing value is represented by <code>NULL</code> — a marker, not a value. Codd actually proposed two different markers for “missing but applicable” and “missing but inapplicable”; SQL uses one <code>NULL</code> for both.</p>
+      <div class="warn">
+        <strong>Say “NULL,” not “NULL value”</strong>
+        <code>NULL</code> means “the value is missing.” It is not a value, so it has no data type of its own and it never equals anything — not even another NULL.
+      </div>
+
+      <h3 class="subhead">The relational model <span class="tag">p. 5</span></h3>
+      <p>Dr. Edgar F. Codd created the relational model in 1969–1970, building on set theory and predicate logic. Its goal: represent data consistently, with minimal redundancy, while enforcing integrity as part of the model.</p>
+      <ul>
+        <li>A <strong>relation</strong> is a set of related information. In SQL, the counterpart is a <strong>table</strong> (close, but not an exact match).</li>
+        <li>A relation has a <strong>heading</strong> (a set of attributes/columns, each with a name and a type) and a <strong>body</strong> (a set of tuples/rows).</li>
+        <li>One relation represents one set — for example, <code>Customers</code>. Operations on relations produce relations, which is what lets you nest relational expressions.</li>
+        <li><strong>Propositions</strong> are statements that must be true or false. True propositions become rows; false ones simply don’t appear. This is the <strong>closed-world assumption</strong>.</li>
+        <li><strong>Types</strong> constrain which values are allowed. <code>INT</code> is the set of integers in a specific range; <code>DATE</code> is the set of valid dates. A type is a simple form of predicate.</li>
+      </ul>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 1-1</span><span class="fig-src">From the book · p. 6</span></div>
+          <img class="fig-img" src="images/figure-1-1.png" alt="Diagram comparing a relational-theory relation with a SQL table. The Employees relation has a heading of empid, firstname, lastname and hiredate, and a body of nine employee rows.">
+          <div class="fig-body">
+            <p class="fig-cap">Illustration of the Employees relation</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the same thing described in two languages. On the left, relational theory calls it a <em>relation</em> with a heading (a set of attributes) and a body (a set of tuples). On the right, SQL calls it a <em>table</em> with columns and rows. The <strong>PK</strong> marker shows that <code>empid</code> is the primary key.</p>
+          </div>
+        </div>
+      </figure>
+    </section>
+
+    <!-- 03 -->
+    <section class="section" id="relational-model">
+      <div class="section-head">
+        <div class="sec-num">03</div>
+        <div>
+          <div class="kicker">Keys and integrity</div>
+          <h2>Relations, keys, and the rules that keep data honest</h2>
+        </div>
+      </div>
+      <p class="lead">A table is only useful if you can identify its rows and trust its values. That is the job of keys and constraints.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Key / constraint</th><th>What it does</th><th>How many per table</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Candidate key</strong></td><td>One or more columns whose values uniquely identify a row. A table can have several.</td><td>Many possible</td></tr>
+            <tr><td><strong>Primary key</strong></td><td>The candidate key you choose as the preferred identifier. Enforces uniqueness and disallows NULLs.</td><td>Exactly one</td></tr>
+            <tr><td><strong>Alternate key</strong></td><td>Another candidate key, enforced with a <code>UNIQUE</code> constraint.</td><td>Many possible</td></tr>
+            <tr><td><strong>Foreign key</strong></td><td>Points to a candidate key in another (or the same) table. Restricts values to those that exist in the referenced key.</td><td>Many possible</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="mini">Entity integrity</div>
+          <h3>Every row is identifiable</h3>
+          <p>The primary key guarantees that each row has a unique, known identity. SQL Server enforces it with a unique index behind the scenes.</p>
+        </div>
+        <div class="card">
+          <div class="mini">Referential integrity</div>
+          <h3>Every reference points somewhere real</h3>
+          <p>A foreign key guarantees that a value in the referencing table exists in the referenced table. You can’t have an order for an employee who doesn’t exist.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Analogy: employee ID vs. Social Security number</strong>
+        Both can uniquely identify an employee, so both are candidate keys. You pick one as the primary key (say, <code>empid</code>) and enforce the other with a unique constraint (say, <code>ssn</code>). The second one is an alternate key.
+      </div>
+
+      <h3 class="subhead">Constraints are part of the model <span class="tag">p. 8</span></h3>
+      <p>One of the relational model’s biggest benefits is that integrity is defined <em>in the model</em> and enforced by the RDBMS. That is called <strong>declarative data integrity</strong>. Enforcing rules in stored procedures or triggers instead is <strong>procedural data integrity</strong> — the book recommends the declarative route whenever possible.</p>
+      <p>Besides keys, the chapter mentions <strong>check constraints</strong> (a row must satisfy a predicate) and <strong>default constraints</strong> (a value used when none is supplied). You’ll write both in the code section below.</p>
+    </section>
+
+    <!-- 04 -->
+    <section class="section" id="normalization">
+      <div class="section-head">
+        <div class="sec-num">04</div>
+        <div>
+          <div class="kicker">Data modeling</div>
+          <h2>Normalization: stop repeating yourself</h2>
+        </div>
+      </div>
+      <p class="lead">Normalization is a formal process for making sure each entity is represented by a single relation, with minimal redundancy and no update anomalies. The chapter walks through the first three normal forms.</p>
+
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="mini">1NF · First normal form</div>
+          <h3>Unique rows, atomic columns</h3>
+          <p>Rows must be unique (enforce with a primary key or unique constraint), and columns should hold atomic values. “Atomic” depends on what the application needs to do with the data.</p>
+        </div>
+        <div class="card">
+          <div class="mini">2NF · Second normal form</div>
+          <h3>The whole key, not part of it</h3>
+          <p>Meet 1NF, and every non-key column must depend on the <em>entire</em> candidate key — not just part of it. A column that depends only on part of a composite key is a 2NF violation.</p>
+        </div>
+        <div class="card">
+          <div class="mini">3NF · Third normal form</div>
+          <h3>Nothing but the key</h3>
+          <p>Meet 2NF, and no non-key column may depend on another non-key column. All non-key columns must be mutually independent.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>The classic mnemonic</strong>
+        “Every non-key attribute is dependent on the key, the whole key, and nothing but the key — so help me Codd.”
+      </div>
+
+      <h3 class="subhead">The book’s running example</h3>
+      <p>Imagine an <code>Orders</code> table that mixes order information with order-line information:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">The problematic design · T-SQL</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>-- One table doing two jobs (a 2NF violation)
+-- Primary key is (orderid, productid)
+Orders(orderid, productid, orderdate, qty, customerid, companyname)</code></pre>
+      </div>
+      <p><code>orderdate</code>, <code>customerid</code>, and <code>companyname</code> depend only on <code>orderid</code> — part of the key. That violates 2NF. The fix is to split the table.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 1-2</span><span class="fig-src">From the book · p. 10</span></div>
+          <img class="fig-img" src="images/figure-1-2.png" alt="Data model before applying second normal form: a single Orders relation containing orderid, productid, orderdate, qty, customerid and companyname.">
+          <div class="fig-body">
+            <p class="fig-cap">Data model before applying 2NF</p>
+            <p class="fig-exp"><strong>What’s wrong:</strong> the primary key is <code>(orderid, productid)</code>, but <code>orderdate</code>, <code>customerid</code>, and <code>companyname</code> depend only on <code>orderid</code>. One table is trying to represent both orders and order lines.</p>
+          </div>
+        </div>
+      </figure>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 1-3</span><span class="fig-src">From the book · p. 10</span></div>
+          <img class="fig-img" src="images/figure-1-3.png" alt="Data model after applying second normal form: Orders with orderid, orderdate, customerid, companyname; OrderDetails with orderid, productid, qty.">
+          <div class="fig-body">
+            <p class="fig-cap">Data model after applying 2NF and before 3NF</p>
+            <p class="fig-exp"><strong>What changed:</strong> the design is split into <code>Orders</code> (orderid, orderdate, customerid, companyname) and <code>OrderDetails</code> (orderid, productid, qty). Every non-key column now depends on the whole key. But <code>customerid</code> and <code>companyname</code> still depend on each other, so 3NF is not met yet.</p>
+          </div>
+        </div>
+      </figure>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 1-4</span><span class="fig-src">From the book · p. 11</span></div>
+          <img class="fig-img" src="images/figure-1-4.png" alt="Data model after applying third normal form: Orders with orderid, orderdate, customerid; OrderDetails with orderid, productid, qty; Customers with customerid, companyname.">
+          <div class="fig-body">
+            <p class="fig-cap">Data model after applying 3NF</p>
+            <p class="fig-exp"><strong>The final fix:</strong> add a <code>Customers</code> relation (<code>customerid</code> → <code>companyname</code>) and remove <code>companyname</code> from <code>Orders</code>. Now every non-key column depends on the key, the whole key, and nothing but the key.</p>
+          </div>
+        </div>
+      </figure>
+
+      <div class="warn">
+        <strong>SQL won’t stop you</strong>
+        SQL and T-SQL allow you to create tables that violate every normal form. Normalization is the data modeler’s responsibility, not the engine’s.
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="section" id="workloads">
+      <div class="section-head">
+        <div class="sec-num">05</div>
+        <div>
+          <div class="kicker">Two workloads</div>
+          <h2>OLTP vs. data warehouses</h2>
+        </div>
+      </div>
+      <p class="lead">The same T-SQL language serves two very different jobs: recording transactions and analyzing history. They need opposite design choices.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>OLTP (online transactional processing)</th><th>Data warehouse (DW)</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Main job</strong></td><td>Data entry: insert, update, delete</td><td>Reporting and analysis</td></tr>
+            <tr><td><strong>Design</strong></td><td>Normalized; one entity per table</td><td>Denormalized; fewer tables, intentional redundancy</td></tr>
+            <tr><td><strong>Redundancy</strong></td><td>Minimal</td><td>Intentional, for simpler queries</td></tr>
+            <tr><td><strong>Typical shape</strong></td><td>Many related tables</td><td>Star schema: dimension tables + a fact table</td></tr>
+            <tr><td><strong>Reads</strong></td><td>Simple, but often need many joins</td><td>Designed for efficient analysis</td></tr>
+            <tr><td><strong>Platform</strong></td><td>SQL Server / Azure SQL (SMP)</td><td>SQL Server / Azure SQL (SMP) or Azure Synapse Analytics (MPP)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 1-5</span><span class="fig-src">From the book · p. 11</span></div>
+          <img class="fig-img" src="images/figure-1-5.png" alt="Diagram showing OLTP and data warehouse systems feeding SQL Server, Azure SQL, or Azure Synapse Analytics, with T-SQL, Integration Services or Azure Data Factory, a data staging area, and ETL/ELT.">
+          <div class="fig-body">
+            <p class="fig-cap">Classes of database systems</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the two workloads on the left, the Microsoft platforms on the right, and the transformation process in the middle. <strong>ETL/ELT</strong> means extract, transform, load (or extract, load, transform). The <strong>DSA</strong> is a data-staging area used for cleansing. Tools include <strong>SSIS</strong> and <strong>Azure Data Factory</strong>.</p>
+          </div>
+        </div>
+      </figure>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="mini">Star schema</div>
+          <h3>Dimensions + facts</h3>
+          <p>Dimension tables describe <em>who/what/when</em> — customers, products, employees, time. The fact table holds measures such as quantity and value for each combination of dimension keys. Data is often pre-aggregated (for example, by day).</p>
+        </div>
+        <div class="card">
+          <div class="mini">Snowflake schema</div>
+          <h3>Normalized dimensions</h3>
+          <p>If you normalize a dimension into several related tables, you get a snowflake schema. A star schema is a special case of a snowflake schema.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>SMP vs. MPP</strong>
+        <strong>SMP</strong> (symmetric multiprocessing) uses multiple processors that share resources — good for SQL Server and Azure SQL. <strong>MPP</strong> (massively parallel processing) distributes work across many nodes — the architecture behind Azure Synapse Analytics.
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="section" id="architecture">
+      <div class="section-head">
+        <div class="sec-num">06</div>
+        <div>
+          <div class="kicker">SQL Server architecture</div>
+          <h2>How SQL Server is put together</h2>
+        </div>
+      </div>
+      <p class="lead">The chapter now zooms out from theory to the physical and logical stack: flavors of SQL Server, instances, databases, files, and schemas.</p>
+
+      <h3 class="subhead">On-premises vs. cloud <span class="tag">p. 13</span></h3>
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="mini">On-premises</div>
+          <h3>You own the box</h3>
+          <p>Microsoft SQL Server installed on your hardware. You handle the hardware, OS, patching, high availability, disaster recovery, and security. You can install multiple instances and query across databases.</p>
+        </div>
+        <div class="card">
+          <div class="mini">Cloud</div>
+          <h3>Microsoft owns the platform</h3>
+          <p>Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VM. Microsoft handles the hardware and platform; you still handle index and query tuning. The cloud releases features faster than the on-premises product.</p>
+        </div>
+      </div>
+      <p><strong>Azure SQL</strong> is a collective name for three offerings: Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VM. Managed Instance is the closest to on-premises parity; Azure SQL Database does not support cross-database (three-part-name) queries.</p>
+
+      <h3 class="subhead">Instances <span class="tag">p. 15</span></h3>
+      <p>An <strong>instance</strong> is an installation of the SQL Server database engine. One computer can host several independent instances. They share physical resources (CPU, memory, disk) but are logically isolated — different security, different data.</p>
+      <ul>
+        <li>One instance can be the <strong>default instance</strong>; the others must be <strong>named instances</strong>. This choice is made at installation and cannot be changed later.</li>
+        <li>Connect to the default with just the computer name: <code>Server1</code>.</li>
+        <li>Connect to a named instance with a backslash: <code>Server1\Inst1</code>.</li>
+      </ul>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 1-6</span><span class="fig-src">From the book · p. 15</span></div>
+          <img class="fig-img" src="images/figure-1-6.png" alt="Diagram of Server1 hosting a default instance and four named instances: Inst1, Inst2, Inst3 and Inst4.">
+          <div class="fig-body">
+            <p class="fig-cap">Multiple instances of SQL Server on the same computer</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> one physical server (<code>Server1</code>) with a default instance plus named instances <code>Inst1</code>–<code>Inst4</code>. Each is independent at the logical level. Historically, this saved support costs by letting one machine mimic several environments.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">Databases <span class="tag">p. 16</span></h3>
+      <p>A <strong>database</strong> is a container of objects such as tables, views, and stored procedures. Each instance can hold many databases. Setup creates five system databases; you then create your own user databases (up to 32,767 per instance).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>System database</th><th>What it holds</th></tr></thead>
+          <tbody>
+            <tr><td><strong>master</strong></td><td>Instance-wide metadata, server configuration, and information about all databases.</td></tr>
+            <tr><td><strong>model</strong></td><td>The template for new databases. Changes here affect only databases created later.</td></tr>
+            <tr><td><strong>tempdb</strong></td><td>Temporary data: work tables, sort/hash data, row versioning. Recreated as a copy of model on every restart.</td></tr>
+            <tr><td><strong>msdb</strong></td><td>SQL Server Agent data: jobs, schedules, alerts, replication, backups, Database Mail, Service Broker.</td></tr>
+            <tr><td><strong>Resource</strong></td><td>A hidden, read-only database holding the definitions of all system objects.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Collation</strong> is a database-level property that controls language support, case sensitivity, and sort order for character data. If you don’t specify one, the instance default is used.</p>
+      <div class="note">
+        <strong>Login vs. user</strong>
+        A <strong>login</strong> is an instance-level identity (Windows or SQL Server authenticated). A <strong>user</strong> is a database-level identity that receives permissions. A DBA maps logins to users. <strong>Contained databases</strong> break that link: the user lives inside the database and cannot switch to other databases.
+      </div>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 1-7</span><span class="fig-src">From the book · p. 16</span></div>
+          <img class="fig-img" src="images/figure-1-7.png" alt="Diagram of an instance containing system databases master, model, tempdb, msdb and Resource, plus user databases DB1 through DB5.">
+          <div class="fig-body">
+            <p class="fig-cap">An example of multiple databases on a SQL Server instance</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> one instance containing the five system databases and five user databases (<code>DB1</code>–<code>DB5</code>). Your application tables live in user databases, not in master or tempdb.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">The physical layout: files and filegroups <span class="tag">p. 18</span></h3>
+      <ul>
+        <li><strong>Data files</strong> hold object data: the primary data file (extension <code>.mdf</code>) and optional secondary data files (<code>.ndf</code>).</li>
+        <li><strong>Transaction log files</strong> (extension <code>.ldf</code>) hold the information SQL Server needs to maintain transactions. Log writes are sequential — only one log file is written at a time.</li>
+        <li><strong>Filegroups</strong> are logical groups of data files. A database must have a <code>PRIMARY</code> filegroup; it can also have user filegroups. A filegroup is the target for creating an object such as a table or index.</li>
+        <li><strong>In-Memory OLTP</strong> can add a memory-optimized filegroup with a folder for checkpoint files.</li>
+      </ul>
+      <p>On SQL Server (including SQL Server on Azure VM) you manage these physical files. On Azure SQL Database and Azure SQL Managed Instance, you only deal with the logical layer.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 1-8</span><span class="fig-src">From the book · p. 18</span></div>
+          <img class="fig-img" src="images/figure-1-8.png" alt="Diagram of a user database layout: PRIMARY filegroup with .mdf and .ndf files, user filegroups FG1 and FG2, a transaction log .ldf, and a memory-optimized filegroup with a folder path.">
+          <div class="fig-body">
+            <p class="fig-cap">Database layout</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> a database made of a <strong>PRIMARY</strong> filegroup (data files <code>.mdf</code>/<code>.ndf</code>), optional user filegroups (<code>FG1</code>, <code>FG2</code>), a transaction log (<code>.ldf</code>), and — optionally — a memory-optimized filegroup with a folder for checkpoint data.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">Schemas and objects <span class="tag">p. 19</span></h3>
+      <p>A database contains <strong>schemas</strong>, and schemas contain objects. A schema is both a container and a namespace. You can grant permissions at the schema level, and you use the schema name as a prefix to the object name.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Example</th><th>What it refers to</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Two-part name</strong></td><td><code>Sales.Orders</code></td><td>Object in a schema (recommended)</td></tr>
+            <tr><td><strong>Three-part name</strong></td><td><code>TSQLV6.Sales.Orders</code></td><td>Object in another database</td></tr>
+            <tr><td><strong>Four-part name</strong></td><td><code>Server1.TSQLV6.Sales.Orders</code></td><td>Object in another instance</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="warn">
+        <strong>Always use the two-part name</strong>
+        If you omit the schema, SQL Server has to resolve it — checking your default schema and then <code>dbo</code>. If two schemas contain an object with the same name, you might get a different object than you intended.
+      </div>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 1-9</span><span class="fig-src">From the book · p. 19</span></div>
+          <img class="fig-img" src="images/figure-1-9.png" alt="Diagram showing a user database containing schemas dbo, Sales and HR, with objects shown inside each schema.">
+          <div class="fig-body">
+            <p class="fig-cap">A database, schemas, and database objects</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the containment hierarchy. A user database contains schemas (<code>dbo</code>, <code>Sales</code>, <code>HR</code>), and each schema contains objects such as tables. <code>dbo</code> is created automatically in every database.</p>
+          </div>
+        </div>
+      </figure>
+    </section>
+
+    <!-- 07 -->
+    <section class="section" id="code">
+      <div class="section-head">
+        <div class="sec-num">07</div>
+        <div>
+          <div class="kicker">Hands-on</div>
+          <h2>Create tables and define data integrity</h2>
+        </div>
+      </div>
+      <p class="lead">The last part of the chapter is the practical payoff: the exact T-SQL used to create a table and add declarative constraints. Run the samples in order in the book’s <code>TSQLV6</code> sample database.</p>
+
+      <div class="note">
+        <strong>How to read the code</strong>
+        Each block builds on the previous one. The script starts by creating <code>dbo.Employees</code>, then adds keys and constraints to it, creates <code>dbo.Orders</code>, and finishes with cleanup. The copy buttons copy the code exactly as shown.
+      </div>
+
+      <h3 class="subhead">1. Create the Employees table <span class="tag">p. 21</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · create table</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+DROP TABLE IF EXISTS dbo.Employees;
+CREATE TABLE dbo.Employees
+(
+  empid     INT         NOT NULL,
+  firstname VARCHAR(30) NOT NULL,
+  lastname  VARCHAR(30) NOT NULL,
+  hiredate  DATE        NOT NULL,
+  mgrid     INT         NULL,
+  ssn       VARCHAR(20) NOT NULL,
+  salary    MONEY       NOT NULL
+);</code></pre>
+      </div>
+      <ul>
+        <li><code>USE TSQLV6;</code> sets the current database context. Keeping it in scripts guarantees the objects are created in the intended database.</li>
+        <li><code>DROP TABLE IF EXISTS</code> makes the script repeatable: it removes an existing table before creating a fresh one.</li>
+        <li>Each column has a name, a data type, and nullability. <code>NOT NULL</code> means a value is required; <code>NULL</code> allows a missing value.</li>
+        <li><code>mgrid</code> is nullable on purpose: a <code>NULL</code> means the employee has no manager (for example, the CEO).</li>
+      </ul>
+      <div class="tip">
+        <strong>Be explicit about NULLs</strong>
+        SQL Server’s defaults for nullability can vary. The book recommends explicitly writing <code>NOT NULL</code> unless you have a compelling reason to allow NULLs.
+      </div>
+
+      <h3 class="subhead">2. Add a primary key <span class="tag">p. 23</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · primary key</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER TABLE dbo.Employees
+  ADD CONSTRAINT PK_Employees
+  PRIMARY KEY(empid);</code></pre>
+      </div>
+      <p>A primary key enforces uniqueness and disallows NULLs. Each table can have only one. SQL Server creates a <strong>unique index</strong> behind the scenes as the physical mechanism for enforcing it. An attempt to insert or update a duplicate <code>empid</code> is rejected.</p>
+
+      <h3 class="subhead">3. Add a unique constraint (alternate key) <span class="tag">p. 23</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · unique constraint</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER TABLE dbo.Employees
+  ADD CONSTRAINT UNQ_Employees_ssn
+  UNIQUE(ssn);</code></pre>
+      </div>
+      <p>A unique constraint enforces uniqueness like a primary key, but you can define several per table, and the column does not have to be <code>NOT NULL</code>. It implements the relational model’s <strong>alternate keys</strong>.</p>
+      <div class="warn">
+        <strong>NULLs behave differently here</strong>
+        SQL Server treats <code>NULL</code> like any other value for uniqueness, so a single-column unique constraint allows only one NULL. The SQL standard compares only non-NULL values, so it would allow many NULLs. To emulate the standard, use a filtered unique index (next block).
+      </div>
+
+      <h3 class="subhead">4. Emulate a standard unique constraint with a filtered index <span class="tag">p. 24</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · filtered unique index</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE UNIQUE INDEX idx_ssn_notnull
+  ON dbo.Employees(ssn)
+  WHERE ssn IS NOT NULL;</code></pre>
+      </div>
+      <p>The filter excludes NULLs from the index. Duplicate NULLs are allowed in the table, but duplicate non-NULL values are not. This is the SQL Server workaround for the standard’s NULL handling.</p>
+
+      <h3 class="subhead">5. Create the Orders table <span class="tag">p. 24</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · create table with inline primary key</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS dbo.Orders;
+CREATE TABLE dbo.Orders
+(
+  orderid   INT         NOT NULL,
+  empid     INT         NOT NULL,
+  custid    VARCHAR(10) NOT NULL,
+  orderts   DATETIME2   NOT NULL,
+  qty       INT         NOT NULL,
+  CONSTRAINT PK_Orders
+    PRIMARY KEY(orderid)
+);</code></pre>
+      </div>
+      <p>Here the primary key is defined inline, as part of <code>CREATE TABLE</code>. You can add constraints either at creation time or later with <code>ALTER TABLE</code>.</p>
+
+      <h3 class="subhead">6. Add a foreign key from Orders to Employees <span class="tag">p. 24</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · foreign key</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER TABLE dbo.Orders
+  ADD CONSTRAINT FK_Orders_Employees
+  FOREIGN KEY(empid)
+  REFERENCES dbo.Employees(empid);</code></pre>
+      </div>
+      <p>This enforces <strong>referential integrity</strong>: every <code>empid</code> in <code>Orders</code> must exist in <code>Employees</code>. The default referential action is <strong>NO ACTION</strong>, which rejects a delete or update that would leave orphaned rows.</p>
+
+      <h3 class="subhead">7. Add a self-referencing foreign key <span class="tag">p. 25</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · self-referencing foreign key</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER TABLE dbo.Employees
+  ADD CONSTRAINT FK_Employees_Employees
+  FOREIGN KEY(mgrid)
+  REFERENCES dbo.Employees(empid);</code></pre>
+      </div>
+      <p>A table can reference itself. Here <code>mgrid</code> must point to an existing <code>empid</code> in the same table — the manager must also be an employee. <code>NULL</code> is still allowed in the foreign-key column, which is how the CEO is represented.</p>
+      <div class="note">
+        <strong>Other referential actions</strong>
+        You can add <code>ON DELETE</code> and <code>ON UPDATE</code> actions such as <code>CASCADE</code>, <code>SET DEFAULT</code>, and <code>SET NULL</code>. <code>CASCADE</code> propagates the delete or update to related rows; <code>SET NULL</code> clears the foreign key; <code>SET DEFAULT</code> assigns the column’s default.
+      </div>
+
+      <h3 class="subhead">8. Add a check constraint <span class="tag">p. 25</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · check constraint</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER TABLE dbo.Employees
+  ADD CONSTRAINT CHK_Employees_salary
+  CHECK(salary &gt; 0.00);</code></pre>
+      </div>
+      <p>A check constraint defines a predicate that a row must satisfy. Here salaries must be positive. The database rejects an insert or update only when the predicate evaluates to <strong>FALSE</strong>; it accepts <strong>TRUE</strong> or <strong>UNKNOWN</strong>. So <code>-1000</code> is rejected, while <code>50000</code> and <code>NULL</code> (if allowed) are accepted.</p>
+      <div class="warn">
+        <strong>Don’t bypass checking</strong>
+        <code>WITH NOCHECK</code> tells SQL Server to skip validation of existing data. The book calls this a bad practice because you can no longer be sure the data is consistent.
+      </div>
+
+      <h3 class="subhead">9. Add a default constraint <span class="tag">p. 26</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · default constraint</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER TABLE dbo.Orders
+  ADD CONSTRAINT DFT_Orders_orderts
+  DEFAULT(SYSDATETIME()) FOR orderts;</code></pre>
+      </div>
+      <p>A default supplies a value when an insert doesn’t specify one. <code>SYSDATETIME()</code> returns the current date and time. After this, inserting an order without an <code>orderts</code> value fills it in automatically.</p>
+
+      <h3 class="subhead">10. Clean up <span class="tag">p. 26</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS dbo.Orders, dbo.Employees;</code></pre>
+      </div>
+      <p>Remove the sample objects when you’re done. Drop <code>Orders</code> first (or together, as shown) because it references <code>Employees</code>.</p>
+
+      <div class="tip">
+        <strong>Try it yourself</strong>
+        Run the blocks in order in <code>TSQLV6</code>. Then try inserting a duplicate <code>empid</code>, an order with a non-existent employee, or a negative salary — the database should reject each one. That is declarative integrity doing its job.
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section class="section" id="recap">
+      <div class="section-head">
+        <div class="sec-num">08</div>
+        <div>
+          <div class="kicker">Takeaways</div>
+          <h2>Chapter 1 in ten bullets</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li><strong>SQL is declarative.</strong> You specify the result you want; the optimizer decides how to compute it.</li>
+        <li><strong>T-SQL is Microsoft’s dialect of SQL</strong> and runs on SQL Server, Azure SQL, and Azure Synapse Analytics.</li>
+        <li><strong>A table is a set of rows.</strong> Rows are distinct and unordered; keys provide identity, and <code>ORDER BY</code> provides presentation order.</li>
+        <li><strong>Predicates are true, false, or unknown.</strong> <code>NULL</code> is a marker for a missing value, not a value.</li>
+        <li><strong>The relational model</strong> (Codd) combines set theory and predicate logic. A relation has a heading of attributes and a body of tuples.</li>
+        <li><strong>Keys protect integrity:</strong> a candidate key identifies rows, a primary key is the chosen one, and a foreign key enforces references.</li>
+        <li><strong>Normalization removes redundancy:</strong> 1NF (unique, atomic), 2NF (the whole key), 3NF (nothing but the key).</li>
+        <li><strong>OLTP and data warehouses are different animals:</strong> normalized entry systems vs. denormalized star-schema reporting systems, connected by ETL/ELT.</li>
+        <li><strong>The architecture stack is instance → databases → schemas → objects.</strong> Use two-part names like <code>Sales.Orders</code>.</li>
+        <li><strong>Constraints are code that protects data:</strong> primary key, unique, foreign key, check, and default — all declarative.</li>
+      </ul>
+    </section>
+
+    <!-- 09 -->
+    <section class="section" id="glossary">
+      <div class="section-head">
+        <div class="sec-num">09</div>
+        <div>
+          <div class="kicker">Reference</div>
+          <h2>Key terms in plain English</h2>
+        </div>
+      </div>
+      <dl class="terms">
+        <div class="term"><dt>Relation</dt><dd>A set of related information; the relational-model counterpart of a SQL table.</dd></div>
+        <div class="term"><dt>Tuple</dt><dd>One row in a relation; one record in a table.</dd></div>
+        <div class="term"><dt>Attribute</dt><dd>A column in a relation; has a name and a type.</dd></div>
+        <div class="term"><dt>Heading / body</dt><dd>The columns of a relation (heading) and its rows (body).</dd></div>
+        <div class="term"><dt>Predicate</dt><dd>An expression that evaluates to true or false; used for filters and constraints.</dd></div>
+        <div class="term"><dt>NULL</dt><dd>A marker for a missing value. Not a value; comparisons with it yield UNKNOWN.</dd></div>
+        <div class="term"><dt>Candidate key</dt><dd>One or more columns that uniquely identify a row.</dd></div>
+        <div class="term"><dt>Primary key</dt><dd>The chosen candidate key; unique and NOT NULL; one per table.</dd></div>
+        <div class="term"><dt>Foreign key</dt><dd>Column(s) that reference a candidate key in another (or the same) table.</dd></div>
+        <div class="term"><dt>Normalization</dt><dd>A formal process to reduce redundancy and avoid update anomalies.</dd></div>
+        <div class="term"><dt>OLTP</dt><dd>Online transactional processing: systems optimized for data entry.</dd></div>
+        <div class="term"><dt>Data warehouse</dt><dd>A reporting-oriented database, often using a star schema.</dd></div>
+        <div class="term"><dt>Star schema</dt><dd>Dimension tables plus a central fact table of measures.</dd></div>
+        <div class="term"><dt>ETL / ELT</dt><dd>Extract, transform, load (or extract, load, transform) — moving data into a warehouse.</dd></div>
+        <div class="term"><dt>Instance</dt><dd>An installation of the SQL Server database engine; a computer can host several.</dd></div>
+        <div class="term"><dt>Schema</dt><dd>A container and namespace for database objects, such as <code>dbo</code> or <code>Sales</code>.</dd></div>
+        <div class="term"><dt>Collation</dt><dd>A database setting controlling language support, case sensitivity, and sort order.</dd></div>
+        <div class="term"><dt>Filegroup</dt><dd>A logical group of data files that controls where objects are stored.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 10 -->
+    <section class="section" id="quiz">
+      <div class="section-head">
+        <div class="sec-num">10</div>
+        <div>
+          <div class="kicker">Check yourself</div>
+          <h2>Six quick questions</h2>
+        </div>
+      </div>
+      <p class="lead">Try to answer before opening each one. If you can explain it in your own words, you’ve got the chapter.</p>
+
+      <details>
+        <summary>Why does the book say a table without a key is not a set?</summary>
+        <div class="answer">A set has <strong>distinct</strong> members. Without a key or unique constraint, a table can contain duplicate rows, which makes it a multiset (bag) rather than a set. A key guarantees each row is uniquely identifiable.</div>
+      </details>
+      <details>
+        <summary>What is the difference between DDL and DML?</summary>
+        <div class="answer"><strong>DDL</strong> defines or changes objects: <code>CREATE</code>, <code>ALTER</code>, <code>DROP</code>. <strong>DML</strong> queries and modifies data: <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>TRUNCATE</code>, <code>MERGE</code>. <code>SELECT</code> is DML, and <code>TRUNCATE</code> is DML — not DDL.</div>
+      </details>
+      <details>
+        <summary>State third normal form in one sentence.</summary>
+        <div class="answer">Every non-key column must depend on the key, the whole key, and nothing but the key — so no non-key column may depend on another non-key column.</div>
+      </details>
+      <details>
+        <summary>What does a foreign key protect?</summary>
+        <div class="answer"><strong>Referential integrity.</strong> It restricts the values in the referencing table to values that actually exist in the referenced candidate key, so you cannot have an order pointing to an employee who doesn’t exist.</div>
+      </details>
+      <details>
+        <summary>Why does the book recommend two-part object names?</summary>
+        <div class="answer">If you omit the schema, SQL Server must resolve it (your default schema, then <code>dbo</code>). If the same object name exists in multiple schemas, you might get a different object than intended. <code>Sales.Orders</code> is unambiguous.</div>
+      </details>
+      <details>
+        <summary>What is the difference between a login and a database user?</summary>
+        <div class="answer">A <strong>login</strong> is an instance-level identity. A <strong>user</strong> is a database-level identity that receives permissions on objects. A DBA maps a login to a user in each database that needs access. Contained databases keep the user inside the database instead.</div>
+      </details>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div>
+      <h3>About this summary</h3>
+      <p>A study companion for <strong>Chapter 1 — Background to T-SQL querying and programming</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023), pages 1–26.</p>
+      <p class="fine">All nine figures are reproduced from the chapter PDF in this repository. All code samples are from the chapter. This page is an unofficial study aid; the book remains the authoritative source.</p>
+    </div>
+    <div>
+      <h3>Navigate</h3>
+      <p><a href="#big-picture" style="color:#9fe0d6">The big picture</a> · <a href="#theory" style="color:#9fe0d6">Theory</a> · <a href="#architecture" style="color:#9fe0d6">Architecture</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
+    </div>
+  </div>
+</footer>
+
+<button class="to-top" id="toTop" type="button" aria-label="Back to top">↑</button>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- tiny T-SQL highlighter ---------- */
+  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET").split(" "));
+  var TYPES = new Set(["INT","VARCHAR","NVARCHAR","DATE","DATETIME2","MONEY","BIT","DECIMAL","BIGINT","SMALLINT","FLOAT","TEXT","CHAR"]);
+  var FUNCS = new Set(["SYSDATETIME","GETDATE","COUNT","YEAR","CAST","CONVERT","COALESCE","ISNULL"]);
+
+  function esc(s){
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+  function highlight(src){
+    var re = /(--[^\n]*)|('(?:[^']|'')*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)/g;
+    var out = "", last = 0, m;
+    while((m = re.exec(src)) !== null){
+      out += esc(src.slice(last, m.index));
+      var text = esc(m[0]);
+      if(m[1]) out += '<span class="tok-com">' + text + '</span>';
+      else if(m[2]) out += '<span class="tok-str">' + text + '</span>';
+      else if(m[3]) out += '<span class="tok-num">' + text + '</span>';
+      else if(m[4]){
+        var up = m[4].toUpperCase();
+        if(KEYWORDS.has(up)) out += '<span class="tok-kw">' + text + '</span>';
+        else if(TYPES.has(up)) out += '<span class="tok-type">' + text + '</span>';
+        else if(FUNCS.has(up)) out += '<span class="tok-fn">' + text + '</span>';
+        else out += text;
+      } else out += text;
+      last = re.lastIndex;
+    }
+    out += esc(src.slice(last));
+    return out;
+  }
+
+  document.querySelectorAll("pre > code").forEach(function(code){
+    code.innerHTML = highlight(code.textContent);
+  });
+
+  /* ---------- copy buttons ---------- */
+  document.querySelectorAll(".copy-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var code = btn.closest(".code-card").querySelector("code");
+      var text = code.innerText;
+      function done(){
+        var old = btn.textContent;
+        btn.textContent = "Copied!";
+        btn.classList.add("copied");
+        setTimeout(function(){ btn.textContent = old; btn.classList.remove("copied"); }, 1600);
+      }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done).catch(fallback);
+      } else fallback();
+      function fallback(){
+        var ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        try{ document.execCommand("copy"); done(); }catch(e){}
+        document.body.removeChild(ta);
+      }
+    });
+  });
+
+  /* ---------- reading progress ---------- */
+  var bar = document.getElementById("progress");
+  var top = document.getElementById("toTop");
+  function onScroll(){
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    var pct = max > 0 ? (h.scrollTop || document.body.scrollTop) / max * 100 : 0;
+    bar.style.width = pct + "%";
+    if((h.scrollTop || document.body.scrollTop) > 500) top.classList.add("show");
+    else top.classList.remove("show");
+  }
+  window.addEventListener("scroll", onScroll, {passive:true});
+  onScroll();
+  top.addEventListener("click", function(){
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
+
+  /* ---------- active table-of-contents link ---------- */
+  var links = Array.prototype.slice.call(document.querySelectorAll(".toc nav a"));
+  var sections = links.map(function(a){ return document.querySelector(a.getAttribute("href")); }).filter(Boolean);
+  if("IntersectionObserver" in window){
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          links.forEach(function(a){
+            a.classList.toggle("active", a.getAttribute("href") === "#" + entry.target.id);
+          });
+        }
+      });
+    }, {rootMargin:"-20% 0px -70% 0px", threshold:0});
+    sections.forEach(function(s){ obs.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>
