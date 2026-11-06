@@ -7,9 +7,9 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1 through 15** — 140 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 131 syntax-highlighted,
-copyable T-SQL listings.
+One self-contained HTML file covering **the complete book — Chapters 1 through 16** — 153 figures
+embedded as inline base64 images (works offline, no server, no external assets) and 131
+syntax-highlighted, copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
 | --- | --- | --- | --- | --- |
@@ -28,6 +28,7 @@ copyable T-SQL listings.
 | 13 | Other Notable Wait Types | 357–370 | 13-1 … 13-2 | 13-1 … 13-7 |
 | 14 | Database Schema and Index Analysis | 371–403 | 14-1 … 14-7 | 14-1 … 14-12 |
 | 15 | SQL Server in Virtualized Environments | 405–426 | 15-1 … 15-8 | 15-1 … 15-1 |
+| 16 | SQL Server in the Cloud | 427–447 | 16-1 … 16-13 | — |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -388,6 +389,27 @@ and the host-side metrics that are invisible from inside the VM.
 - Figure 15-7 — ESXTOP: virtual disk view
 - Figure 15-8 — ESXTOP: disk adapter view
 - Listing 15-1 — Checking the distribution of schedulers in NUMA nodes
+
+### Chapter 16 — SQL Server in the Cloud
+
+The only chapter with no code. Cloud does not change how SQL Server works; it changes
+reliability, throttling, and topology. Covers the shared-responsibility reality, transient
+connectivity errors, cloud VM storage caps and bursting, cross-AZ/cross-region HA design,
+and the three managed platforms (Azure SQL, Amazon RDS, Google Cloud SQL).
+
+- Figure 16-1 — "There is no cloud" sticker
+- Figure 16-2 — Azure SQL Database General Purpose architecture
+- Figure 16-3 — Azure SQL Database Business Critical architecture
+- Figure 16-4 — Azure SQL Database Hyperscale architecture
+- Figure 16-5 — Azure portal resource utilization for a General Purpose database
+- Figure 16-6 — `sys.dm_db_resource_stats` output
+- Figure 16-7 — `sys.resource_stats` output
+- Figure 16-8 — Automatic tuning configuration in the Azure portal
+- Figure 16-9 — Amazon CloudWatch metrics for RDS
+- Figure 16-10 — Performance Insights counters
+- Figure 16-11 — Performance Insights database load, sliced by wait
+- Figure 16-12 — Performance Insights top SQL
+- Figure 16-13 — Google Cloud SQL read/write ops limits
 
 ## Viewing it
 
