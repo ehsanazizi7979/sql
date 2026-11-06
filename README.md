@@ -7,8 +7,8 @@ by Dmitri Korotkevitch (O'Reilly Media, 2022).
 
 **[`docs/chapter-01-summary/chapter-01-summary.html`](docs/chapter-01-summary/chapter-01-summary.html)**
 
-One self-contained HTML file covering **Chapters 1 through 5** — 50 figures embedded as inline
-base64 images (works offline, no server, no external assets) and 36 syntax-highlighted,
+One self-contained HTML file covering **Chapters 1 through 6** — 59 figures embedded as inline
+base64 images (works offline, no server, no external assets) and 52 syntax-highlighted,
 copyable T-SQL listings.
 
 | Chapter | Topic | Book pages | Figures | Listings |
@@ -18,6 +18,7 @@ copyable T-SQL listings.
 | 3 | Disk Subsystem Performance | 45–67 | 3-1 … 3-8 | 3-1 … 3-3 |
 | 4 | Inefficient Queries | 69–103 | 4-1 … 4-9 | 4-1 … 4-10 |
 | 5 | Data Storage and Query Tuning | 105–158 | 5-1 … 5-22 | 5-1 … 5-14 |
+| 6 | CPU Load | 159–183 | 6-1 … 6-9 | 6-1 … 6-16 |
 
 ### Chapter 1 — Setup and Configuration
 
@@ -132,6 +133,37 @@ statistics drive cardinality estimation, and how to choose indexes and join type
 - Listing 5-12 — Join performance: test cases
 - Listing 5-13 — Forcing join types
 - Listing 5-14 — Selecting a list of a customer's orders
+
+### Chapter 6 — CPU Load
+
+Why CPU replaced I/O as the usual bottleneck, and the three levers: nonoptimized
+queries, compilation/plan caching (parameter sniffing, parameterization), and parallelism.
+
+- Figure 6-1 — Script output showing CPU load history
+- Figure 6-2 — Script output showing CPU load per database
+- Figure 6-3 — Execution plans of the queries (test 1)
+- Figure 6-4 — Execution plans of the queries (test 2)
+- Figure 6-5 — Execution plans of the queries (statement-level recompile)
+- Figure 6-6 — Execution plan of the stored procedure: parameter-value independence
+- Figure 6-7 — Ad-hoc versus parameterized workload throughput
+- Figure 6-8 — Plan cache after auto-parameterization
+- Figure 6-9 — Throughput with forced parameterization
+- Listing 6-1 — Getting CPU load history
+- Listing 6-2 — Per-database CPU load
+- Listing 6-3 — Parameter-sensitive plans: table creation
+- Listing 6-4 — Parameter-sensitive plans: stored procedure
+- Listing 6-5 — Parameter-sensitive plans: calling the procedure (test 1)
+- Listing 6-6 — Parameter-sensitive plans: calling the procedure (test 2)
+- Listing 6-7 — Parameter-sensitive plans: statement-level recompile
+- Listing 6-8 — Parameter-sensitive plans: `OPTIMIZE FOR UNKNOWN` hint
+- Listing 6-9 — Parameter-value independence
+- Listing 6-10 — Dynamic SQL implementation
+- Listing 6-11 — Query that would not use filtered index
+- Listing 6-12 — Identical queries
+- Listing 6-13 — Ad-hoc versus parameterized workload
+- Listing 6-14 — Auto-parameterization
+- Listing 6-15 — Applying forced parameterization through a plan guide
+- Listing 6-16 — Applying simple parameterization through a plan guide
 
 ## Viewing it
 
