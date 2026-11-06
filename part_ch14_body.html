@@ -1,0 +1,1011 @@
+    <div class="chapterbar" id="chapter14">
+      <span class="cnum">Chapter 14</span>
+      <div>
+        <h2>Plans for Special Data Types and Cursors</h2>
+        <p>XML, JSON, <code class="inl">HIERARCHYID</code>, geography and cursors all bend the optimizer into
+        shapes you haven't seen yet: a single <b>Remote Scan</b> that swallows a whole OPENXML statement,
+        fixed 10,000- and 50-row estimates, and operators that <i>hide</i> rather than show the work. This
+        chapter is a field guide to spotting them.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch14-special">
+      <h2><span class="num">1</span> Special types only show up when you <i>process</i> them</h2>
+      <p class="lede">Storing an XML document or a geography point in a column is invisible to the plan. What shows up is the moment you ask SQL Server to convert between that type and ordinary rows.</p>
+
+      <p>
+        That's the key idea, and it's why this chapter is really about four conversions plus one
+        programming style. The plan-level triggers are:
+      </p>
+
+      <div class="opgrid">
+        <div class="opcol">
+          <h3 class="step">Converting</h3>
+          <ul>
+            <li><b>Relational → XML</b>: the <code class="inl">FOR XML</code> clause. New operator: <b>XML SELECT</b>, or <b>UDX</b>.</li>
+            <li><b>XML → relational</b>: the <code class="inl">OPENXML</code> rowset provider. New operator: <b>Remote Scan</b> (all work hidden).</li>
+            <li><b>Querying XML</b>: XQuery methods. New operators: <b>Table-Valued Function (XML Reader)</b> and <b>UDX</b>.</li>
+            <li><b>JSON</b>: no JSON type at all — <code class="inl">FOR JSON</code> and <code class="inl">OPENJSON</code> still leave fingerprints.</li>
+          </ul>
+        </div>
+        <div class="opcol">
+          <h3 class="step">Behaving differently</h3>
+          <ul>
+            <li><b><code class="inl">HIERARCHYID</code></b>: a CLR type over <code class="inl">varbinary</code>. Plans look ordinary — the curiosity is in the Seek Predicate.</li>
+            <li><b>Spatial</b>: <code class="inl">geometry</code>/<code class="inl">geography</code>, with a very complex index and even more complex plans.</li>
+            <li><b>Cursors</b>: not a data type, a row-by-row behaviour. Represented by placeholder icons in estimated plans, and by floods of separate plans in actual ones.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="note">
+        <b>The cost that isn't in the operator</b>
+        Manipulating XML uses the XML parser, which consumes memory and CPU that you'd otherwise have
+        for T-SQL. The book's advice is blunt: be judicious about how much XML you push through
+        SQL Server, and don't assume the operator cost you see is the whole story.
+      </div>
+    </section>
+
+    <section class="card" id="ch14-forxml">
+      <h2><span class="num">2</span> Relational → XML: <code class="inl">FOR XML</code></h2>
+      <p class="lede">Three of the four <code class="inl">FOR XML</code> modes produce the <i>same plan</i>. The fourth makes you rewrite the query, and that rewrite — not the XML — is what doubles the cost.</p>
+
+      <p>Start with a plain relational query, so you have a baseline to compare against.</p>
+
+      <div class="code">
+        <header><span>Listing 14-1 · the baseline</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> s.Name <span class="kw">AS</span> StoreName,
+       bec.PersonID,
+       bec.ContactTypeID
+<span class="kw">FROM</span> Sales.Store <span class="kw">AS</span> s
+    <span class="kw">JOIN</span> Person.BusinessEntityContact <span class="kw">AS</span> bec
+        <span class="kw">ON</span> s.BusinessEntityID = bec.BusinessEntityID
+<span class="kw">ORDER BY</span> s.Name;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-1-relational-plan.png"
+             alt="Simple execution plan with a SELECT operator over a join of Store and BusinessEntityContact.">
+        <figcaption><b>Figure 14-1</b> — Nothing special: an ordinary plan for an ordinary query.</figcaption>
+      </figure>
+
+      <p>Now add one clause. <code class="inl">AUTO</code>, <code class="inl">RAW</code> and <code class="inl">PATH</code> all behave identically at the plan level.</p>
+
+      <div class="code">
+        <header><span>Listing 14-2 · same query, XML output</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> s.Name <span class="kw">AS</span> StoreName,
+       bec.PersonID,
+       bec.ContactTypeID
+<span class="kw">FROM</span> Sales.Store <span class="kw">AS</span> s
+    <span class="kw">JOIN</span> Person.BusinessEntityContact <span class="kw">AS</span> bec
+        <span class="kw">ON</span> s.BusinessEntityID = bec.BusinessEntityID
+<span class="kw">ORDER BY</span> s.Name
+<span class="kw">FOR XML</span> AUTO;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-2-for-xml-auto-plan.png"
+             alt="Same plan as figure 14-1 but with the SELECT operator replaced by an XML SELECT operator.">
+        <figcaption><b>Figure 14-2</b> — The <i>only</i> visible difference: <b>SELECT</b> becomes <b>XML SELECT</b>. Same joins, same seeks, same cost.</figcaption>
+      </figure>
+
+      <p>
+        Which is the first genuinely useful fact in the chapter: <b>choosing between AUTO, RAW and PATH
+        costs nothing at runtime.</b> Pick the shape of XML you want; the optimizer doesn't care. The
+        output really is different, though, for the same first row:
+      </p>
+
+      <div class="code">
+        <header><span>The same row, three modes</span></header>
+<pre><code><span class="cm">-- AUTO:</span>
+&lt;s StoreName="A Bicycle Association"&gt;
+  &lt;bec PersonID="2050" ContactTypeID="11" /&gt;
+&lt;/s&gt;
+<span class="cm">-- RAW:</span>
+&lt;row StoreName="A Bicycle Association" PersonID="2050"
+     ContactTypeID="11" /&gt;
+<span class="cm">-- PATH</span>
+&lt;row&gt;
+  &lt;StoreName&gt;A Bicycle Association&lt;/StoreName&gt;
+  &lt;PersonID&gt;2050&lt;/PersonID&gt;
+  &lt;ContactTypeID&gt;11&lt;/ContactTypeID&gt;
+&lt;/row&gt;</code></pre>
+      </div>
+
+      <h3 class="step">The TYPE directive, and the 10× cost</h3>
+
+      <p>
+        Without <code class="inl">TYPE</code>, that output is just a string that <i>looks</i> like XML. With
+        <code class="inl">TYPE</code> it's a real <code class="inl">xml</code> value — which matters mostly when
+        you nest <code class="inl">FOR XML</code> inside a subquery.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 14-3 · a nested FOR XML with TYPE</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> s.Name <span class="kw">AS</span> StoreName,
+       (   <span class="kw">SELECT</span> bec.BusinessEntityID,
+                  bec.ContactTypeID
+           <span class="kw">FROM</span> Person.BusinessEntityContact <span class="kw">AS</span> bec
+           <span class="kw">WHERE</span> bec.BusinessEntityID = s.BusinessEntityID
+           <span class="kw">FOR XML</span> AUTO, TYPE, ELEMENTS) <span class="kw">AS</span> contact
+<span class="kw">FROM</span> Sales.Store <span class="kw">AS</span> s
+<span class="kw">ORDER BY</span> s.Name
+<span class="kw">FOR XML</span> AUTO;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-3-for-xml-type-output.png"
+             alt="Two result grids: with TYPE the XML is formatted; without TYPE the angle brackets appear as &amp;lt; and &amp;gt; entities.">
+        <figcaption><b>Figure 14-3</b> — With <code class="inl">TYPE</code> the subquery output is XML. Without it, the angle brackets are escaped to <code class="inl">&amp;lt;</code> / <code class="inl">&amp;gt;</code> because the subquery is treated as text being converted.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-4-xml-auto-plan.png"
+             alt="Plan for FOR XML AUTO with a subquery: Nested Loops over an index seek feeding a UDX operator.">
+        <figcaption><b>Figure 14-4</b> — The plan for Listing 14-3: a Nested Loops join, an Index Seek executed once per outer row, then the UDX operator.</figcaption>
+      </figure>
+
+      <p>
+        That plan costs <b>1515 logical reads — about ten times Listing 14-2</b>. Not because of the XML
+        type, but because the subquery forces a Nested Loops join: the outer input returns
+        <b>701 rows</b> (BusinessEntityID + Name, sorted by Name), each of those IDs is pushed into the
+        inner input, and the seek runs <b>701 times</b>. That's the real bill.
+      </p>
+
+      <figure>
+        <img src="images/chapter14/fig-14-5-udx-properties.png"
+             alt="UDX operator properties with Name = FOR XML, Used UDX Columns, and output expression Expr1002.">
+        <figcaption><b>Figure 14-5</b> — The <b>UDX</b> operator is where rows become XML. <code class="inl">Name = FOR XML</code>, <code class="inl">Used UDX Columns</code> lists the inputs, and the output is the internal name <code class="inl">Expr1002</code> holding BusinessEntityID + ContactTypeID.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>Reading a UDX operator</b>
+        It's a generic "user-defined extension" box. The only useful property is <code class="inl">Name</code> —
+        <code class="inl">FOR XML</code>, <code class="inl">FOR JSON</code>, or an XQuery transform. It appears
+        constantly in this chapter, and that one property is how you tell the cases apart. The Compute
+        Scalar after it (renaming <code class="inl">Expr1002</code> to <code class="inl">Expr1004</code>) does
+        nothing you need to understand.
+      </div>
+
+      <h3 class="step">EXPLICIT: you pay for the rewrite</h3>
+
+      <p>
+        <code class="inl">EXPLICIT</code> gives total control over the XML shape, but the rowset you feed it
+        must obey strict formatting rules. Try Listing 14-2 with it and you get <code class="inl">Msg 6803:
+        FOR XML EXPLICIT requires the first column to hold positive integers that represent XML tag
+        IDs</code>. So you hand-build the hierarchy with <code class="inl">UNION ALL</code>:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 14-4 · EXPLICIT mode, hand-built hierarchy</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  1 <span class="kw">AS</span> Tag,
+        <span class="kw">NULL AS</span> Parent,
+        s.Name <span class="kw">AS</span> [Store!1!StoreName],
+        <span class="kw">NULL AS</span> [BECContact!2!PersonID],
+        <span class="kw">NULL AS</span> [BECContact!2!ContactTypeID]
+<span class="kw">FROM</span>    Sales.Store s
+<span class="kw">JOIN</span>    Person.BusinessEntityContact <span class="kw">AS</span> bec
+        <span class="kw">ON</span> s.BusinessEntityID = bec.BusinessEntityID
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span>  2 <span class="kw">AS</span> Tag,
+        1 <span class="kw">AS</span> Parent,
+        s.Name <span class="kw">AS</span> StoreName,
+        bec.PersonID,
+        bec.ContactTypeID
+<span class="kw">FROM</span>    Sales.Store s
+<span class="kw">JOIN</span>    Person.BusinessEntityContact <span class="kw">AS</span> bec
+        <span class="kw">ON</span> s.BusinessEntityID = bec.BusinessEntityID
+<span class="kw">ORDER BY</span> [Store!1!StoreName],
+        [BECContact!2!PersonID]
+<span class="kw">FOR</span>     <span class="kw">XML</span> EXPLICIT;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-6-xml-explicit-plan.png"
+             alt="Actual plan for FOR XML EXPLICIT showing the union of two nearly identical query branches, each run separately.">
+        <figcaption><b>Figure 14-6</b> — Two almost identical query branches, executed separately and concatenated: roughly <b>2× the cost</b> of Listing 14-2.</figcaption>
+      </figure>
+
+      <div class="warn note">
+        <b>Blame the UNION ALL, not EXPLICIT</b>
+        The doubling is an <i>indirect</i> result of the option's requirements — it made you write the same
+        query twice. You get precise control over the XML and pay for it in duplicated work. And as
+        always: drop the <code class="inl">FOR XML EXPLICIT</code> clause and the plan changes only by
+        <b>XML Select → Select</b>.
+      </div>
+    </section>
+
+    <section class="card" id="ch14-openxml">
+      <h2><span class="num">3</span> XML → relational: <code class="inl">OPENXML</code> and the Remote Scan</h2>
+      <p class="lede">A whole statement's worth of XML parsing collapses into one operator, because it happens outside the query engine. What's left in the plan is a fixed 10,000-row guess.</p>
+
+      <p>
+        <code class="inl">OPENXML</code> turns an XML document held in <code class="inl">nvarchar</code> into a
+        rowset you can treat as a table — usable anywhere a table is, including the <code class="inl">FROM</code>
+        of <code class="inl">INSERT</code>s, but never as the target of one. You need a document first:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 14-5 · the document (elements wrapped to fit)</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>&lt;ROOT&gt;
+  &lt;Currency CurrencyCode="UTE"
+     CurrencyName="Universal Transactional Exchange"&gt;
+    &lt;CurrencyRate FromCurrencyCode="USD" ToCurrencyCode="UTE"
+                   CurrencyRateDate="2007/1/1" AverageRate=".553"
+                   EndOfDateRate=".558" /&gt;
+    &lt;CurrencyRate FromCurrencyCode="USD" ToCurrencyCode="UTE"
+                   CurrencyRateDate="2017/6/1" AverageRate=".928"
+                   EndOfDateRate="1.057" /&gt;
+  &lt;/Currency&gt;
+&lt;/ROOT&gt;</code></pre>
+      </div>
+
+      <p>Then shred it into two tables — the whole lifecycle, preparedocument to removedocument:</p>
+
+      <div class="code">
+        <header><span>Listing 14-6 · insert from XML in a batch</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">BEGIN TRAN</span>;
+<span class="kw">DECLARE</span> @iDoc <span class="kw">AS INT</span>;
+<span class="kw">DECLARE</span> @Xml <span class="kw">AS NVARCHAR</span>(<span class="kw">MAX</span>);
+
+<span class="kw">SET</span> @Xml = '&lt;ROOT&gt;
+&lt;Currency CurrencyCode="UTE" CurrencyName="Universal
+  Transactional Exchange"&gt;
+   &lt;CurrencyRate FromCurrencyCode="USD" ToCurrencyCode="UTE"
+     CurrencyRateDate="2007/1/1" AverageRate=".553"
+     EndOfDayRate=".558" /&gt;
+   &lt;CurrencyRate FromCurrencyCode="USD" ToCurrencyCode="UTE"
+     CurrencyRateDate="2007/6/1" AverageRate=".928"
+     EndOfDayRate="1.057" /&gt;
+&lt;/Currency&gt;
+&lt;/ROOT&gt;';
+
+<span class="kw">EXEC</span> sys.sp_xml_preparedocument
+    @iDoc <span class="kw">OUTPUT</span>,
+    @Xml;
+
+<span class="kw">INSERT  INTO</span> Sales.Currency
+        (CurrencyCode, Name, ModifiedDate)
+<span class="kw">SELECT</span>  CurrencyCode,
+        CurrencyName,
+        <span class="fn">GETDATE</span>()
+<span class="kw">FROM</span>    <span class="kw">OPENXML</span> (@iDoc, 'ROOT/Currency', 1)
+           <span class="kw">WITH</span> (CurrencyCode NCHAR(3), CurrencyName NVARCHAR(50));
+
+<span class="kw">INSERT  INTO</span> Sales.CurrencyRate
+        (CurrencyRateDate, FromCurrencyCode, ToCurrencyCode,
+         AverageRate, EndOfDayRate, ModifiedDate)
+<span class="kw">SELECT</span>  CurrencyRateDate,
+        FromCurrencyCode,
+        ToCurrencyCode,
+        AverageRate,
+        EndOfDayRate,
+        <span class="fn">GETDATE</span>()
+<span class="kw">FROM</span>    <span class="kw">OPENXML</span> (@iDoc, 'ROOT/Currency/CurrencyRate', 2)
+          <span class="kw">WITH</span> (CurrencyRateDate DATETIME  '@CurrencyRateDate',
+                FromCurrencyCode NCHAR(3)  '@FromCurrencyCode',
+                ToCurrencyCode   NCHAR(3)  '@ToCurrencyCode',
+                AverageRate      MONEY     '@AverageRate',
+                EndOfDayRate     MONEY     '@EndOfDayRate');
+
+<span class="kw">EXEC</span> sys.sp_xml_removedocument
+    @iDoc;
+<span class="kw">ROLLBACK TRAN</span>;</code></pre>
+      </div>
+
+      <p>Two INSERTs, so two actual plans. The first is startlingly small:</p>
+
+      <figure>
+        <img src="images/chapter14/fig-14-7-openxml-insert-currency.png"
+             alt="Plan for the INSERT into Sales.Currency: a single Remote Scan feeding sorts and a Table Insert.">
+        <figcaption><b>Figure 14-7</b> — The entire OPENXML statement is the one <b>Remote Scan</b> icon. Everything else is a normal insert.</figcaption>
+      </figure>
+
+      <p>
+        <b>Remote Scan</b> means "an object outside the query engine is producing these rows" — a DLL or a
+        CLR object, in this case the MSXML parser. Because it isn't part of the engine, the optimizer draws
+        it as a single opaque box. The only XML evidence is in its Output List:
+      </p>
+
+      <figure>
+        <img src="images/chapter14/fig-14-8-openxml-operator-properties.png"
+             alt="Remote Scan properties showing the OPENXML statement as a table and the selected XML attributes as columns.">
+        <figcaption><b>Figure 14-8</b> — Properties of the OPENXML operator: the statement named as a table, the <code class="inl">WITH</code> columns listed as columns.</figcaption>
+      </figure>
+
+      <p>
+        Everything after it is ordinary: sorted once for the clustered index, sorted again for the
+        nonclustered index. And exactly one row is inserted. So why the Sort at all? Because the
+        optimizer assumes <b>10,000 rows</b> will come back from a Remote Scan. That's a hard-coded
+        estimate, and it drives every downstream choice.
+      </p>
+
+      <div class="note tip">
+        <b>Read the arrow widths</b>
+        In the actual plan the arrow <i>into</i> Compute Scalar is thin (1 row actual) and the arrow
+        <i>out</i> is fat (10,000 estimated) — a Compute Scalar never does real work, so it only ever
+        reports estimates. Mismatched arrow sizes around a Compute Scalar are a shortcut to finding a bad
+        estimate.
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-9-openxml-insert-currencyrate.png"
+             alt="Plan for the INSERT into Sales.CurrencyRate with two Merge Joins performing referential integrity checks against the parent table.">
+        <figcaption><b>Figure 14-9</b> — The CurrencyRate insert: two foreign-key checks (From and To currency), each a <b>Merge Join</b> against the parent table, and the data sorted twice to feed them — again because of the 10,000-row guess.</figcaption>
+      </figure>
+
+      <div class="warn note">
+        <b>What to do about it</b>
+        You cannot fix the 10,000. If it's hurting you, load the XML into a <b>temporary table first</b> so
+        the optimizer gets real statistics and plans the rest of the work properly. Separately: parsing XML
+        is memory-hungry, so get in, shred, and <code class="inl">sp_xml_removedocument</code> as fast as
+        you can.
+      </div>
+    </section>
+
+    <section class="card" id="ch14-xquery">
+      <h2><span class="num">4</span> Querying XML with XQuery</h2>
+      <p class="lede">Five methods, two new operators. The surprise is how much of a FLWOR expression the optimizer evaluates as <i>ordinary relational</i> work.</p>
+
+      <p>
+        The five methods on the <code class="inl">xml</code> type, and the two operators the optimizer
+        reaches for:
+      </p>
+
+      <table>
+        <thead><tr><th>Method</th><th>Returns</th><th>What it's for</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">.query()</code></td><td><code class="inl">xml</code></td><td>Return some or all of the XML you're querying.</td></tr>
+          <tr><td><code class="inl">.value()</code></td><td>a scalar</td><td>Extract one typed value out of the XML.</td></tr>
+          <tr><td><code class="inl">.nodes()</code></td><td>a rowset</td><td>Shred XML into rows — the pivot you saw in Chapter 13.</td></tr>
+          <tr><td><code class="inl">.exist()</code></td><td><code class="inl">bit</code></td><td>Does the XPath match anything? Like <code class="inl">EXISTS</code>.</td></tr>
+          <tr><td><code class="inl">.modify()</code></td><td>—</td><td>Insert, update or delete XML fragments in place.</td></tr>
+        </tbody>
+      </table>
+
+      <p>
+        Implemented with <b>Table-Valued Function (XML Reader)</b>, with or without an XPath filter, plus
+        <b>UDX</b>, in varying combinations. Two examples follow — one filter, one transform.
+      </p>
+
+      <h3 class="step"><code class="inl">.exist()</code>: filter on the document</h3>
+
+      <div class="code">
+        <header><span>Listing 14-7 · was this person ever a sales manager?</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.LastName, p.FirstName, e.HireDate, e.JobTitle
+  <span class="kw">FROM</span> Person.Person <span class="kw">AS</span> p
+    <span class="kw">INNER JOIN</span> HumanResources.Employee <span class="kw">AS</span> e
+      <span class="kw">ON</span> p.BusinessEntityID = e.BusinessEntityID
+    <span class="kw">INNER JOIN</span> HumanResources.JobCandidate <span class="kw">AS</span> jc
+      <span class="kw">ON</span> e.BusinessEntityID = jc.BusinessEntityID
+     <span class="kw">AND</span> jc.Resume.exist(
+           'declare namespace
+        res="http://schemas.microsoft.com/sqlserver/2004/07/
+adventure-works/Resume";
+        /res:Resume/res:Employment/res:Emp.JobTitle[contains
+             (.,"Sales Manager")]') = 1;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-10-xquery-exist-plan.png"
+             alt="Actual plan: Clustered Index Scan on JobCandidate, Filter for non-null Resume, Nested Loops, Table Valued Function XML Reader with XPath filter, then a Filter on value.">
+        <figcaption><b>Figure 14-10</b> — Right to left: Clustered Index Scan on JobCandidate → Filter (<code class="inl">Resume IS NOT NULL</code>) → Nested Loops → <b>Table Valued Function</b> → Filter → more joins on Employee and Person.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-11-tvf-xml-reader-properties.png"
+             alt="Table Valued Function properties showing XML reader operation, executed 2 times, 4 rows returned.">
+        <figcaption><b>Figure 14-11</b> — The TVF is subtitled <i>"XML Reader with XPath filter"</i> and reports <b>2 executions, 4 rows</b>.</figcaption>
+      </figure>
+
+      <p>
+        The TVF hands its rows — two columns, <code class="inl">value</code> and
+        <code class="inl">lvalue</code> — to a <b>Filter</b>, which checks that the XPath result equals 1
+        and is not null (the null check is redundant, but present). One row survives. The rest of the plan
+        is textbook.
+      </p>
+
+      <div class="note">
+        <b>The TVF has no plan of its own</b>
+        Unlike a multi-statement TVF, the internal ones XQuery uses can't be found in the plan cache, the
+        Query Store, or an estimated plan. Its execution is purely internal — the operator's properties are
+        all you get. Like <b>Remote Scan</b>, it plays the role of "shredded rows appear here", but unlike
+        Remote Scan it <i>is</i> part of the engine and gets its own icon.
+      </div>
+
+      <h3 class="step"><code class="inl">.query()</code>: filter <i>and</i> rebuild the XML</h3>
+
+      <p>
+        This one uses FLWOR (<b>F</b>or, <b>L</b>et, <b>W</b>here, <b>O</b>rder, <b>R</b>eturn) and is the
+        most instructive plan in the chapter, because it visibly splits into three jobs.
+      </p>
+
+      <div class="code">
+        <header><span>Listing 14-8 · stores over 20,000 sq ft for one salesperson</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> s.Name,
+  s.Demographics.query
+('
+   declare namespace ss="http://schemas.microsoft.com/
+sqlserver/2004/07/adventure-works/StoreSurvey";
+   for $s in /ss:StoreSurvey
+   where ss:StoreSurvey/ss:SquareFeet &gt; 20000
+   return $s
+') <span class="kw">AS</span> Demographics
+  <span class="kw">FROM</span> Sales.Store <span class="kw">AS</span> s
+  <span class="kw">WHERE</span> s.SalesPersonID = 279;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-12-xquery-query-plan.png"
+             alt="Full plan for the .query XQuery method: a Nested Loops left outer join between the Store table access and an XML index subtree feeding a Compute Scalar and UDX.">
+        <figcaption><b>Figure 14-12</b> — The whole plan. A Nested Loops (Left Outer Join) stitches the relational half to the XML half, which ends in a UDX.</figcaption>
+      </figure>
+
+      <p>Three responsibilities, in order:</p>
+
+      <div class="code">
+        <header><span>Part 1 · relational access</span></header>
+<pre><code><span class="cm">-- Clustered Index Scan on Sales.Store</span>
+<span class="cm">--   Filter: SalesPersonID = 279</span>
+<span class="cm">--     -&gt; top input of Nested Loops (Left Outer Join)</span>
+<span class="cm">--     -&gt; pushes BusinessEntityID + Demographics</span>
+<span class="cm">--        into the lower input via Outer References</span></code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-13-xquery-relational-access.png"
+             alt="Blow-up showing Clustered Index Scan on Store with a SalesPersonID filter feeding the top input of a Nested Loops left outer join.">
+        <figcaption><b>Figure 14-13</b> — The ordinary part: scan Store, filter to salesperson 279, feed the top of the Nested Loops.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-14-xquery-xml-index-seeks.png"
+             alt="Blow-up showing three Clustered Index Seek operators against an XML index, feeding a Filter operator.">
+        <figcaption><b>Figure 14-14</b> — The lower input: <b>three Clustered Index Seeks against an XML clustered index</b>, then a Filter. The three seeks are an artefact of how XML data is encoded in XML indexes.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-15-xml-index-seek-properties.png"
+             alt="Index Seek properties showing the seek on PXML_Store_Demographics returning 80 rows and the XML index node output columns.">
+        <figcaption><b>Figure 14-15</b> — The seek is on <code class="inl">PXML_Store_Demographics</code>, returning the <b>80 rows</b> matching BusinessEntityID. The output lists the XML index node columns.</figcaption>
+      </figure>
+
+      <p>
+        And then the tell-tale: the <b>Filter</b> in that subtree is the FLWOR
+        <code class="inl">where</code> clause. Its predicate tests the extracted column
+        <code class="inl">value</code> against <b>20000</b>. In other words, the engine pulled the value out
+        of the XML, made it relational, and compared it with an ordinary Filter operator. Not all FLWOR
+        logic is pushed into an XML-specific operator — and this is how you can tell which part wasn't.
+      </p>
+
+      <div class="code">
+        <header><span>Part 3 · back to XML</span></header>
+<pre><code><span class="cm">-- Compute Scalar: prep work for the UDX</span>
+<span class="cm">-- UDX:     rowset -&gt; XML again</span>
+<span class="cm">-- Filter:  Startup Expression Predicate</span>
+<span class="cm">--          = skip this whole subtree when</span>
+<span class="cm">--            Demographics IS NULL</span></code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-16-xquery-conversion-to-xml.png"
+             alt="Blow-up showing a Compute Scalar feeding a UDX operator that converts the rowset back into XML.">
+        <figcaption><b>Figure 14-16</b> — Compute Scalar prepares, UDX converts back to XML. The Filter above uses a <b>Startup Expression Predicate</b> to skip the entire subtree for NULL Demographics.</figcaption>
+      </figure>
+
+      <div class="note tip">
+        <b>The mental model, restated</b>
+        XQuery against an XML column is: <i>relational access → extract to a rowset → ordinary operators
+        (filters, joins) → convert back to XML</i>. Once you see that, the odd-looking operators are just
+        the two conversion boundaries.
+      </div>
+
+      <p>
+        <b>When to use it:</b> XQuery can replace <code class="inl">FOR XML</code> (expect some performance
+        degradation) and it can replace <code class="inl">OPENXML</code> (with more capability, and a
+        genuine plan rather than a black box). Test both before committing.
+      </p>
+    </section>
+
+    <section class="card" id="ch14-json">
+      <h2><span class="num">5</span> JSON: no type, still fingerprints</h2>
+      <p class="lede">JSON arrived in SQL Server 2016 but never got a data type — it lives in <code class="inl">nvarchar</code>. So there are no methods and no XML indexes; just conversions with a couple of revealing properties.</p>
+
+      <p>AdventureWorks has no JSON, so build some. Note the twin fixed estimates coming up.</p>
+
+      <div class="code">
+        <header><span>Listing 14-9 · build a JSON column with FOR JSON PATH</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> p.BusinessEntityID,
+       p.Title,
+       p.FirstName,
+       p.LastName,
+       (   <span class="kw">SELECT</span> p2.FirstName <span class="kw">AS</span> "person.name",
+                  p2.LastName <span class="kw">AS</span> "person.surname",
+                  p2.Title,
+                  p2.BusinessEntityID
+           <span class="kw">FROM</span> Person.Person <span class="kw">AS</span> p2
+           <span class="kw">WHERE</span> p.BusinessEntityID = p2.BusinessEntityID
+           <span class="kw">FOR JSON PATH</span>) <span class="kw">AS</span> JsonData
+<span class="kw">INTO</span> dbo.PersonJson
+<span class="kw">FROM</span> Person.Person <span class="kw">AS</span> p;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-17-for-json-udx-plan.png"
+             alt="Parallel plan for FOR JSON PATH with an Index Spool and a UDX operator named FOR JSON.">
+        <figcaption><b>Figure 14-17</b> — 19,000 rows converted to JSON: high cost, so the optimizer parallelised it.</figcaption>
+      </figure>
+
+      <p>Only two things in that plan are worth naming:</p>
+
+      <ul class="biglist">
+        <li><b>An Index Spool</b> exists so the Clustered Index Scan isn't re-run per row. Check the <code class="inl">Execution Count</code>: both Clustered Index Scans show <b>1</b>, while the spool shows <b>19,972</b> — once per row.</li>
+        <li><b>A UDX</b> does the JSON conversion, and its <code class="inl">Name = FOR JSON</code> is the only clue you'll get.</li>
+      </ul>
+
+      <figure>
+        <img src="images/chapter14/fig-14-18-for-json-udx-properties.png"
+             alt="UDX properties for FOR JSON: Name FOR JSON, output expression Expr1005, no further definitions.">
+        <figcaption><b>Figure 14-18</b> — <code class="inl">Name = FOR JSON</code>, output <code class="inl">Expr1005</code>, and nothing else defined. Compare Figure 14-5, where <code class="inl">Used UDX Columns</code> at least told you the inputs.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-19-json-scalar-operator.png"
+             alt="Compute Scalar converting Expr1005 to Expr1007 before the Table Insert.">
+        <figcaption><b>Figure 14-19</b> — A Compute Scalar converts <code class="inl">Expr1005</code> to <code class="inl">Expr1007</code>, then Table Insert writes it. Beyond that, the plan tells you nothing about the JSON itself.</figcaption>
+      </figure>
+
+      <h3 class="step">Reading it back with OPENJSON</h3>
+
+      <div class="code">
+        <header><span>Listing 14-10 · shred the JSON with OPENJSON</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span> oj.FirstName,
+       oj.LastName,
+       oj.Title
+<span class="kw">FROM</span> dbo.PersonJson <span class="kw">AS</span> pj
+    <span class="kw">CROSS APPLY</span>
+    OPENJSON(pj.JsonData, N'$')
+    <span class="kw">WITH</span> (FirstName <span class="kw">VARCHAR</span>(50) N'$.person.name',
+          LastName  <span class="kw">VARCHAR</span>(50) N'$.person.surname',
+          Title     <span class="kw">VARCHAR</span>(8)  N'$.Title',
+          BusinessEntityID <span class="kw">INT</span> N'$.BusinessEntityID') <span class="kw">AS</span> oj
+<span class="kw">WHERE</span> oj.BusinessEntityID = 42;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-20-openjson-plan.png"
+             alt="Plan with a Table Scan on PersonJson feeding a Nested Loops join to a Table Valued Function OPENJSON_EXPLICIT, then a Filter.">
+        <figcaption><b>Figure 14-20</b> — Table Scan (no index on <code class="inl">dbo.PersonJson</code>) → Nested Loops → <b>Table Valued Function (OPENJSON_EXPLICIT)</b> → Filter on BusinessEntityID = 42.</figcaption>
+      </figure>
+
+      <p>
+        The Nested Loops looks crazy: ~19,972 rows scanned means ~19,972 executions of a fairly expensive
+        TVF. But <code class="inl">CROSS APPLY</code> gives the inner input a different row for each outer
+        row, and Nested Loops is the only way the optimizer can currently implement that — <b>it has no
+        choice</b>. Then note the estimate: a fixed <b>50 rows per execution</b>, when in fact it returns
+        one.
+      </p>
+
+      <div class="warn note">
+        <b>The shredding-then-filtering problem</b>
+        The Filter sits <i>after</i> the TVF, so SQL Server shreds the JSON in <b>every</b> row and only then
+        discards all but BusinessEntityID 42. What you want is the predicate pushed down so only the needed
+        rows get shredded — and it doesn't happen. The book's remedy: put the commonly-filtered JSON values
+        in a <b>persisted computed column</b> and index that.
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-21-openjson-parameters.png"
+             alt="Parameter List of the OPENJSON TVF: the full JSON string, the path, and each retrieved value definition.">
+        <figcaption><b>Figure 14-21</b> — Parameter List of the OPENJSON TVF: the whole JSON string, the path expression, and each value being extracted.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-22-openjson-defined-values.png"
+             alt="Defined Values of the OPENJSON TVF listing the WITH clause aliases.">
+        <figcaption><b>Figure 14-22</b> — Defined Values: the aliases from the <code class="inl">WITH</code> clause, which are also the Output List column names.</figcaption>
+      </figure>
+
+      <p>
+        That's the end of the JSON evidence. There is no further insight into how conversion happens —
+        these hints, plus the two fixed estimates, are the whole story.
+      </p>
+    </section>
+
+    <section class="card" id="ch14-hierarchy">
+      <h2><span class="num">6</span> <code class="inl">HIERARCHYID</code>: boring plans, interesting predicate</h2>
+      <p class="lede">A CLR type from SQL Server 2008 that stores a path as <code class="inl">varbinary</code>. Plans for it look almost suspiciously clean — the machinery is all inside the Seek Predicate.</p>
+
+      <div class="code">
+        <header><span>Listing 14-11 · everyone under one manager</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> @ManagerID HIERARCHYID;
+<span class="kw">SELECT</span> @ManagerID = e.OrganizationNode
+  <span class="kw">FROM</span> HumanResources.Employee <span class="kw">AS</span> e
+  <span class="kw">WHERE</span> e.JobTitle = 'Vice President of Engineering';
+
+<span class="kw">SELECT</span> e.BusinessEntityID, p.LastName
+  <span class="kw">FROM</span> HumanResources.Employee <span class="kw">AS</span> e
+    <span class="kw">JOIN</span> Person.Person <span class="kw">AS</span> p
+      <span class="kw">ON</span> e.BusinessEntityID = p.BusinessEntityID
+  <span class="kw">WHERE</span> e.OrganizationNode.IsDescendantOf(@ManagerID) = 1;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-23-hierarchyid-plan.png"
+             alt="Simple plan: Index Seek on OrganizationNode feeding Nested Loops with Clustered Index Seeks on Person.Person.">
+        <figcaption><b>Figure 14-23</b> — Clean: Index Seek on <code class="inl">OrganizationNode</code> → Nested Loops → Clustered Index Seeks on <code class="inl">Person.Person</code>.</figcaption>
+      </figure>
+
+      <p>
+        The predicate <code class="inl">IsDescendantOf(...) = 1</code> became a genuine <b>Index Seek</b>, not
+        a scan-plus-filter. Look at the Seek Predicate and you see why the type exists:
+      </p>
+
+      <figure>
+        <img src="images/chapter14/fig-14-24-hierarchyid-seek-predicate.png"
+             alt="Index Seek properties showing Seek Predicate with Start and End range values derived from the HIERARCHYID operation.">
+        <figcaption><b>Figure 14-24</b> — The Seek Predicate supplies <b>Start</b> and <b>End</b> values. Internally, functions like <code class="inl">DescendantLimit</code> compute the right <code class="inl">varbinary</code> range; the index itself is just an ordinary index over a <code class="inl">varbinary</code> column.</figcaption>
+      </figure>
+
+      <div class="note">
+        <b>Add a column, lose the seek</b>
+        Include <code class="inl">JobTitle</code> and the index stops being covering: you get either a
+        Clustered Index Scan, or a Seek plus Key Lookup, depending on the cost estimates. Your "clean" plan
+        is one column away from a different shape.
+      </div>
+    </section>
+
+    <section class="card" id="ch14-spatial">
+      <h2><span class="num">7</span> Spatial: a simple query, a very complicated plan</h2>
+      <p class="lede">Spatial indexes work with some functions but not all, and they tessellate the globe. The plan reflects every bit of that — while still using operators you already know.</p>
+
+      <div class="code">
+        <header><span>Listing 14-12 · addresses within a kilometre of a point</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> @MyLocation GEOGRAPHY = geography::STPointFromText(
+    'POINT(-122.33383 47.610870)', 4326);
+
+<span class="kw">SELECT</span> a.AddressLine1,
+       a.City,
+       a.PostalCode,
+       a.SpatialLocation
+<span class="kw">FROM</span> Person.Address <span class="kw">AS</span> a
+<span class="kw">WHERE</span> @MyLocation.STDistance(a.SpatialLocation) &lt; 1000;</code></pre>
+      </div>
+
+      <p>No spatial index yet, so there's nothing clever to do:</p>
+
+      <figure>
+        <img src="images/chapter14/fig-14-25-spatial-plan-no-index.png"
+             alt="Plan consisting of a Clustered Index Scan followed by a Filter.">
+        <figcaption><b>Figure 14-25</b> — Clustered Index Scan → Filter. Estimated Subtree Cost: <b>19.9</b>.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 14-13 · add a spatial index</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">CREATE SPATIAL INDEX</span> TestSpatial
+<span class="kw">ON</span> Person.Address (SpatialLocation)
+<span class="kw">USING</span> GEOGRAPHY_GRID
+<span class="kw">WITH</span> (GRIDS = (LEVEL_1 = MEDIUM, LEVEL_2 = MEDIUM,
+                LEVEL_3 = MEDIUM, LEVEL_4 = MEDIUM),
+      CELLS_PER_OBJECT = 16,
+      PAD_INDEX = OFF,
+      SORT_IN_TEMPDB = OFF,
+      DROP_EXISTING = OFF,
+      ALLOW_ROW_LOCKS = ON,
+      ALLOW_PAGE_LOCKS = ON)
+<span class="kw">ON</span> [PRIMARY];
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <p>Rerun Listing 14-12 and the cost drops from <b>19.9 to 0.67</b> — for a plan with far more operators in it.</p>
+
+      <figure>
+        <img src="images/chapter14/fig-14-26-spatial-index-plan.png"
+             alt="Wide plan with Nested Loops, Hash Match aggregates, a table valued function GetGeographyTessellation_VarBinary, Clustered Index Seek on the spatial index, Constant Scans and a Filter.">
+        <figcaption><b>Figure 14-26</b> — A single-table query, and all of that. Note the <b>Table Valued Function [GetGeographyTessellation_VarBinary]</b> on the right and <b>Clustered Index Seek (Spatial)</b> against <code class="inl">extended_index_..._384000</code>.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-27-spatial-data-access.png"
+             alt="Blow-up of the data access portion: tessellation TVF, Constant Scan, Hash Match aggregate, Nested Loops, and a Filter.">
+        <figcaption><b>Figure 14-27</b> — Blow-up of the data-access side. The tessellation TVF produces the tiles, the Hash Match aggregates them, and the values drive the spatial seek.</figcaption>
+      </figure>
+
+      <p>
+        <b>Tessellation</b> is the trick: rather than a range of values, the engine computes which grid
+        cells cover your 1,000-metre radius and looks those up.
+      </p>
+
+      <figure>
+        <img src="images/chapter14/fig-14-28-spatial-tessellation-parameters.png"
+             alt="Properties showing the tessellation parameters passed to GetGeographyTessellation_VarBinary, including the 1000 metre limit.">
+        <figcaption><b>Figure 14-28</b> — The TVF's parameters echo the index settings from Listing 14-13, and the last one carries the <b>1000-metre</b> limit.</figcaption>
+      </figure>
+
+      <p>And the seek itself doesn't look like any seek you've met:</p>
+
+      <figure>
+        <img src="images/chapter14/fig-14-29-spatial-seek-predicates.png"
+             alt="Seek Predicates of the Clustered Index Seek (Spatial), showing tessellation cell ranges rather than a simple comparison.">
+        <figcaption><b>Figure 14-29</b> — Seek Predicates against a spatial index: not a simple comparison, but a set of tessellation cell ranges.</figcaption>
+      </figure>
+
+      <div class="code">
+        <header><span>Listing 14-14 · clean up</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DROP INDEX</span> TestSpatial <span class="kw">ON</span> Person.Address;</code></pre>
+      </div>
+
+      <div class="note tip">
+        <b>Same tools, harder puzzle</b>
+        There are no new operators to learn here — the difficulty is entirely in the configuration. That is
+        exactly why spatial plans are hard to troubleshoot: nothing is unfamiliar, there's just a great deal
+        of it.
+      </div>
+    </section>
+
+    <section class="card" id="ch14-cursors">
+      <h2><span class="num">8</span> Cursors: Population Query and Fetch Query</h2>
+      <p class="lede">Not a data type — a processing behaviour, one row at a time. A cursor's plan is really <i>two</i> queries wearing one icon, and the difference between cursor types is what those two queries do.</p>
+
+      <p>
+        The mental model to hold on to:
+      </p>
+
+      <div class="plain">
+        <div><span>Population Query</span>How the result set is collected. Runs once, at <code class="inl">OPEN</code>.</div>
+        <div><span>Fetch Query</span>How each row is retrieved. Runs once per <code class="inl">FETCH</code>.</div>
+        <div><span>Catch-all</span>One placeholder <b>Cursor</b> icon each for <code class="inl">OPEN</code>, <code class="inl">FETCH</code>, <code class="inl">CLOSE</code>, <code class="inl">DEALLOCATE</code>. Estimated plans only, properties mostly useless.</div>
+      </div>
+
+      <h3 class="step">Static cursor: snapshot into a temp table</h3>
+
+      <div class="code">
+        <header><span>Listing 14-15 · STATIC cursor, deliberately doing nothing</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> CurrencyList <span class="kw">CURSOR STATIC FOR</span>
+<span class="kw">SELECT</span> c.CurrencyCode, cr.Name
+  <span class="kw">FROM</span> Sales.Currency <span class="kw">AS</span> c
+    <span class="kw">JOIN</span> Sales.CountryRegionCurrency <span class="kw">AS</span> crc
+      <span class="kw">ON</span> crc.CurrencyCode = c.CurrencyCode
+    <span class="kw">JOIN</span> Person.CountryRegion <span class="kw">AS</span> cr
+      <span class="kw">ON</span> cr.CountryRegionCode = crc.CountryRegionCode
+  <span class="kw">WHERE</span> c.Name <span class="kw">LIKE</span> '%Dollar%';
+
+<span class="kw">OPEN</span> CurrencyList;
+<span class="kw">FETCH NEXT FROM</span> CurrencyList;
+
+<span class="kw">WHILE</span> @@Fetch_Status = 0
+  <span class="kw">BEGIN</span>
+    <span class="cm">-- Normally there would be operations here using cursor data</span>
+    <span class="kw">FETCH NEXT FROM</span> CurrencyList;
+  <span class="kw">END</span>
+
+<span class="kw">CLOSE</span> CurrencyList;
+<span class="kw">DEALLOCATE</span> CurrencyList;
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-30-cursor-estimated-plan.png"
+             alt="Estimated plan showing one plan for the DECLARE CURSOR statement and several small placeholder plans for the other statements.">
+        <figcaption><b>Figure 14-30</b> — The estimated plan for the whole batch. The top plan is the interesting one — how the cursor will be satisfied; the rest are placeholders.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-31-cursor-population-fetch.png"
+             alt="Cursor definition showing a Snapshot operator with Population Query and Fetch Query sub-plans.">
+        <figcaption><b>Figure 14-31</b> — Inside the cursor definition: a <b>Snapshot</b> operator (the cursor type, and its full definition), then <b>Population Query</b> and <b>Fetch Query</b>.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-32-snapshot-cursor-properties.png"
+             alt="Properties of the Snapshot cursor operator, listing the full cursor definition.">
+        <figcaption><b>Figure 14-32</b> — The Snapshot operator's properties are the full definition of the cursor — like a SELECT operator, but describing the cursor.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-33-population-query-properties.png"
+             alt="Properties of the Population Query operator with plan-level information.">
+        <figcaption><b>Figure 14-33</b> — Population Query properties. Read them exactly as you'd read the properties of a SELECT operator.</figcaption>
+      </figure>
+
+      <p>
+        Now the behaviour. A <i>static</i> cursor must not see later changes, so <code class="inl">OPEN</code>
+        simply runs the query into a temporary table and <code class="inl">FETCH</code> reads from that
+        table. Two plans, and the second one is a tempdb lookup:
+      </p>
+
+      <figure>
+        <img src="images/chapter14/fig-14-34-static-population-retrieval.png"
+             alt="Data retrieval plan for the static cursor's Population Query: joins over Currency, CountryRegionCurrency and CountryRegion.">
+        <figcaption><b>Figure 14-34</b> — The Population Query's data retrieval: the Listing 14-15 query resolved normally.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-35-static-temp-storage.png"
+             alt="Segment and Sequence Project operators between the Population Query and Nested Loops, building a temporary index.">
+        <figcaption><b>Figure 14-35</b> — The interesting part, bookended by Population Query and Nested Loops: <b>Segment</b> → <b>Sequence Project (Compute Scalar)</b> — the window-function pair from Chapter 5.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-36-segment-sequence-project.png"
+             alt="Properties of the Sequence Project operator showing a row_number column being added.">
+        <figcaption><b>Figure 14-36</b> — A <code class="inl">row_number</code> being added. The Segment's Group By is empty, so the whole input is one segment and the numbering just runs 0, 1, 2…</figcaption>
+      </figure>
+
+      <p>
+        That row number is an <b>artificial primary key</b> on the cursor's result set. All of it lands in a
+        temporary clustered index called <code class="inl">CWT_PrimaryKey</code> — and it's in tempdb:
+      </p>
+
+      <figure>
+        <img src="images/chapter14/fig-14-37-cwt-primarykey-tempdb.png"
+             alt="Properties showing the CWT_PrimaryKey object located in tempdb.">
+        <figcaption><b>Figure 14-37</b> — <code class="inl">CWT_PrimaryKey</code> lives in tempdb. FETCH reads from it rather than going back to the base tables — much like a spool.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-38-fetch-query-plan.png"
+             alt="Fetch Query execution plan: a simple seek against the temporary clustered index.">
+        <figcaption><b>Figure 14-38</b> — The Fetch Query: the shortest plan in the chapter.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-39-cursor-catchall-operator.png"
+             alt="Cursor catch-all operator in the FETCH NEXT statement plan.">
+        <figcaption><b>Figure 14-39</b> — The <b>Cursor</b> catch-all, here for <code class="inl">FETCH NEXT</code>. Estimated plans only; the properties tell you almost nothing.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-40-cursor-actual-plans.png"
+             alt="Actual plans for a static cursor: one plan for the Population Query and one for every row fetched.">
+        <figcaption><b>Figure 14-40</b> — Actual plans: <b>one</b> for the Population Query, then <b>one per fetched row</b>. The SELECT operator becomes <b>OPEN CURSOR</b> then a series of <b>FETCH CURSOR</b> operators — same information inside (Compile Time, Query Hash, SET options).</figcaption>
+      </figure>
+
+      <div class="warn note">
+        <b>Don't capture actual plans for cursors</b>
+        It's expensive and produces a wall of near-identical plans. Use Extended Events for a single
+        execution, or <code class="inl">SET STATISTICS XML ON</code> around one statement.
+      </div>
+
+      <h3 class="step">Keyset cursor: store the keys, re-read the rows</h3>
+
+      <p>
+        A keyset cursor shouldn't show <i>new</i> rows, but should show <i>changed</i> data in existing ones.
+        So the Population Query stores key values, and the Fetch Query uses them to go back and get current
+        values. Same query, different declaration:
+      </p>
+
+      <div class="code">
+        <header><span>Listing 14-16 · KEYSET cursor</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> CurrencyList <span class="kw">CURSOR KEYSET</span>
+<span class="kw">FOR</span>
+<span class="kw">SELECT</span> c.CurrencyCode,
+       cr.Name
+<span class="kw">FROM</span> Sales.Currency <span class="kw">AS</span> c
+    <span class="kw">JOIN</span> Sales.CountryRegionCurrency <span class="kw">AS</span> crc
+        <span class="kw">ON</span> crc.CurrencyCode = c.CurrencyCode
+    <span class="kw">JOIN</span> Person.CountryRegion <span class="kw">AS</span> cr
+        <span class="kw">ON</span> cr.CountryRegionCode = crc.CountryRegionCode
+<span class="kw">WHERE</span> c.Name <span class="kw">LIKE</span> '%Dollar%';
+
+<span class="kw">OPEN</span> CurrencyList;
+<span class="kw">FETCH NEXT FROM</span> CurrencyList;
+
+<span class="kw">WHILE</span> @@FETCH_STATUS = 0
+    <span class="kw">BEGIN</span>
+ <span class="cm">-- Normally there would be operations here using data from cursor</span>
+        <span class="kw">FETCH NEXT FROM</span> CurrencyList;
+    <span class="kw">END</span>
+
+<span class="kw">CLOSE</span> CurrencyList;
+<span class="kw">DEALLOCATE</span> CurrencyList;
+<span class="kw">GO</span></code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-41-keyset-cursor-plan.png"
+             alt="Estimated plan defining a Keyset cursor, with Population Query and Fetch Query sub-plans.">
+        <figcaption><b>Figure 14-41</b> — Same skeleton as Figure 14-30: a cursor definition, then the catch-all plans. The differences are entirely inside Population and Fetch.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-42-keyset-population-retrieval.png"
+             alt="Keyset Population Query retrieval plan with an added Key Lookup operator compared to the static cursor.">
+        <figcaption><b>Figure 14-42</b> — Compare with Figure 14-34: there's now a <b>Key Lookup</b>. A keyset cursor needs every key value, and the key check value can only come from the clustered index key.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-43-keyset-check-columns.png"
+             alt="Output columns of Clustered Index Seek and Clustered Index Scan showing the added check columns.">
+        <figcaption><b>Figure 14-43</b> — Look at the Output of each Clustered Index Seek/Scan: the extra columns are the check columns being carried forward.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-44-keyset-temp-index.png"
+             alt="Keyset Population Query storing keys into a temporary index.">
+        <figcaption><b>Figure 14-44</b> — Loading the key values into a temporary index, same as the static cursor's temp storage.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-45-keyset-fetch-query.png"
+             alt="Keyset Fetch Query plan: scan the temporary clustered index then seek the base tables.">
+        <figcaption><b>Figure 14-45</b> — And here's the price. The Fetch Query reads keys from <code class="inl">CWT_PrimaryKey</code> and does <b>Clustered Index Seeks</b> back on the real tables — every fetch.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter14/fig-14-46-keyset-retrieve-by-key.png"
+             alt="Detailed keyset fetch plan with Nested Loops left outer joins and a final Compute Scalar performing a deletion check.">
+        <figcaption><b>Figure 14-46</b> — All the joins are <b>Left Outer</b>, because the referenced row may have been deleted since. The final Compute Scalar is the deleted-row check.</figcaption>
+      </figure>
+
+      <h3 class="step">Dynamic cursor: no population query at all</h3>
+
+      <div class="code">
+        <header><span>Listing 14-17 · the only change</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">DECLARE</span> CurrencyList <span class="kw">CURSOR DYNAMIC</span></code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter14/fig-14-47-dynamic-cursor-plan.png"
+             alt="Estimated plan for a dynamic cursor showing only a Fetch Query sub-plan, no Population Query.">
+        <figcaption><b>Figure 14-47</b> — <b>Only a Fetch Query.</b> No Population Query: since data and its order can both change, the only option is to run the full query again for each fetch.</figcaption>
+      </figure>
+
+      <p>
+        A Compute Scalar adds an ID, the results go into a temporary clustered index (so you can move
+        backwards as well as forwards), and the data is retrieved repeatedly. That's why dynamic is the
+        least efficient cursor type. Capturing actual plans just shows the same plan over and over.
+      </p>
+
+      <div class="note">
+        <b>One honest gap in the book</b>
+        There are apparently internal checks that stop the engine re-running the query every single time —
+        the author says the details aren't known. Planning advice: assume it <i>does</i> re-run it.
+      </div>
+    </section>
+
+    <section class="card" id="ch14-cheatsheet">
+      <h2><span class="num">9</span> Cheat sheet</h2>
+      <p class="lede">If you remember nothing else from this chapter, remember which operator to look for, and which fixed estimate to distrust.</p>
+
+      <table>
+        <thead><tr><th>Feature</th><th>What appears in the plan</th><th>The catch</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inl">FOR XML</code> AUTO / RAW / PATH</td><td><b>XML SELECT</b> instead of SELECT</td><td>Identical plan in all three; only the XML shape differs. Free choice.</td></tr>
+          <tr><td><code class="inl">FOR XML ... , TYPE</code></td><td><b>UDX</b> (<code class="inl">Name = FOR XML</code>)</td><td>Nested subquery ⇒ Nested Loops ⇒ one seek per outer row (1515 reads vs ~150).</td></tr>
+          <tr><td><code class="inl">FOR XML EXPLICIT</code></td><td>Two nearly identical branches</td><td>~2× cost, caused by the <code class="inl">UNION ALL</code> the mode forces you to write.</td></tr>
+          <tr><td><code class="inl">OPENXML</code></td><td>One <b>Remote Scan</b></td><td>Everything hidden; fixed estimate of <b>10,000</b> rows ⇒ pointless Sorts and Merge Joins. Arrow widths around Compute Scalar expose it.</td></tr>
+          <tr><td><code class="inl">.exist()</code></td><td><b>TVF (XML Reader with XPath filter)</b> + Filter</td><td>TVF has no plan of its own; outputs <code class="inl">value</code>/<code class="inl">lvalue</code>; Filter tests <code class="inl">= 1</code>.</td></tr>
+          <tr><td><code class="inl">.query()</code></td><td>3 parts: relational access → <b>XML index seeks</b> + Filter → Compute Scalar + <b>UDX</b></td><td>FLWOR <code class="inl">where</code> is evaluated relationally; <code class="inl">Startup Expression Predicate</code> skips the subtree for NULLs.</td></tr>
+          <tr><td><code class="inl">FOR JSON PATH</code></td><td><b>UDX</b> (<code class="inl">Name = FOR JSON</code>) + Index Spool</td><td>Spool at 19,972 executions; nothing else is visible about the JSON.</td></tr>
+          <tr><td><code class="inl">OPENJSON</code></td><td><b>TVF (OPENJSON_EXPLICIT)</b> under Nested Loops</td><td>Fixed estimate of <b>50</b> rows per execution. Shreds every row <i>before</i> the Filter — use a persisted computed column.</td></tr>
+          <tr><td><code class="inl">HIERARCHYID</code></td><td>Ordinary Index Seek</td><td>Read the Seek Predicate: <b>Start/End</b> from <code class="inl">DescendantLimit</code>. Adding a column can kill the seek.</td></tr>
+          <tr><td>Spatial</td><td>Very wide plan, <b>TVF (tessellation)</b>, <b>Clustered Index Seek (Spatial)</b></td><td>Same operators, far more of them. Cost 19.9 → 0.67 with the index.</td></tr>
+          <tr><td>Cursor</td><td>Cursor-type operator + <b>Population Query</b> + <b>Fetch Query</b></td><td>Static = temp table; Keyset = keys + Key Lookups + Left Outer joins; Dynamic = Fetch only, re-runs. Actual plans = one per row.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="step">The three fixed estimates, and what they wreck</h3>
+      <ul class="biglist">
+        <li><b>10,000 rows</b> — <code class="inl">OPENXML</code> / Remote Scan. Produces unnecessary Sorts and Merge Joins. Fix: stage into a temp table for real statistics.</li>
+        <li><b>50 rows</b> — <code class="inl">OPENJSON</code> TVF. Contributes to a badly-sized Nested Loops over every row in the table.</li>
+        <li><b>1 row</b> — not a fixed estimate, but the fact that the OPENJSON TVF actually returns one row per execution while estimating 50 makes the shape look reasonable when it isn't.</li>
+      </ul>
+
+      <ul class="check">
+        <li><b>Storing a special type costs nothing; processing it does.</b> Look for the conversion boundary.</li>
+        <li><b><code class="inl">UDX</code> and <code class="inl">Remote Scan</code> are black boxes.</b> <code class="inl">Name</code> is the only clue on a UDX; a Remote Scan tells you nothing at all.</li>
+        <li><b>The TVF (XML Reader) is part of the engine</b> but has no cacheable plan — don't go hunting in the plan cache for it.</li>
+        <li><b>Much XQuery runs as normal relational operators.</b> A Filter on an extracted <code class="inl">value</code> column <i>is</i> your FLWOR <code class="inl">where</code>.</li>
+        <li><b>Cursor plans are two queries.</b> Judge the Population Query and the Fetch Query separately.</li>
+        <li><b>None of this changes how you read a plan.</b> Same operators, extra values — drill into the properties and walk the data flow.</li>
+      </ul>
+
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        XML, hierarchical, spatial and JSON expand what you can store, and each leaves its own fingerprint
+        on the plan; cursors add row-by-row behaviour on top. But the operators and the method don't change:
+        follow the rows, open the properties, and read the estimates — especially the ones that were
+        hard-coded before your query was ever seen.
+      </div>
+    </section>
