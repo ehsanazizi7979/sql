@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chapters 1–8 · SQL Fundamentals, Joins, Sets, Functions and Grouping — Simple Summary (Learning SQL, 3rd Ed.)</title>
+<title>Chapters 1–9 · SQL Fundamentals, Joins, Sets, Grouping and Subqueries — Simple Summary (Learning SQL, 3rd Ed.)</title>
 <style>
   :root{
     --paper:#faf8f4; --card:#fffefb; --ink:#22201c; --muted:#6e6a63;
@@ -211,7 +211,7 @@
 
 <header class="hero">
   <div class="kicker">Learning SQL · Alan Beaulieu (O'Reilly, 3rd edition, 2020)</div>
-  <h1>Chapters 1–8, in plain English</h1>
+  <h1>Chapters 1–9, in plain English</h1>
   <p class="sub"><b>Ch. 1 — A Little Background:</b> why relational databases exist, where SQL came from,
   and what the language actually does. <b>Ch. 2 — Creating and Populating a Database:</b> how to choose
   data types, turn a napkin design into <span class="inline">CREATE TABLE</span>, and add, fix and delete
@@ -221,12 +221,13 @@
   rows. <b>Ch. 5 — Querying Multiple Tables:</b> joining related tables to bring scattered facts together.
   <b>Ch. 6 — Working with Sets:</b> combining, comparing and subtracting query results.
   <b>Ch. 7 — Data Generation, Manipulation, and Conversion:</b> working with strings, numbers and dates.
-  <b>Ch. 8 — Grouping and Aggregates:</b> turning individual rows into useful summaries.</p>
+  <b>Ch. 8 — Grouping and Aggregates:</b> turning individual rows into useful summaries.
+  <b>Ch. 9 — Subqueries:</b> using one query inside another to filter, calculate and build data sets.</p>
   <div class="meta">
-    <span><b>Book pages:</b> 1–160 (PDF pp. 19–178)</span>
-    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11</span>
+    <span><b>Book pages:</b> 1–186 (PDF pp. 19–204)</span>
+    <span><b>Sections:</b> 12 + 10 + 12 + 11 + 10 + 10 + 13 + 11 + 14</span>
     <span><b>Images:</b> Figures 1-1…1-3, Tables 2-6…2-8, Figures 6-1…6-4</span>
-    <span><b>Reading time:</b> ~106 min</span>
+    <span><b>Reading time:</b> ~122 min</span>
   </div>
   <div class="jump">
     <a href="#tldr">↓ Chapter 1 · A Little Background</a>
@@ -237,6 +238,7 @@
     <a href="#ch6">↓ Chapter 6 · Working with Sets</a>
     <a href="#ch7">↓ Chapter 7 · Data and Functions</a>
     <a href="#ch8">↓ Chapter 8 · Grouping and Aggregates</a>
+    <a href="#ch9">↓ Chapter 9 · Subqueries</a>
   </div>
 </header>
 
@@ -348,6 +350,22 @@
     <li><a href="#ch8-rollup">Rollups and totals</a></li>
     <li><a href="#ch8-having">WHERE versus HAVING</a></li>
     <li><a href="#ch8-exercises">Exercises &amp; recap</a></li>
+  </ol>
+  <div class="brand" style="margin-top:18px">Chapter 9 · Subqueries</div>
+  <ol>
+    <li><a href="#ch9-intro">The chapter in one paragraph</a></li>
+    <li><a href="#ch9-scalar">Scalar subqueries</a></li>
+    <li><a href="#ch9-membership">IN and NOT IN</a></li>
+    <li><a href="#ch9-quantified">ALL and ANY</a></li>
+    <li><a href="#ch9-multicolumn">Multiple columns</a></li>
+    <li><a href="#ch9-correlated">Correlated subqueries</a></li>
+    <li><a href="#ch9-exists">EXISTS and NOT EXISTS</a></li>
+    <li><a href="#ch9-dml">Changing data safely</a></li>
+    <li><a href="#ch9-derived">Subqueries as tables</a></li>
+    <li><a href="#ch9-bands">Building groups with subqueries</a></li>
+    <li><a href="#ch9-cte">Common table expressions</a></li>
+    <li><a href="#ch9-expressions">Scalar values in SELECT and ORDER BY</a></li>
+    <li><a href="#ch9-exercises">Exercises &amp; recap</a></li>
   </ol>
 </nav>
 
@@ -4395,17 +4413,388 @@ HAVING COUNT(*) &gt;= 40;</code></pre></div>
   <tr><td>Keep input rows?</td><td>WHERE before grouping</td></tr><tr><td>Keep summarized groups?</td><td>HAVING after grouping</td></tr>
   <tr><td>Add subtotals?</td><td>ROLLUP; distinguish subtotal NULLs and avoid double-counting</td></tr>
   </tbody></table>
-  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 9, <em>Subqueries</em>,
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p><a href="#ch9">Chapter 9, <em>Subqueries</em></a>,
   explores queries nested inside other SQL statements.</p></div>
+</section>
+<div class="chap" id="ch9">
+  <div class="kicker">Chapter 9 · book pages 161–186 (PDF pp. 179–204)</div>
+  <h2><span class="num">9.0</span>Subqueries</h2>
+  <p>A query inside another statement can provide a value, a set of values, or a whole intermediate table.</p>
+</div>
+<section id="ch9-intro">
+  <h2><span class="num">9.1</span>The chapter in one paragraph</h2>
+  <p class="lede">Choose the operator by the shape of the subquery's result and the question you're asking.</p>
+  <p>A scalar subquery supplies one value. <span class="inline">IN</span>, <span class="inline">ANY</span>
+  and <span class="inline">ALL</span> compare a value with a set; <span class="inline">EXISTS</span>
+  asks whether any row exists. A correlated subquery refers to the surrounding query. A subquery in
+  FROM can act like a named table, and a CTE gives an intermediate query a readable name. These tools
+  work in queries and, with care, in data-changing statements.</p>
+  <div class="simple"><span class="tag">Original diagram · match the shape</span>
+  one value → scalar comparison &nbsp; · &nbsp; a column of values → IN / ANY / ALL &nbsp; · &nbsp;
+  rows and columns → derived table &nbsp; · &nbsp; any row? → EXISTS
+  </div>
+  <p>These describe logical behavior. The optimizer may rewrite or execute a query differently; do not
+  assume every correlated subquery literally runs once per outer row.</p>
+</section>
+<section id="ch9-scalar">
+  <h2><span class="num">9.2</span>A scalar subquery returns one value</h2>
+  <p>In the book's sample, the largest customer ID is 599, belonging to Austin Cintron. The inner
+  query finds the ID; the outer query retrieves the customer.</p>
+  <div class="code"><div class="bar"><span>Book examples · scalar lookup</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT customer_id, first_name, last_name
+FROM customer
+WHERE customer_id = (SELECT MAX(customer_id) FROM customer);
+
+SELECT MAX(customer_id) FROM customer;</code></pre></div>
+  <p>This is <strong>noncorrelated</strong>: it references no outer-query columns and can run on its own.
+  A scalar subquery must return one column and at most one row. No rows produces NULL; more than one
+  row is an error in MySQL. A NULL comparison in WHERE is unknown, not true.</p>
+  <div class="code"><div class="bar"><span>Book example · cities outside India</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT city_id, city
+FROM city
+WHERE country_id &lt;&gt;
+ (SELECT country_id FROM country WHERE country = 'India');</code></pre></div>
+  <p>The book returns 540 cities. If the inner query returns multiple countries, this scalar comparison
+  fails rather than comparing against all of them.</p>
+</section>
+<section id="ch9-membership">
+  <h2><span class="num">9.3</span>IN and NOT IN: compare with a set</h2>
+  <p>Use IN when the inner query may return many values. This book query finds 37 cities in Canada or Mexico:</p>
+  <div class="code"><div class="bar"><span>Book example · membership</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT city_id, city
+FROM city
+WHERE country_id IN
+ (SELECT country_id
+  FROM country
+  WHERE country IN ('Canada','Mexico'));</code></pre></div>
+  <p>Changing the outer IN to NOT IN gives 563 other cities in the book's sample. But beware of NULL:</p>
+  <div class="code"><div class="bar"><span>Book example · NULL trap</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT first_name, last_name
+FROM customer
+WHERE customer_id NOT IN (122, 452, NULL);</code></pre></div>
+  <div class="note"><span class="tag">Three-valued logic</span>In this example no row passes: matching
+  IDs make NOT IN false; nonmatching IDs yield unknown because of NULL. Ensure the inner value cannot
+  be NULL, or consider a correctly correlated NOT EXISTS. A nullable outer value also requires deliberate
+  treatment: NOT EXISTS and NOT IN need not have identical NULL behavior.</div>
+</section>
+<section id="ch9-quantified">
+  <h2><span class="num">9.4</span>ALL means every; ANY means at least one</h2>
+  <p><span class="inline">x &gt; ALL (subquery)</span> requires x to exceed every returned value;
+  <span class="inline">x &gt; ANY (subquery)</span> requires it to exceed at least one. The book uses
+  ALL to find customers with no zero-dollar payment:</p>
+  <div class="code"><div class="bar"><span>Book example · not equal to all</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT first_name, last_name
+FROM customer
+WHERE customer_id &lt;&gt; ALL
+ (SELECT customer_id
+  FROM payment
+  WHERE amount = 0);</code></pre></div>
+  <p>The book returns 576 customers. <span class="inline">&lt;&gt; ALL</span> corresponds to
+  <span class="inline">NOT IN</span>, including its NULL pitfalls; <span class="inline">= ANY</span>
+  corresponds to IN.</p>
+  <div class="code"><div class="bar"><span>Book example · ALL in HAVING</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT customer_id, count(*)
+FROM rental
+GROUP BY customer_id
+HAVING count(*) &gt; ALL
+ (SELECT count(*)
+  FROM rental r
+    INNER JOIN customer c ON r.customer_id = c.customer_id
+    INNER JOIN address a ON c.address_id = a.address_id
+    INNER JOIN city ct ON a.city_id = ct.city_id
+    INNER JOIN country co ON ct.country_id = co.country_id
+  WHERE co.country IN ('United States','Mexico','Canada')
+  GROUP BY r.customer_id
+ );</code></pre></div>
+  <p>The book returns customer 148 with 46 rentals: more than every individual customer in the three
+  named countries. ALL on an empty result is true; ANY on an empty result is false. NULL values can
+  instead yield unknown unless another comparison determines the outcome.</p>
+  <div class="code"><div class="bar"><span>Book example · ANY against country totals</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT customer_id, sum(amount)
+FROM payment
+GROUP BY customer_id
+HAVING sum(amount) &gt; ANY
+ (SELECT sum(p.amount)
+  FROM payment p
+    INNER JOIN customer c ON p.customer_id = c.customer_id
+    INNER JOIN address a ON c.address_id = a.address_id
+    INNER JOIN city ct ON a.city_id = ct.city_id
+    INNER JOIN country co ON ct.country_id = co.country_id
+  WHERE co.country IN ('Bolivia','Paraguay','Chile')
+  GROUP BY co.country
+ );</code></pre></div>
+  <p>The book returns six customers. Despite an introductory sentence suggesting “all customers,” the
+  inner query actually groups by <strong>country</strong>, and ANY means the customer total exceeds
+  at least one country total—not every customer's total.</p>
+</section>
+<section id="ch9-multicolumn">
+  <h2><span class="num">9.5</span>Compare more than one column</h2>
+  <p>A row-value comparison keeps the positions together. The book matches film-actor pairs against
+  all combinations of Monroe actors and PG films:</p>
+  <div class="code"><div class="bar"><span>Book example · a pair in a set of pairs</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT actor_id, film_id
+FROM film_actor
+WHERE (actor_id, film_id) IN
+ (SELECT a.actor_id, f.film_id
+  FROM actor a
+     CROSS JOIN film f
+  WHERE a.last_name = 'MONROE'
+  AND f.rating = 'PG');</code></pre></div>
+  <p>Two actors × 194 PG films create 388 candidate pairs; 11 appear in film_actor. A cross join can
+  grow quickly. Separate IN conditions are equivalent <em>here</em> because the inner result contains
+  every combination; for arbitrary pairs, separate tests can incorrectly accept a mixed pair.</p>
+</section>
+<section id="ch9-correlated">
+  <h2><span class="num">9.6</span>Correlated subqueries depend on the outer row</h2>
+  <p>Here <span class="inline">c.customer_id</span> comes from the outer customer row; the inner query
+  counts that customer's rentals. The book finds 15 customers with exactly 20.</p>
+  <div class="code"><div class="bar"><span>Book example · correlate on customer</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.first_name, c.last_name
+FROM customer c
+WHERE 20 =
+ (SELECT count(*) FROM rental r
+  WHERE r.customer_id = c.customer_id);</code></pre></div>
+  <p>A correlated expression cannot normally be run independently without providing the outer value.
+  The optimizer may transform it into another plan; inspect the plan and indexes rather than assuming
+  a specific number of executions.</p>
+  <div class="code"><div class="bar"><span>Book example · correlated total</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.first_name, c.last_name
+FROM customer c
+WHERE
+ (SELECT sum(p.amount) FROM payment p
+  WHERE p.customer_id = c.customer_id)
+  BETWEEN 180 AND 240;</code></pre></div>
+  <p>The book finds six customers. SUM for no qualifying payments is NULL, which does not pass BETWEEN.</p>
+</section>
+<section id="ch9-exists">
+  <h2><span class="num">9.7</span>EXISTS asks only whether a row exists</h2>
+  <p>The query returns customers with at least one rental before May 25, 2005. The book finds eight;
+  it does not matter how many qualifying rentals each customer has.</p>
+  <div class="code"><div class="bar"><span>Book example · EXISTS</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.first_name, c.last_name
+FROM customer c
+WHERE EXISTS
+ (SELECT 1 FROM rental r
+  WHERE r.customer_id = c.customer_id
+    AND date(r.rental_date) &lt; '2005-05-25');</code></pre></div>
+  <p><span class="inline">SELECT 1</span> is a convention: EXISTS tests for a returned row, not the
+  selected value. NOT EXISTS tests for no matching row. In the sample, Jane Jackman is the only actor
+  with no R-rated film:</p>
+  <div class="code"><div class="bar"><span>Book example · NOT EXISTS</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT a.first_name, a.last_name
+FROM actor a
+WHERE NOT EXISTS
+ (SELECT 1
+  FROM film_actor fa
+    INNER JOIN film f ON f.film_id = fa.film_id
+  WHERE fa.actor_id = a.actor_id
+    AND f.rating = 'R');</code></pre></div>
+</section>
+<section id="ch9-dml">
+  <h2><span class="num">9.8</span>Subqueries in data-changing statements</h2>
+  <div class="note"><span class="tag">Destructive example</span>The following book statement modifies
+  customer data. Run only in a disposable practice database after checking constraints, backups, and
+  transaction behavior. It is not a recommendation to overwrite audit timestamps.</div>
+  <p>The book's first UPDATE has no WHERE and affects every customer; for a customer without rentals,
+  MAX over the empty input yields NULL. Its guarded version updates only customers with a rental:</p>
+  <div class="code"><div class="bar"><span>Book example · guarded correlated UPDATE</span><button class="copy">Copy</button></div><pre><code class="sql">UPDATE customer c
+SET c.last_update =
+ (SELECT max(r.rental_date) FROM rental r
+  WHERE r.customer_id = c.customer_id)
+WHERE EXISTS
+ (SELECT 1 FROM rental r
+  WHERE r.customer_id = c.customer_id);</code></pre></div>
+  <p>EXISTS ensures a rental row exists, not necessarily a non-NULL date. If rental_date can be NULL,
+  add appropriate checks as needed. The chapter also illustrates a DELETE based on
+  <span class="inline">365 &lt; ALL (...)</span>: ALL is true for an empty result, so customers with
+  no rentals can qualify too. Foreign keys may prevent deletion; inspect candidate rows with SELECT
+  before any DELETE. Syntax and restrictions vary by database.</p>
+  <div class="code"><div class="bar"><span>Book example · destructive DELETE; do not run on real data</span><button class="copy">Copy</button></div><pre><code class="sql">DELETE FROM customer
+WHERE 365 &lt; ALL
+ (SELECT datediff(now(), r.rental_date) days_since_last_rental
+  FROM rental r
+  WHERE r.customer_id = customer.customer_id);</code></pre></div>
+</section>
+<section id="ch9-derived">
+  <h2><span class="num">9.9</span>Use a subquery as a table</h2>
+  <p>First summarize payments by customer, then join the resulting rows to customer names. The alias
+  <span class="inline">pymnt</span> gives the derived table a name.</p>
+  <div class="code"><div class="bar"><span>Book example · join to a summary</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT c.first_name, c.last_name,
+  pymnt.num_rentals, pymnt.tot_payments
+FROM customer c
+  INNER JOIN
+   (SELECT customer_id,
+      count(*) num_rentals, sum(amount) tot_payments
+    FROM payment
+    GROUP BY customer_id
+   ) pymnt
+  ON c.customer_id = pymnt.customer_id;</code></pre></div>
+  <p>The book finds 599 rows; Mary Smith's row is 32 and 118.68. Despite the alias
+  <span class="inline">num_rentals</span>, the subquery actually counts <em>payment rows</em>.
+  The inner join excludes customers with no matching payment summary.</p>
+  <p>Derived tables make grain explicit, but do not guarantee a physical temporary table or execution
+  order. Some engines support correlated FROM items via LATERAL or APPLY; exact syntax varies.</p>
+</section>
+<section id="ch9-bands">
+  <h2><span class="num">9.10</span>Build a table of spending bands</h2>
+  <p>The book constructs its own three-row set using UNION ALL, then joins customer payment totals to
+  the band containing each total:</p>
+  <table><thead><tr><th>Book Table 9-1 · group</th><th>Lower limit</th><th>Upper limit</th></tr></thead><tbody>
+  <tr><td>Small Fry</td><td>0</td><td>74.99</td></tr><tr><td>Average Joes</td><td>75</td><td>149.99</td></tr>
+  <tr><td>Heavy Hitters</td><td>150</td><td>9,999,999.99</td></tr></tbody></table>
+  <div class="code"><div class="bar"><span>Book example · two derived tables</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT pymnt_grps.name, count(*) num_customers
+FROM
+ (SELECT customer_id,
+    count(*) num_rentals, sum(amount) tot_payments
+  FROM payment
+  GROUP BY customer_id
+ ) pymnt
+  INNER JOIN
+ (SELECT 'Small Fry' name, 0 low_limit, 74.99 high_limit
+  UNION ALL
+  SELECT 'Average Joes' name, 75 low_limit, 149.99 high_limit
+  UNION ALL
+  SELECT 'Heavy Hitters' name, 150 low_limit, 9999999.99 high_limit
+ ) pymnt_grps
+  ON pymnt.tot_payments
+    BETWEEN pymnt_grps.low_limit AND pymnt_grps.high_limit
+GROUP BY pymnt_grps.name;</code></pre></div>
+  <p>The book's counts are 38, 515 and 46, respectively (599 total). BETWEEN includes both bounds.
+  These limits assume cent-precision nonnegative totals within the top limit; higher-precision amounts
+  can fall in gaps such as 74.995, and negative or exceptionally high totals are excluded. Define
+  appropriate half-open ranges for your own data.</p>
+</section>
+<section id="ch9-cte">
+  <h2><span class="num">9.11</span>Common table expressions: named steps</h2>
+  <p>A <span class="inline">WITH</span> clause can name intermediate queries so the next step can read
+  them. The book finds actors with S surnames, then their PG films, then payments for those films:</p>
+  <div class="code"><div class="bar"><span>Book example · three CTEs</span><button class="copy">Copy</button></div><pre><code class="sql">WITH actors_s AS
+ (SELECT actor_id, first_name, last_name
+  FROM actor
+  WHERE last_name LIKE 'S%'
+ ),
+ actors_s_pg AS
+ (SELECT s.actor_id, s.first_name, s.last_name,
+    f.film_id, f.title
+  FROM actors_s s
+    INNER JOIN film_actor fa
+    ON s.actor_id = fa.actor_id
+    INNER JOIN film f
+    ON f.film_id = fa.film_id
+  WHERE f.rating = 'PG'
+ ),
+ actors_s_pg_revenue AS
+ (SELECT spg.first_name, spg.last_name, p.amount
+  FROM actors_s_pg spg
+    INNER JOIN inventory i
+    ON i.film_id = spg.film_id
+    INNER JOIN rental r
+    ON i.inventory_id = r.inventory_id
+    INNER JOIN payment p
+    ON r.rental_id = p.rental_id
+ ) -- end of With clause
+SELECT spg_rev.first_name, spg_rev.last_name,
+  sum(spg_rev.amount) tot_revenue
+FROM actors_s_pg_revenue spg_rev
+GROUP BY spg_rev.first_name, spg_rev.last_name
+ORDER BY 3 desc;</code></pre></div>
+  <p>The book returns nine actor-name groups, led by Nick Stallone at 692.21. A payment on a film with
+  multiple qualifying actors can contribute to each actor's total, so summing actor totals does not
+  necessarily give unique revenue. Grouping by name can also merge distinct actors with the same name;
+  group by actor ID when identity matters. A CTE is scoped to its statement and is not necessarily
+  materialized; behavior varies by engine and plan.</p>
+</section>
+<section id="ch9-expressions">
+  <h2><span class="num">9.12</span>Scalar subqueries can generate expressions</h2>
+  <p>The book looks up a customer's name and city inside SELECT while summarizing payments. Each lookup
+  must produce at most one value:</p>
+  <div class="code"><div class="bar"><span>Book example · scalar lookups in SELECT</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT
+ (SELECT c.first_name FROM customer c
+  WHERE c.customer_id = p.customer_id
+ ) first_name,
+ (SELECT c.last_name FROM customer c
+  WHERE c.customer_id = p.customer_id
+ ) last_name,
+ (SELECT ct.city
+  FROM customer c
+  INNER JOIN address a
+    ON c.address_id = a.address_id
+  INNER JOIN city ct
+    ON a.city_id = ct.city_id
+  WHERE c.customer_id = p.customer_id
+ ) city,
+  sum(p.amount) tot_payments,
+  count(*) tot_rentals
+FROM payment p
+GROUP BY p.customer_id;</code></pre></div>
+  <p>The book's result contains 599 rows; joins or a derived table may be clearer when several columns
+  are needed. The optimizer and indexes determine the actual performance.</p>
+  <p>A scalar subquery can also supply a sort key that is not displayed:</p>
+  <div class="code"><div class="bar"><span>Book example · sort by film appearances</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT a.actor_id, a.first_name, a.last_name
+FROM actor a
+ORDER BY
+ (SELECT count(*) FROM film_actor fa
+  WHERE fa.actor_id = a.actor_id) DESC;</code></pre></div>
+  <p>The book also shows subqueries inside INSERT to look up actor and film IDs. Before using that pattern,
+  make sure the lookup is unique, handle missing rows and constraints, and use a safe practice database.</p>
+  <div class="code"><div class="bar"><span>Book example · INSERT with lookups; changes data</span><button class="copy">Copy</button></div><pre><code class="sql">INSERT INTO film_actor (actor_id, film_id, last_update)
+VALUES (
+ (SELECT actor_id FROM actor
+  WHERE first_name = 'JENNIFER' AND last_name = 'DAVIS'),
+ (SELECT film_id FROM film
+  WHERE title = 'ACE GOLDFINGER'),
+ now()
+ );</code></pre></div>
+</section>
+<section id="ch9-exercises">
+  <h2><span class="num">9.13</span>Exercises &amp; recap</h2>
+  <p class="lede">Try the book's exercises first. These are independently worked answers; the book's
+  own solutions are in Appendix B.</p>
+  <h3>9-1 · Action films with a noncorrelated subquery</h3>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT f.film_id, f.title
+FROM film f
+WHERE f.film_id IN
+ (SELECT fc.film_id
+  FROM film_category fc
+  WHERE fc.category_id IN
+   (SELECT c.category_id FROM category c WHERE c.name = 'Action'));</code></pre></div>
+  <p>The inner category lookup and the film-category lookup do not reference the outer film row.</p></details>
+  <h3>9-2 · Action films with a correlated subquery</h3>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT f.film_id, f.title
+FROM film f
+WHERE EXISTS
+ (SELECT 1
+  FROM film_category fc
+    INNER JOIN category c ON c.category_id = fc.category_id
+  WHERE fc.film_id = f.film_id AND c.name = 'Action');</code></pre></div>
+  <p>The inner condition references the current outer film ID; EXISTS avoids duplicate film rows.</p></details>
+  <h3>9-3 · Classify actors by number of roles</h3>
+  <details><summary>Show one answer</summary>
+  <div class="code"><div class="bar"><span>Worked answer · book's level definitions</span><button class="copy">Copy</button></div><pre><code class="sql">SELECT a.actor_id, a.first_name, a.last_name, roles.num_roles, levels.level
+FROM actor a
+  INNER JOIN
+   (SELECT actor_id, COUNT(*) num_roles
+    FROM film_actor
+    GROUP BY actor_id) roles
+    ON a.actor_id = roles.actor_id
+  INNER JOIN
+   (SELECT 'Hollywood Star' level, 30 min_roles, 99999 max_roles
+    UNION ALL
+    SELECT 'Prolific Actor' level, 20 min_roles, 29 max_roles
+    UNION ALL
+    SELECT 'Newcomer' level, 1 min_roles, 19 max_roles) levels
+    ON roles.num_roles BETWEEN levels.min_roles AND levels.max_roles;</code></pre></div>
+  <p>As specified, the bands cover 1–99,999 roles; actors with no rows in film_actor or counts outside
+  those bounds are not included.</p></details>
+  <h3>Quick reference</h3>
+  <table><thead><tr><th>Need</th><th>Approach</th></tr></thead><tbody>
+  <tr><td>One value</td><td>Scalar subquery; at most one row and one column.</td></tr>
+  <tr><td>Match a set</td><td>IN or ANY; check NULLs with NOT IN.</td></tr>
+  <tr><td>All or any</td><td>Comparison with ALL or ANY; consider empty sets and NULLs.</td></tr>
+  <tr><td>Relationship exists?</td><td>EXISTS / NOT EXISTS with the correct correlation.</td></tr>
+  <tr><td>Reusable step</td><td>Derived table or CTE; identify the grain and inspect the plan.</td></tr>
+  </tbody></table>
+  <div class="card"><h3 style="margin-top:0">What's next</h3><p>Chapter 10, <em>Joins Revisited</em>,
+  looks beyond inner joins at other ways to combine tables.</p></div>
 </section>
 </main>
 
 <footer>
-  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–8 of <i>Learning SQL: Generate,
+  <p><b>Study aid, not a substitute.</b> This page paraphrases Chapters 1–9 of <i>Learning SQL: Generate,
   Manipulate, and Retrieve Data</i>, 3rd edition, by Alan Beaulieu (O'Reilly Media, 2020,
   ISBN 9781492057611). Figures 1-1…1-3 and 6-1…6-4 and the Table 2-6…2-8 crops are reproduced from
   the PDF in this repository for personal study; please buy the book if you like it. SQL snippets include
-  the book's teaching examples. Exercise answers for Chapters 3–8 are worked here, not copied from the book —
+  the book's teaching examples. Exercise answers for Chapters 3–9 are worked here, not copied from the book —
   its own solutions live in Appendix B. Diagrams marked <i>original</i> are drawn for this page.</p>
 </footer>
 </div>
@@ -4428,7 +4817,7 @@ const io=new IntersectionObserver(es=>{
 },{rootMargin:'-15% 0px -75% 0px'});
 document.querySelectorAll('main section').forEach(s=>io.observe(s));
 
-const KW=/\b(create|table|insert|into|values|select|from|where|inner|outer|left|right|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max|union|all|intersect|except)\b/gi;
+const KW=/\b(create|table|insert|into|values|select|from|where|inner|outer|left|right|cross|join|on|and|or|not|null|update|set|delete|drop|alter|modify|primary|key|foreign|references|constraint|unique|group|by|order|having|limit|as|distinct|exists|in|between|like|regexp|is|desc|asc|count|sum|avg|min|max|union|all|any|with|intersect|except)\b/gi;
 function hl(src){
   const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const toks=[];
