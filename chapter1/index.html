@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>T-SQL Fundamentals — Chapters 1–8 | Plain-English Study Companion</title>
-<meta name="description" content="Plain-English summaries of Chapters 1–8 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, code samples, and original study diagrams.">
+<title>T-SQL Fundamentals — Chapters 1–9 | Plain-English Study Companion</title>
+<meta name="description" content="Plain-English summaries of Chapters 1–9 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, code samples, and original study diagrams.">
 <style>
   :root{
     --paper:#f7f4ed;
@@ -129,6 +129,7 @@
   .fig-label{font-family:var(--mono);font-size:.72rem;font-weight:700;color:var(--teal-dark);letter-spacing:.02em}
   .fig-src{font-size:.68rem;color:var(--muted)}
   .fig-img{display:block;width:100%;height:auto;background:#fff;padding:.6rem}
+  .fig-img.fig-portrait{width:auto;max-width:100%;max-height:520px;margin:0 auto}
   .fig-body{padding:.8rem .95rem 1rem}
   .fig-cap{font-size:.86rem;font-weight:700;color:#26333f;margin:0 0 .35rem}
   .fig-exp{font-size:.88rem;color:#4b5866;margin:0}
@@ -236,29 +237,29 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="#top"><span class="brand-mark">1–8</span> T-SQL Fundamentals · Chapters 1–8</a>
+    <a class="brand" href="#top"><span class="brand-mark">1–9</span> T-SQL Fundamentals · Chapters 1–9</a>
     <div class="topbar-meta">
-      <span>Plain-English summaries</span><span class="dot"></span><span>13 figures + 3 tables + 4 diagrams</span><span class="dot"></span><span>280+ code samples</span>
+      <span>Plain-English summaries</span><span class="dot"></span><span>15 figures + 5 tables + 6 diagrams</span><span class="dot"></span><span>320+ code samples</span>
     </div>
-    <a class="pill" href="#ch8-insert">Jump to Chapter 8 ↓</a>
+    <a class="pill" href="#ch9-intro">Jump to Chapter 9 ↓</a>
   </div>
 </header>
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <span class="eyebrow">📘 Chapters 1–8 · T-SQL Fundamentals, 4th Edition</span>
+    <span class="eyebrow">📘 Chapters 1–9 · T-SQL Fundamentals, 4th Edition</span>
     <h1>The ideas behind the queries</h1>
-    <p class="lede">A plain-English study companion for Chapters 1–8 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
+    <p class="lede">A plain-English study companion for Chapters 1–9 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
     <div class="chips">
-      <span class="chip">8 chapters · 342 book pages</span>
-      <span class="chip">13 figures + 3 tables from the book</span>
-      <span class="chip">4 original study diagrams</span>
-      <span class="chip">280+ code samples</span>
-      <span class="chip">~135 min read</span>
+      <span class="chip">9 chapters · 366 book pages</span>
+      <span class="chip">15 figures + 5 tables from the book</span>
+      <span class="chip">6 original study diagrams</span>
+      <span class="chip">320+ code samples</span>
+      <span class="chip">~150 min read</span>
     </div>
     <div class="hero-quote">
-      <span>The eight-chapter version</span>
-      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets. Chapter 8 switches from reading to writing: inserts, deletes, updates, <code>MERGE</code>, key generation, and the <code>OUTPUT</code> clause.</p>
+      <span>The nine-chapter version</span>
+      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets. Chapter 8 switches from reading to writing: inserts, deletes, updates, <code>MERGE</code>, key generation, and the <code>OUTPUT</code> clause. Chapter 9 puts a running history behind every row with system-versioned temporal tables.</p>
     </div>
   </div>
 </section>
@@ -347,9 +348,17 @@
       <a href="#ch8-practice"><span class="n">8.9</span> Practice: 6 exercises</a>
       <a href="#ch8-recap"><span class="n">8.10</span> Recap &amp; key terms</a>
       <a href="#ch8-quiz"><span class="n">8.11</span> Check yourself</a>
+      <div class="toc-group">Chapter 9 · Temporal tables</div>
+      <a href="#ch9-intro"><span class="n">9.1</span> Time travel, built in</a>
+      <a href="#ch9-create"><span class="n">9.2</span> Creating tables</a>
+      <a href="#ch9-modify"><span class="n">9.3</span> Modifying data</a>
+      <a href="#ch9-query"><span class="n">9.4</span> FOR SYSTEM_TIME</a>
+      <a href="#ch9-practice"><span class="n">9.5</span> Practice: 4 exercises</a>
+      <a href="#ch9-recap"><span class="n">9.6</span> Recap &amp; key terms</a>
+      <a href="#ch9-quiz"><span class="n">9.7</span> Check yourself</a>
     </nav>
     <div class="toc-foot">
-      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit; Chapter 8 turns that toolkit toward changing data. If you only have five minutes, read the eight recaps.
+      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit; Chapter 8 turns that toolkit toward changing data; Chapter 9 records every change. If you only have five minutes, read the nine recaps.
     </div>
   </aside>
 
@@ -6979,6 +6988,911 @@ ALTER TABLE dbo.OrderDetails ADD CONSTRAINT FK_OrderDetails_Orders
       </details>
     </section>
 
+    <!-- ================= CHAPTER 9 ================= -->
+    <div class="part-divider" id="chapter-9">
+      <span class="part-eyebrow">Chapter 9 · Temporal tables</span>
+      <h2>Keep every version of every row</h2>
+      <p>Normally a modification destroys the previous state of a row. A <strong>system-versioned temporal table</strong> keeps it: two period columns plus a linked history table, maintained by SQL Server itself. You keep writing ordinary <code>INSERT</code>, <code>UPDATE</code>, and <code>DELETE</code> statements against the current table — and you can still ask what the data looked like last Tuesday.</p>
+      <div class="part-chips">
+        <span>Book pages 343–366</span>
+        <span>3 figures + 2 tables</span>
+        <span>4 exercises</span>
+      </div>
+    </div>
+
+    <!-- 9.1 -->
+    <section class="section" id="ch9-intro">
+      <div class="section-head">
+        <div class="sec-num">9.1</div>
+        <div>
+          <div class="kicker">The idea</div>
+          <h2>Time travel, built in</h2>
+        </div>
+      </div>
+      <p class="lead">When you modify data, you normally lose any trace of what the row looked like before. Chapter 9 introduces the feature that keeps it: system-versioned temporal tables, available since SQL Server 2016.</p>
+
+      <h3 class="subhead">Why you would want this <span class="tag">p. 343</span></h3>
+      <div class="grid grid-3">
+        <div class="card"><div class="mini">Auditing</div><p>Prove what a row said at a given moment, and who changed it when.</p></div>
+        <div class="card"><div class="mini">Point-in-time analysis</div><p>Run the same report “as of” last quarter-end, without restoring a backup.</p></div>
+        <div class="card"><div class="mini">Repair</div><p>Recover rows lost to an accidental <code>UPDATE</code> or <code>DELETE</code> straight from the history table.</p></div>
+      </div>
+      <p>Other classic uses are comparing current states with older ones and implementing slowly changing dimensions. You could build all of this with triggers; the built-in feature is both simpler and more efficient.</p>
+
+      <h3 class="subhead">How it works, in one paragraph</h3>
+      <p>A temporal table has <strong>two columns representing the validity period of the row</strong>, plus a <strong>linked history table with a mirrored schema</strong> holding older states. You modify only the current table, with normal DML. SQL Server updates the period columns and moves older versions into the history table for you. To read the current state you query the current table as usual; to read an older state you still query the current table, but you add a clause naming the point or period you want — and SQL Server reaches into the history table behind the scenes.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">ANATOMY OF A TEMPORAL TABLE</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 312" role="img" aria-label="Diagram of a system-versioned temporal table: the current table with period columns, the linked history table with a mirrored schema, and what happens on insert, update, and delete">
+                <defs>
+                  <marker id="arrow9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                </defs>
+
+                <rect x="15" y="30" width="385" height="140" rx="9" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.6"/>
+                <text x="207" y="54" text-anchor="middle" class="jtitle">dbo.Employees · CURRENT TABLE</text>
+                <text x="207" y="72" text-anchor="middle" class="jcap">PRIMARY KEY (empid)</text>
+                <text x="207" y="90" text-anchor="middle" class="jcap">empid, empname, department, salary</text>
+                <text x="207" y="108" text-anchor="middle" class="jlabel">validfrom · GENERATED ALWAYS AS ROW START</text>
+                <text x="207" y="126" text-anchor="middle" class="jlabel">validto · GENERATED ALWAYS AS ROW END</text>
+                <text x="207" y="144" text-anchor="middle" class="jcap">PERIOD FOR SYSTEM_TIME (validfrom, validto)</text>
+
+                <line x1="405" y1="102" x2="495" y2="102" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow9)"/>
+                <text x="450" y="90" text-anchor="middle" class="jcap">old versions</text>
+                <text x="450" y="128" text-anchor="middle" class="jcap">move here</text>
+
+                <rect x="500" y="30" width="385" height="140" rx="9" fill="#fbf9f3" stroke="#d3cab8" stroke-width="1.6"/>
+                <text x="692" y="54" text-anchor="middle" class="jtitle">dbo.EmployeesHistory · HISTORY TABLE</text>
+                <text x="692" y="72" text-anchor="middle" class="jcap">mirrored schema: same columns and types</text>
+                <text x="692" y="90" text-anchor="middle" class="jcap">no primary key</text>
+                <text x="692" y="108" text-anchor="middle" class="jcap">clustered index on (validto, validfrom)</text>
+                <text x="692" y="126" text-anchor="middle" class="jcap">with page compression where possible</text>
+                <text x="692" y="144" text-anchor="middle" class="jcap">plain period columns, no PERIOD designation</text>
+                <text x="692" y="162" text-anchor="middle" class="jcap">no GENERATED ALWAYS, no versioning</text>
+
+                <rect x="30" y="185" width="265" height="105" rx="9" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="162" y="207" text-anchor="middle" class="jtitle">INSERT</text>
+                <text x="162" y="228" text-anchor="middle" class="jcap">new row lands in the current table</text>
+                <text x="162" y="248" text-anchor="middle" class="jlabel">validfrom = transaction start</text>
+                <text x="162" y="268" text-anchor="middle" class="jlabel">validto = 9999-12-31 23:59:59</text>
+
+                <rect x="317" y="185" width="265" height="105" rx="9" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="449" y="207" text-anchor="middle" class="jtitle">UPDATE</text>
+                <text x="449" y="228" text-anchor="middle" class="jcap">old version moves out, new stays</text>
+                <text x="449" y="248" text-anchor="middle" class="jlabel">history row: validto = start</text>
+                <text x="449" y="268" text-anchor="middle" class="jlabel">current row: validfrom = start</text>
+
+                <rect x="604" y="185" width="266" height="105" rx="9" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="737" y="207" text-anchor="middle" class="jtitle">DELETE</text>
+                <text x="737" y="228" text-anchor="middle" class="jcap">the row moves to the history table</text>
+                <text x="737" y="248" text-anchor="middle" class="jlabel">history row: validto = start</text>
+                <text x="737" y="268" text-anchor="middle" class="jcap">nothing left in the current table</text>
+
+                <text x="450" y="306" text-anchor="middle" class="jcap">Period columns are DATETIME2 values in UTC, and the recorded time is the transaction START time.</text>
+              </svg>
+            </div>
+            <p class="fig-cap">Two tables, one logical table</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> you always write to the current table. Inserts stamp <code>validfrom</code> with the transaction start time; updates and deletes push the previous version into the history table with <code>validto</code> set to the transaction start time. The history table is not a copy of the schema in every detail — SQL Server builds it without a primary key, clustered on <code>(validto, validfrom)</code>, with page compression where possible.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">Three kinds of temporal table in the standard</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>What defines the validity period</th><th>In SQL Server 2022?</th></tr></thead>
+          <tbody>
+            <tr><td><strong>System-versioned</strong></td><td>The system transaction time</td><td>✅ Yes — the subject of this chapter</td></tr>
+            <tr><td><strong>Application-time period</strong></td><td>The application, which can even set a period that starts in the future</td><td>❌ Not supported</td></tr>
+            <tr><td><strong>Bitemporal</strong></td><td>Both transaction time and valid time</td><td>❌ Not supported</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tip">
+        <strong>Where this chapter is going</strong>
+        Three sections, in order: creating tables, modifying data, querying data. Everything flows from the fact that the <em>system transaction time</em> is what determines a row’s validity period.
+      </div>
+    </section>
+
+    <!-- 9.2 -->
+    <section class="section" id="ch9-create">
+      <div class="section-head">
+        <div class="sec-num">9.2</div>
+        <div>
+          <div class="kicker">Creating tables</div>
+          <h2>Seven required ingredients</h2>
+        </div>
+      </div>
+      <p class="lead">A system-versioned temporal table is an ordinary <code>CREATE TABLE</code> with a handful of mandatory elements. Miss one and the statement fails.</p>
+
+      <h3 class="subhead">The required elements <span class="tag">p. 344</span></h3>
+      <ul class="checklist">
+        <li><strong>A primary key.</strong></li>
+        <li><strong>Two non-nullable <code>DATETIME2</code> columns</strong> (any precision) holding the start and end of the row’s validity period, in <strong>UTC</strong>.</li>
+        <li><strong>The start column marked <code>GENERATED ALWAYS AS ROW START</code></strong> and the end column marked <code>GENERATED ALWAYS AS ROW END</code>.</li>
+        <li><strong>A period designation:</strong> <code>PERIOD FOR SYSTEM_TIME (&lt;startcol&gt;, &lt;endcol&gt;)</code>.</li>
+        <li><strong>The table option <code>SYSTEM_VERSIONING = ON</code>.</strong></li>
+        <li><strong>A linked history table</strong> — SQL Server can create it for you.</li>
+      </ul>
+
+      <h4>And two optional extras</h4>
+      <ul>
+        <li><strong><code>HIDDEN</code></strong> on the period columns: <code>SELECT *</code> won’t return them and <code>INSERT</code> can ignore them.</li>
+        <li><strong><code>HISTORY_RETENTION_PERIOD</code></strong> (SQL Server 2017+), a subclause of <code>SYSTEM_VERSIONING</code>, in <code>DAYS</code>, <code>WEEKS</code>, <code>MONTHS</code>, <code>YEARS</code>, or <code>INFINITE</code>. Omit it and retention is <code>INFINITE</code>. Set a finite period and a background task purges aged rows — based on the period <em>end</em> column — in chunks.</li>
+      </ul>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · create Employees as a temporal table</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+
+CREATE TABLE dbo.Employees
+(
+  empid      INT                         NOT NULL
+    CONSTRAINT PK_Employees PRIMARY KEY,
+  empname    VARCHAR(25)                 NOT NULL,
+  department VARCHAR(50)                 NOT NULL,
+  salary     NUMERIC(10, 2)              NOT NULL,
+  validfrom  DATETIME2(0)
+    GENERATED ALWAYS AS ROW START HIDDEN NOT NULL,
+  validto    DATETIME2(0)
+    GENERATED ALWAYS AS ROW END   HIDDEN NOT NULL,
+  PERIOD FOR SYSTEM_TIME (validfrom, validto)
+)
+WITH ( SYSTEM_VERSIONING = ON
+       ( HISTORY_TABLE = dbo.EmployeesHistory,
+         HISTORY_RETENTION_PERIOD = 5 YEARS ) );</code></pre>
+      </div>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 9-1</span><span class="fig-src">From the book, p. 346</span></div>
+          <img class="fig-img fig-portrait" src="images/figure-9-1.png" alt="Screenshot of SSMS Object Explorer showing the dbo.Employees table marked as System-Versioned, with the linked dbo.EmployeesHistory table nested beneath it and marked as History.">
+          <div class="fig-body">
+            <p class="fig-cap">Temporal table and associated history table in SSMS</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> Object Explorer marks the current table as <strong>(System-Versioned)</strong> and nests the linked history table beneath it, marked <strong>(History)</strong>. If you let SQL Server name the history table, it uses the form <code>MSSQL_TemporalHistoryFor_&lt;objectid&gt;</code>, so this is the easiest way to find out what it was called.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">What SQL Server builds for the history table <span class="tag">p. 345</span></h3>
+      <p>The schema mirrors the current table, with these differences:</p>
+      <ul>
+        <li><strong>No primary key.</strong></li>
+        <li>A <strong>clustered index on <code>(&lt;endcol&gt;, &lt;startcol&gt;)</code></strong>, with page compression where possible.</li>
+        <li>Period columns carry <strong>no special options</strong> — no <code>GENERATED ALWAYS AS ROW START/END</code>, no <code>HIDDEN</code>.</li>
+        <li><strong>No <code>PERIOD FOR SYSTEM_TIME</code> designation</strong> and <strong>no <code>SYSTEM_VERSIONING</code></strong> option.</li>
+      </ul>
+      <p>If the history table already exists when you create the current one, SQL Server validates that the schema matches the description above and that the data is consistent (no overlapping periods). Failing either check raises a DDL-time error and the current table is not created. You can skip the <em>data</em> consistency check when you are certain the data is fine and cannot spare the verification time.</p>
+
+      <h3 class="subhead">Converting a table that already has data <span class="tag">p. 346</span></h3>
+      <p>Two steps: add the period columns with defaults that make the existing rows valid, then switch versioning on. (Don’t literally run this against the <code>Employees</code> table — it is already temporal.)</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · step 1 · add the period columns</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER TABLE dbo.Employees ADD
+  validfrom DATETIME2(0) GENERATED ALWAYS AS ROW START HIDDEN NOT NULL
+    CONSTRAINT DFT_Employees_validfrom DEFAULT('19000101'),
+  validto DATETIME2(0) GENERATED ALWAYS AS ROW END HIDDEN NOT NULL
+    CONSTRAINT DFT_Employees_validto DEFAULT('99991231 23:59:59'),
+  PERIOD FOR SYSTEM_TIME (validfrom, validto);</code></pre>
+      </div>
+      <p>The start default is up to you — anything not in the future. The end default must be the <strong>maximum value supported by the type</strong>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · step 2 · enable system versioning</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER TABLE dbo.Employees
+  SET ( SYSTEM_VERSIONING = ON
+        ( HISTORY_TABLE = dbo.EmployeesHistory,
+          HISTORY_RETENTION_PERIOD = 5 YEARS ) );</code></pre>
+      </div>
+
+      <h3 class="subhead">Hidden columns and <code>SELECT *</code> <span class="tag">p. 347</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · hidden columns stay out of the way</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT *
+FROM dbo.Employees;
+-- empid  empname  department  salary
+
+SELECT empid, empname, department, salary, validfrom, validto
+FROM dbo.Employees;
+-- empid  empname  department  salary    validfrom            validto</code></pre>
+      </div>
+      <div class="note">
+        <strong>Why “hidden” should not change how you write code</strong>
+        The book uses <code>SELECT *</code> here for illustration only. In production, list your columns explicitly — and then it makes no difference whether the period columns are hidden. The same goes for <code>INSERT</code> statements.
+      </div>
+
+      <h3 class="subhead">Schema changes propagate to both tables</h3>
+      <p>You do not need to disable versioning to alter the schema: issue the change against the current table and SQL Server applies it to the history table too. A new non-nullable column needs a default.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · add a column to both tables</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER TABLE dbo.Employees
+  ADD hiredate DATE NOT NULL
+    CONSTRAINT DFT_Employees_hiredate DEFAULT('19000101');</code></pre>
+      </div>
+      <p>The column appears in the history table as well, but the <strong>default constraint is created only in the current table</strong> — existing history rows still receive the default value. To drop the column again, drop the constraint first, then the column; SQL Server removes it from both tables.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · drop it from both tables</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER TABLE dbo.Employees
+  DROP CONSTRAINT DFT_Employees_hiredate;
+
+ALTER TABLE dbo.Employees
+  DROP COLUMN hiredate;</code></pre>
+      </div>
+      <div class="warn">
+        <strong>You cannot drop a system-versioned table directly</strong>
+        Disable system versioning first, then drop the current and history tables yourself — see the cleanup script at the end of this chapter.
+      </div>
+    </section>
+
+    <!-- 9.3 -->
+    <section class="section" id="ch9-modify">
+      <div class="section-head">
+        <div class="sec-num">9.3</div>
+        <div>
+          <div class="kicker">Modifying data</div>
+          <h2>Write normally; SQL Server keeps the history</h2>
+        </div>
+      </div>
+      <p class="lead">You modify only the current table, with the same statements you already know. <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, and <code>MERGE</code> all work; <code>TRUNCATE</code> is not supported for temporal tables in SQL Server 2022.</p>
+
+      <div class="note">
+        <strong>Handling the period columns in your DML</strong>
+        If they are <code>HIDDEN</code>, ignore them. If they are not hidden but you list the target columns — which you should anyway — you can still ignore them. Only if they are visible <em>and</em> you omit the column list do you have to pass the <code>DEFAULT</code> keyword for them.
+      </div>
+      <p>The examples below run against the <code>Employees</code> table. The book notes the UTC time of each statement because your timestamps will differ; query <code>SYSUTCDATETIME</code> in the same batch if you want to record them.</p>
+
+      <h3 class="subhead">INSERT: new rows, open-ended validity <span class="tag">p. 348</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · insert six employees</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>INSERT INTO dbo.Employees(empid, empname, department, salary)
+  VALUES(1, 'Sara', 'IT'       , 50000.00),
+        (2, 'Don' , 'HR'       , 45000.00),
+        (3, 'Judy', 'Sales'    , 55000.00),
+        (4, 'Yael', 'Marketing', 55000.00),
+        (5, 'Sven', 'IT'       , 45000.00),
+        (6, 'Paul', 'Sales'    , 40000.00);</code></pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>empid</th><th>empname</th><th>department</th><th>salary</th><th>validfrom</th><th>validto</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Sara</td><td>IT</td><td>50000.00</td><td>2022-02-16 17:08:41</td><td>9999-12-31 23:59:59</td></tr>
+            <tr><td>2</td><td>Don</td><td>HR</td><td>45000.00</td><td>2022-02-16 17:08:41</td><td>9999-12-31 23:59:59</td></tr>
+            <tr><td>3</td><td>Judy</td><td>Sales</td><td>55000.00</td><td>2022-02-16 17:08:41</td><td>9999-12-31 23:59:59</td></tr>
+            <tr><td>4</td><td>Yael</td><td>Marketing</td><td>55000.00</td><td>2022-02-16 17:08:41</td><td>9999-12-31 23:59:59</td></tr>
+            <tr><td>5</td><td>Sven</td><td>IT</td><td>45000.00</td><td>2022-02-16 17:08:41</td><td>9999-12-31 23:59:59</td></tr>
+            <tr><td>6</td><td>Paul</td><td>Sales</td><td>40000.00</td><td>2022-02-16 17:08:41</td><td>9999-12-31 23:59:59</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Current table after the insert (abbreviated from the book, p. 349). The history table is still empty.</p>
+
+      <h3 class="subhead">DELETE: the row moves, it does not vanish</h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · delete employee 6</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DELETE FROM dbo.Employees
+WHERE empid = 6;</code></pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>table</th><th>empid</th><th>empname</th><th>department</th><th>salary</th><th>validfrom</th><th>validto</th></tr></thead>
+          <tbody>
+            <tr><td><strong>history</strong></td><td>6</td><td>Paul</td><td>Sales</td><td>40000.00</td><td>2022-02-16 17:08:41</td><td>2022-02-16 17:15:26</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="subhead">UPDATE: delete plus insert <span class="tag">p. 350</span></h3>
+      <p>SQL Server moves the old version to the history table with the transaction time as its period end, and keeps the new version in the current table with the transaction time as its period start.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · raise IT salaries by 5 percent</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>UPDATE dbo.Employees
+  SET salary *= 1.05
+WHERE department = 'IT';</code></pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>table</th><th>empid</th><th>empname</th><th>department</th><th>salary</th><th>validfrom</th><th>validto</th></tr></thead>
+          <tbody>
+            <tr><td><strong>current</strong></td><td>1</td><td>Sara</td><td>IT</td><td>52500.00</td><td>2022-02-16 17:20:02</td><td>9999-12-31 23:59:59</td></tr>
+            <tr><td><strong>current</strong></td><td>5</td><td>Sven</td><td>IT</td><td>47250.00</td><td>2022-02-16 17:20:02</td><td>9999-12-31 23:59:59</td></tr>
+            <tr><td><strong>history</strong></td><td>1</td><td>Sara</td><td>IT</td><td>50000.00</td><td>2022-02-16 17:08:41</td><td>2022-02-16 17:20:02</td></tr>
+            <tr><td><strong>history</strong></td><td>5</td><td>Sven</td><td>IT</td><td>45000.00</td><td>2022-02-16 17:08:41</td><td>2022-02-16 17:20:02</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tip">
+        <strong>A curious use: last-modified tracking without the history table</strong>
+        If you only need to know when each row was last inserted or updated — not the older states — create the temporal table with <code>SYSTEM_VERSIONING = OFF</code> and no history table. You still need both period columns, but only the start column is meaningful: SQL Server writes the last modification time there and the maximum value of the type in the end column.
+      </div>
+
+      <h3 class="subhead">The recorded time is the transaction START time <span class="tag">p. 350</span></h3>
+      <p>Open a transaction at T1 and finish at T2, and <em>every</em> statement in it is stamped T1. The book demonstrates this with an explicit transaction containing two updates several seconds apart — both rows end up with the same <code>validfrom</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · two updates, one timestamp</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>BEGIN TRAN;
+
+UPDATE dbo.Employees
+  SET department = 'Sales'
+WHERE empid = 5;
+
+-- wait a few seconds, then:
+
+UPDATE dbo.Employees
+  SET department = 'IT'
+WHERE empid = 3;
+
+COMMIT TRAN;</code></pre>
+      </div>
+      <div class="warn">
+        <strong>Two consequences worth knowing</strong>
+        <strong>Degenerate intervals:</strong> update the same row twice inside one transaction and the in-between version gets <code>validfrom = validto</code> — a zero-length period. <code>FOR SYSTEM_TIME</code> queries discard those rows automatically.
+        <strong>Out-of-order timestamps:</strong> see Table 9-1 below — SQL Server can refuse an update whose transaction start time predates the row’s recorded period start.
+      </div>
+
+      <h3 class="subhead">Table 9-1 · a modification sequence that fails <span class="tag">p. 352</span></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Point in time</th><th>Session 1</th><th>Session 2</th></tr></thead>
+          <tbody>
+            <tr><td><strong>T1</strong></td><td>Begin tran A</td><td></td></tr>
+            <tr><td><strong>T2</strong></td><td></td><td>Begin tran B</td></tr>
+            <tr><td><strong>T3</strong></td><td></td><td>Update row R <span style="color:var(--muted)">(recorded modification time is T2)</span></td></tr>
+            <tr><td><strong>T4</strong></td><td></td><td>Commit tran B</td></tr>
+            <tr><td><strong>T5</strong></td><td>Update row R <span style="color:var(--muted)">(recorded modification time would be T1 — earlier than the T2 already recorded!)</span></td><td></td></tr>
+            <tr><td><strong>T6</strong></td><td>Commit tran A</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Table 9-1 from the book, recreated in HTML.</p>
+      <p>Session 2 updates row R first, recording T2. Session 1 then tries to update the same row, but its transaction started at T1 — earlier than the modification time already recorded. SQL Server refuses at T5:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Error message</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>Msg 13535, Level 16, State 0, Line 4
+Data modification failed on system-versioned table 'TSQLV6.dbo.Employees'
+because transaction time was earlier than period start time for affected records.
+The statement has been terminated.</code></pre>
+      </div>
+      <p>Transaction A stays open despite the error, so plan error handling for it — the book covers transactions in Chapter 10 and error handling in Chapter 12.</p>
+
+      <h3 class="subhead">Can you change history? <span class="tag">p. 352</span></h3>
+      <p>While versioning is enabled, users may modify only the current table; only SQL Server writes to the history table. That is deliberate — many companies use this feature for auditing, where users must not be able to rewrite the past. You can still purge old data through the retention policy, partitioning, and similar mechanisms.</p>
+      <p>But note the limit of that guarantee: a DBA can turn versioning off at any time, edit both tables, and turn it back on.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the loophole</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>ALTER TABLE TargetTable SET ( SYSTEM_VERSIONING = OFF );
+
+-- ...direct modifications against both tables...
+
+ALTER TABLE TargetTable SET ( SYSTEM_VERSIONING = ON );</code></pre>
+      </div>
+      <div class="note">
+        <strong>If you need tamper evidence: ledger</strong>
+        SQL Server 2022 and Azure SQL Database add <strong>ledger</strong>, built on top of system versioning and using blockchain technology with Merkle hash trees. It lets you cryptographically attest that data has not been tampered with. You can use updatable ledger tables, or append-only ledger tables that permit inserts only.
+      </div>
+    </section>
+
+    <!-- 9.4 -->
+    <section class="section" id="ch9-query">
+      <div class="section-head">
+        <div class="sec-num">9.4</div>
+        <div>
+          <div class="kicker">Querying data</div>
+          <h2>FOR SYSTEM_TIME, five subclauses</h2>
+        </div>
+      </div>
+      <p class="lead">Query the current table normally for the current state. For a past state, query the current table and add <code>FOR SYSTEM_TIME</code> with a subclause naming the point or period you want — SQL Server reads the current and history tables as needed.</p>
+
+      <details>
+        <summary>Sample data · re-create Employees with the book’s exact timestamps (p. 353)</summary>
+        <div class="answer">
+          <p>Run this once and your query outputs will match the book’s, down to the period columns.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · deterministic sample data</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+
+-- Drop tables if exist
+IF OBJECT_ID(N'dbo.Employees', N'U') IS NOT NULL
+BEGIN
+  IF OBJECTPROPERTY(OBJECT_ID(N'dbo.Employees', N'U'), N'TableTemporalType') = 2
+    ALTER TABLE dbo.Employees SET ( SYSTEM_VERSIONING = OFF );
+  DROP TABLE IF EXISTS dbo.EmployeesHistory, dbo.Employees;
+END;
+GO
+
+-- Create and populate Employees table
+CREATE TABLE dbo.Employees
+(
+  empid      INT            NOT NULL
+    CONSTRAINT PK_Employees PRIMARY KEY,
+  empname    VARCHAR(25)    NOT NULL,
+  department VARCHAR(50)    NOT NULL,
+  salary     NUMERIC(10, 2) NOT NULL,
+  validfrom  DATETIME2(0)   NOT NULL,
+  validto    DATETIME2(0)   NOT NULL
+);
+
+INSERT INTO dbo.Employees(empid, empname, department, salary, validfrom, validto) VALUES
+  (1 , 'Sara', 'IT'       , 52500.00, '2022-02-16 17:20:02', '9999-12-31 23:59:59'),
+  (2 , 'Don' , 'HR'       , 45000.00, '2022-02-16 17:08:41', '9999-12-31 23:59:59'),
+  (3 , 'Judy', 'IT'       , 55000.00, '2022-02-16 17:28:10', '9999-12-31 23:59:59'),
+  (4 , 'Yael', 'Marketing', 55000.00, '2022-02-16 17:08:41', '9999-12-31 23:59:59'),
+  (5 , 'Sven', 'Sales'    , 47250.00, '2022-02-16 17:28:10', '9999-12-31 23:59:59');
+
+-- Create and populate EmployeesHistory table
+CREATE TABLE dbo.EmployeesHistory
+(
+  empid      INT            NOT NULL,
+  empname    VARCHAR(25)    NOT NULL,
+  department VARCHAR(50)    NOT NULL,
+  salary     NUMERIC(10, 2) NOT NULL,
+  validfrom  DATETIME2(0)   NOT NULL,
+  validto    DATETIME2(0)   NOT NULL,
+  INDEX ix_EmployeesHistory CLUSTERED(validto, validfrom)
+    WITH (DATA_COMPRESSION = PAGE)
+);
+
+INSERT INTO dbo.EmployeesHistory(empid, empname, department, salary, validfrom, validto) VALUES
+  (6 , 'Paul', 'Sales' , 40000.00, '2022-02-16 17:08:41', '2022-02-16 17:15:26'),
+  (1 , 'Sara', 'IT'    , 50000.00, '2022-02-16 17:08:41', '2022-02-16 17:20:02'),
+  (5 , 'Sven', 'IT'    , 45000.00, '2022-02-16 17:08:41', '2022-02-16 17:20:02'),
+  (3 , 'Judy', 'Sales' , 55000.00, '2022-02-16 17:08:41', '2022-02-16 17:28:10'),
+  (5 , 'Sven', 'IT'    , 47250.00, '2022-02-16 17:20:02', '2022-02-16 17:28:10');
+
+-- Enable system versioning
+ALTER TABLE dbo.Employees ADD PERIOD FOR SYSTEM_TIME (validfrom, validto);
+ALTER TABLE dbo.Employees ALTER COLUMN validfrom ADD HIDDEN;
+ALTER TABLE dbo.Employees ALTER COLUMN validto   ADD HIDDEN;
+ALTER TABLE dbo.Employees
+  SET ( SYSTEM_VERSIONING = ON
+        ( HISTORY_TABLE = dbo.EmployeesHistory,
+          HISTORY_RETENTION_PERIOD = 5 YEARS ) );</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <h3 class="subhead">The current state, and the general syntax <span class="tag">p. 354</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · current state</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT *
+FROM dbo.Employees;
+-- empid  empname  department  salary
+-- 1      Sara     IT          52500.00
+-- 2      Don      HR          45000.00
+-- 3      Judy     IT          55000.00
+-- 4      Yael     Marketing   55000.00
+-- 5      Sven     Sales       47250.00</code></pre>
+      </div>
+      <p>The syntax for time travel is:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the shape of a time-travel query</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT ... FROM &lt;table_or_view&gt; FOR SYSTEM_TIME &lt;subclause&gt; AS &lt;alias&gt;;</code></pre>
+      </div>
+      <p>Conveniently, you can use <code>FOR SYSTEM_TIME</code> when querying <strong>views</strong>, and the clause propagates to the underlying objects.</p>
+
+      <h3 class="subhead">AS OF <span class="tag">p. 354</span></h3>
+      <p>The one you will use most: “what did this look like at that instant?” The input can be a constant, a variable, or a parameter.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · AS OF</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT *
+FROM dbo.Employees FOR SYSTEM_TIME AS OF '2022-02-16 17:00:00';
+-- empty: the first insert happened at 17:08:41
+
+SELECT *
+FROM dbo.Employees FOR SYSTEM_TIME AS OF '2022-02-16 17:10:00';
+-- 2      Don      HR          45000.00
+-- 4      Yael     Marketing   55000.00
+-- 6      Paul     Sales       40000.00
+-- 1      Sara     IT          50000.00
+-- 5      Sven     IT          45000.00
+-- 3      Judy     Sales       55000.00</code></pre>
+      </div>
+      <p>Because it is just a table reference with an alias, you can join two instances of the same table at different points in time — here, the percentage salary increase between two moments:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · compare two points in time</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT T2.empid, T2.empname,
+  CAST( (T2.salary / T1.salary - 1.0) * 100.0 AS NUMERIC(10, 2) ) AS pct
+FROM dbo.Employees FOR SYSTEM_TIME AS OF '2022-02-16 17:10:00' AS T1
+  INNER JOIN dbo.Employees FOR SYSTEM_TIME AS OF '2022-02-16 17:25:00' AS T2
+    ON T1.empid = T2.empid
+   AND T2.salary &gt; T1.salary;
+-- empid  empname  pct
+-- 1      Sara     5.00
+-- 5      Sven     5.00</code></pre>
+      </div>
+
+      <h3 class="subhead">FROM … TO, BETWEEN … AND, CONTAINED IN <span class="tag">p. 356</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · FROM ... TO (exclusive end)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, empname, department, salary, validfrom, validto
+FROM dbo.Employees
+  FOR SYSTEM_TIME FROM '2022-02-16 17:15:26' TO '2022-02-16 17:20:02';
+-- rows with validfrom = 17:20:02 are NOT included</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · BETWEEN ... AND (inclusive end)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, empname, department, salary, validfrom, validto
+FROM dbo.Employees
+  FOR SYSTEM_TIME BETWEEN '2022-02-16 17:15:26' AND '2022-02-16 17:20:02';
+-- this time the 17:20:02 rows ARE included</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · CONTAINED IN (fully inside the window)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, empname, department, salary, validfrom, validto
+FROM dbo.Employees
+  FOR SYSTEM_TIME CONTAINED IN('2022-02-16 17:00:00', '2022-02-16 18:00:00');
+-- 6      Paul     Sales       40000.00  17:08:41  17:15:26
+-- 1      Sara     IT          50000.00  17:08:41  17:20:02
+-- 5      Sven     IT          45000.00  17:08:41  17:20:02
+-- 3      Judy     Sales       55000.00  17:08:41  17:28:10
+-- 5      Sven     IT          47250.00  17:20:02  17:28:10</code></pre>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Subclause</th><th>Qualifying rows</th></tr></thead>
+          <tbody>
+            <tr><td><code>AS OF @datetime</code></td><td><code>validfrom &lt;= @datetime AND validto &gt; @datetime</code></td></tr>
+            <tr><td><code>FROM @start TO @end</code></td><td><code>validfrom &lt; @end AND validto &gt; @start</code></td></tr>
+            <tr><td><code>BETWEEN @start AND @end</code></td><td><code>validfrom &lt;= @end AND validto &gt; @start</code></td></tr>
+            <tr><td><code>CONTAINED IN(@start, @end)</code></td><td><code>validfrom &gt;= @start AND validto &lt;= @end</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Table 9-2 from the book, recreated in HTML.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">FIGURE 9-2 · RECREATED</span><span class="fig-src">Original study diagram · redrawn from the book’s Figure 9-2</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 352" role="img" aria-label="Four timelines illustrating the AS OF, FROM TO, BETWEEN AND, and CONTAINED IN subclauses of FOR SYSTEM_TIME, each with a row validity interval, the input point or interval, and the qualifying predicate">
+                <!-- AS OF -->
+                <g>
+                  <text x="12" y="26" class="jlabel">AS OF @datetime</text>
+                  <rect x="250" y="6" width="270" height="28" rx="4" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.3"/>
+                  <text x="385" y="26" text-anchor="middle" class="jcap">row validity period</text>
+                  <text x="250" y="46" class="jcap">validfrom</text>
+                  <text x="520" y="46" text-anchor="end" class="jcap">validto</text>
+                  <circle cx="385" cy="62" r="5" fill="#b45309"/>
+                  <line x1="385" y1="6" x2="385" y2="52" stroke="#b45309" stroke-width="1.6" stroke-dasharray="4 3"/>
+                  <text x="385" y="80" text-anchor="middle" class="jcap">@datetime</text>
+                  <text x="660" y="34" class="jlabel">validfrom &lt;= @datetime</text>
+                  <text x="660" y="54" class="jlabel">validto &gt; @datetime</text>
+                </g>
+                <!-- FROM TO -->
+                <g transform="translate(0,88)">
+                  <text x="12" y="26" class="jlabel">FROM @start TO @end</text>
+                  <rect x="250" y="6" width="270" height="28" rx="4" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.3"/>
+                  <text x="385" y="26" text-anchor="middle" class="jcap">row validity period</text>
+                  <text x="250" y="46" class="jcap">validfrom</text>
+                  <text x="520" y="46" text-anchor="end" class="jcap">validto</text>
+                  <line x1="190" y1="62" x2="600" y2="62" stroke="#b45309" stroke-width="2.4"/>
+                  <circle cx="190" cy="62" r="4.5" fill="#ffffff" stroke="#b45309" stroke-width="1.4"/>
+                  <circle cx="600" cy="62" r="4.5" fill="#ffffff" stroke="#b45309" stroke-width="1.4"/>
+                  <text x="190" y="80" text-anchor="middle" class="jcap">@start</text>
+                  <text x="600" y="80" text-anchor="middle" class="jcap">@end</text>
+                  <text x="660" y="34" class="jlabel">validfrom &lt; @end</text>
+                  <text x="660" y="54" class="jlabel">validto &gt; @start</text>
+                </g>
+                <!-- BETWEEN -->
+                <g transform="translate(0,176)">
+                  <text x="12" y="26" class="jlabel">BETWEEN @start AND @end</text>
+                  <rect x="250" y="6" width="270" height="28" rx="4" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.3"/>
+                  <text x="385" y="26" text-anchor="middle" class="jcap">row validity period</text>
+                  <text x="250" y="46" class="jcap">validfrom</text>
+                  <text x="520" y="46" text-anchor="end" class="jcap">validto</text>
+                  <line x1="190" y1="62" x2="600" y2="62" stroke="#b45309" stroke-width="2.4"/>
+                  <circle cx="190" cy="62" r="4.5" fill="#ffffff" stroke="#b45309" stroke-width="1.4"/>
+                  <circle cx="600" cy="62" r="4.5" fill="#b45309"/>
+                  <text x="190" y="80" text-anchor="middle" class="jcap">@start</text>
+                  <text x="600" y="80" text-anchor="middle" class="jcap">@end (inclusive)</text>
+                  <text x="660" y="34" class="jlabel">validfrom &lt;= @end</text>
+                  <text x="660" y="54" class="jlabel">validto &gt; @start</text>
+                </g>
+                <!-- CONTAINED IN -->
+                <g transform="translate(0,264)">
+                  <text x="12" y="26" class="jlabel">CONTAINED IN(@start, @end)</text>
+                  <rect x="250" y="6" width="270" height="28" rx="4" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.3"/>
+                  <text x="385" y="26" text-anchor="middle" class="jcap">row validity period</text>
+                  <text x="250" y="46" class="jcap">validfrom</text>
+                  <text x="520" y="46" text-anchor="end" class="jcap">validto</text>
+                  <line x1="210" y1="62" x2="640" y2="62" stroke="#b45309" stroke-width="2.4"/>
+                  <circle cx="210" cy="62" r="4.5" fill="#b45309"/>
+                  <circle cx="640" cy="62" r="4.5" fill="#b45309"/>
+                  <text x="210" y="80" text-anchor="middle" class="jcap">@start</text>
+                  <text x="640" y="80" text-anchor="middle" class="jcap">@end</text>
+                  <text x="660" y="34" class="jlabel">validfrom &gt;= @start</text>
+                  <text x="660" y="54" class="jlabel">validto &lt;= @end</text>
+                </g>
+              </svg>
+            </div>
+            <p class="fig-cap">The four subclauses, drawn as timelines</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the teal bar is one row’s validity period, the amber marker or bar is what you pass in. A <strong>filled</strong> amber endpoint means that boundary is inclusive; a <strong>hollow</strong> one means exclusive. That is the only difference between <code>FROM … TO</code> (both ends exclusive) and <code>BETWEEN … AND</code> (end inclusive). <code>CONTAINED IN</code> demands the row’s whole period sit inside your window.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">ALL: everything, from both tables <span class="tag">p. 358</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · every version of employee 5</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, empname, department, salary, validfrom, validto
+FROM dbo.Employees FOR SYSTEM_TIME ALL
+WHERE empid = 5;
+-- 5      Sven     Sales       47250.00  2022-02-16 17:28:10  9999-12-31 23:59:59
+-- 5      Sven     IT          45000.00  2022-02-16 17:08:41  2022-02-16 17:20:02
+-- 5      Sven     IT          47250.00  2022-02-16 17:20:02  2022-02-16 17:28:10</code></pre>
+      </div>
+
+      <h3 class="subhead">Reading the period columns in your own time zone <span class="tag">p. 358</span></h3>
+      <p>The period columns are <code>DATETIME2</code> values in <strong>UTC</strong>. To present them as <code>DATETIMEOFFSET</code> in a target zone, apply <code>AT TIME ZONE</code> <strong>twice</strong>: once to tag the value as UTC, once to convert it. A single conversion assumes the value is already in the target zone and silently does nothing useful. Watch out for the maximum <code>validto</code> value, which would overflow under conversion — handle it with a <code>CASE</code> expression.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · convert to Pacific Standard Time</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT empid, empname, department, salary,
+  validfrom AT TIME ZONE 'UTC' AT TIME ZONE 'Pacific Standard Time' AS validfrom,
+  CASE
+    WHEN validto = '9999-12-31 23:59:59'
+      THEN validto AT TIME ZONE 'UTC'
+    ELSE validto AT TIME ZONE 'UTC' AT TIME ZONE 'Pacific Standard Time'
+  END AS validto
+FROM dbo.Employees FOR SYSTEM_TIME ALL;
+-- 1      Sara     IT          52500.00  2022-02-16 09:20:02 -08:00  9999-12-31 23:59:59 +00:00
+-- 6      Paul     Sales       40000.00  2022-02-16 09:08:41 -08:00  2022-02-16 09:15:26 -08:00</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>IF OBJECT_ID(N'dbo.Employees', N'U') IS NOT NULL
+BEGIN
+  IF OBJECTPROPERTY(OBJECT_ID(N'dbo.Employees', N'U'), N'TableTemporalType') = 2
+    ALTER TABLE dbo.Employees SET ( SYSTEM_VERSIONING = OFF );
+  DROP TABLE IF EXISTS dbo.EmployeesHistory, dbo.Employees;
+END;</code></pre>
+      </div>
+    </section>
+
+    <!-- 9.5 -->
+    <section class="section" id="ch9-practice">
+      <div class="section-head">
+        <div class="sec-num">9.5</div>
+        <div>
+          <div class="kicker">Practice</div>
+          <h2>Four exercises, with the book’s solutions</h2>
+        </div>
+      </div>
+      <p class="lead">Try each one before opening the solution. Everything runs in <code>TSQLV6</code>. Exercises 2 and 3 are built around three points in time you record yourself — call them P1, P2, and P3.</p>
+
+      <details>
+        <summary>Exercise 1 · Create the Departments temporal table and find it in SSMS</summary>
+        <div class="answer">
+          <p><strong>1-1</strong> · Create a system-versioned temporal table <code>Departments</code> with history table <code>DepartmentsHistory</code>. Columns: <code>deptid INT</code>, <code>deptname VARCHAR(25)</code>, <code>mgrid INT</code>, all <code>NOT NULL</code>; plus <code>validfrom</code> and <code>validto</code> at precision zero (1 second), hidden; retention policy of six months.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 1-1</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+
+CREATE TABLE dbo.Departments
+(
+  deptid    INT                          NOT NULL
+    CONSTRAINT PK_Departments PRIMARY KEY,
+  deptname  VARCHAR(25)                  NOT NULL,
+  mgrid INT                              NOT NULL,
+  validfrom DATETIME2(0)
+    GENERATED ALWAYS AS ROW START HIDDEN NOT NULL,
+  validto   DATETIME2(0)
+    GENERATED ALWAYS AS ROW END   HIDDEN NOT NULL,
+  PERIOD FOR SYSTEM_TIME (validfrom, validto)
+)
+WITH ( SYSTEM_VERSIONING = ON
+       ( HISTORY_TABLE = dbo.DepartmentsHistory,
+         HISTORY_RETENTION_PERIOD = 6 MONTHS ) );</code></pre>
+          </div>
+          <p>Check the list: primary key on <code>deptid</code>; <code>SYSTEM_VERSIONING = ON</code>; two non-nullable <code>DATETIME2(0)</code> period columns; start marked <code>GENERATED ALWAYS AS ROW START</code>; end marked <code>GENERATED ALWAYS AS ROW END</code>; <code>PERIOD FOR SYSTEM_TIME</code>; linked history table <code>DepartmentsHistory</code>. The optional extras are the <code>HIDDEN</code> markers and the six-month retention policy.</p>
+          <p><strong>1-2</strong> · In Object Explorer, navigate Databases → TSQLV6 → Tables. You will find <code>Departments</code> marked <strong>System-Versioned</strong> with <code>DepartmentsHistory</code> beneath it marked <strong>History</strong>.</p>
+          <figure style="margin:.9rem 0 0">
+            <div class="fig-card">
+              <div class="fig-top"><span class="fig-label">FIGURE 9-3</span><span class="fig-src">From the book, p. 363</span></div>
+              <img class="fig-img fig-portrait" src="images/figure-9-3.png" alt="Screenshot of SSMS Object Explorer showing the dbo.Departments table marked as System-Versioned with the linked dbo.DepartmentsHistory table beneath it, marked as History.">
+              <div class="fig-body">
+                <p class="fig-cap">The Departments temporal table and its history table in SSMS</p>
+                <p class="fig-exp"><strong>What you’re looking at:</strong> the same nesting pattern as Figure 9-1, this time for the exercise’s tables. Object Explorer is the quickest way to confirm that versioning is actually enabled and which history table is linked.</p>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 2 · Modify data, recording P1, P2, and P3</summary>
+        <div class="answer">
+          <p><strong>2-1</strong> · Insert four rows and note the time as P1.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 2-1</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT CAST(SYSUTCDATETIME() AS DATETIME2(0)) AS P1;
+-- P1
+-- ---------------------------
+-- 2022-02-18 10:26:07
+
+INSERT INTO dbo.Departments(deptid, deptname, mgrid)
+  VALUES(1, 'HR'       , 7 ),
+        (2, 'IT'       , 5 ),
+        (3, 'Sales'    , 11),
+        (4, 'marketing', 13);</code></pre>
+          </div>
+          <p><strong>2-2</strong> · In one transaction, rename department 3 to <em>Sales and Marketing</em> and delete department 4. Call the transaction start P2.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 2-2</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT CAST(SYSUTCDATETIME() AS DATETIME2(0)) AS P2;
+-- P2
+-- ---------------------------
+-- 2022-02-18 10:28:27
+
+BEGIN TRAN;
+
+UPDATE dbo.Departments
+  SET deptname = 'Sales and Marketing'
+WHERE deptid = 3;
+
+DELETE FROM dbo.Departments
+WHERE deptid = 4;
+
+COMMIT TRAN;</code></pre>
+          </div>
+          <p><strong>2-3</strong> · Update the manager ID of department 3 to 13, and call the time P3.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 2-3</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT CAST(SYSUTCDATETIME() AS DATETIME2(0)) AS P3;
+-- P3
+-- ---------------------------
+-- 2022-02-18 10:30:40
+
+UPDATE dbo.Departments
+  SET mgrid = 13
+WHERE deptid = 3;</code></pre>
+          </div>
+          <p>At this point the book recommends querying both tables with explicit <code>validfrom</code> and <code>validto</code> columns, and making sure you understand why each value is what it is.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 3 · Query the current state, a past state, and a period</summary>
+        <div class="answer">
+          <p><strong>3-1</strong> · The current state.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 3-1</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT *
+FROM dbo.Departments;
+-- deptid      deptname                  mgrid
+-- ----------- ------------------------- -----------
+-- 1           HR                        7
+-- 2           IT                        5
+-- 3           Sales and Marketing       13</code></pre>
+          </div>
+          <p><strong>3-2</strong> · The state at a moment between P2 and P3.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 3-2</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT *
+FROM dbo.Departments
+  FOR SYSTEM_TIME AS OF '2022-02-18 10:29:00'; -- replace with your time
+-- deptid      deptname                  mgrid
+-- ----------- ------------------------- -----------
+-- 1           HR                        7
+-- 2           IT                        5
+-- 3           Sales and Marketing       11</code></pre>
+          </div>
+          <p>Department 3 already carries its new name (updated at P2) but still has manager 11, because that change happened at P3.</p>
+          <p><strong>3-3</strong> · The period between P2 and P3, with the period columns listed explicitly.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 3-3</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>SELECT deptid, deptname, mgrid, validfrom, validto
+FROM dbo.Departments
+  FOR SYSTEM_TIME BETWEEN '2022-02-18 10:28:27'  -- replace with your P2
+                      AND '2022-02-18 10:30:40'; -- replace with your P3
+-- deptid  deptname             mgrid  validfrom            validto
+-- 1       HR                   7      2022-02-18 10:26:07  9999-12-31 23:59:59
+-- 2       IT                   5      2022-02-18 10:26:07  9999-12-31 23:59:59
+-- 3       Sales and Marketing  13     2022-02-18 10:30:40  9999-12-31 23:59:59
+-- 3       Sales and Marketing  11     2022-02-18 10:28:27  2022-02-18 10:30:40</code></pre>
+          </div>
+          <p>The <code>BETWEEN</code> predicate is <code>validfrom &lt;= @end AND validto &gt; @start</code>, so departments 1 and 2 — valid since P1 with no end — qualify, as do both versions of department 3.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 4 · Drop both tables</summary>
+        <div class="answer">
+          <p>You cannot drop tables that take part in an enabled system-versioning relationship, so disable versioning first.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 4</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>ALTER TABLE dbo.Departments SET ( SYSTEM_VERSIONING = OFF );
+
+DROP TABLE dbo.DepartmentsHistory, dbo.Departments;</code></pre>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- 9.6 -->
+    <section class="section" id="ch9-recap">
+      <div class="section-head">
+        <div class="sec-num">9.6</div>
+        <div>
+          <div class="kicker">Takeaways</div>
+          <h2>Chapter 9 in ten bullets</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li><strong>A system-versioned temporal table keeps old row versions</strong> so you can audit, analyse a point in time, compare states, or repair accidental changes.</li>
+        <li><strong>Six required elements:</strong> a primary key, two non-nullable <code>DATETIME2</code> period columns, <code>GENERATED ALWAYS AS ROW START/END</code>, <code>PERIOD FOR SYSTEM_TIME</code>, <code>SYSTEM_VERSIONING = ON</code>, and a linked history table.</li>
+        <li><strong>The SQL standard defines three temporal flavours;</strong> SQL Server 2022 implements only system-versioning, where the transaction time defines the period.</li>
+        <li><strong>The history table mirrors the schema but not the constraints:</strong> no primary key, a clustered index on <code>(validto, validfrom)</code> with page compression, plain period columns.</li>
+        <li><strong>Mark the period columns <code>HIDDEN</code></strong> and <code>SELECT *</code> ignores them; list them explicitly when you want them.</li>
+        <li><strong>You modify only the current table</strong> — with <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, and <code>MERGE</code>; there is no <code>TRUNCATE</code> support.</li>
+        <li><strong>An update is a delete plus an insert:</strong> the old version moves to history, the new one stays with <code>validfrom</code> set to the transaction start time.</li>
+        <li><strong>The recorded time is the transaction START time</strong>, which produces degenerate intervals for repeated updates in one transaction and can trigger error 13535 when transactions interleave.</li>
+        <li><strong>Query the past with <code>FOR SYSTEM_TIME</code></strong> and one of five subclauses: <code>AS OF</code>, <code>FROM … TO</code>, <code>BETWEEN … AND</code>, <code>CONTAINED IN</code>, or <code>ALL</code>.</li>
+        <li><strong>Period columns are UTC <code>DATETIME2</code></strong>; convert with <code>AT TIME ZONE</code> twice, and special-case the maximum <code>validto</code> value.</li>
+      </ul>
+
+      <h3 class="subhead">Chapter 9 key terms</h3>
+      <dl class="terms">
+        <div class="term"><dt>System-versioned temporal table</dt><dd>A table whose row versions are maintained automatically, with the system transaction time defining each row’s validity period.</dd></div>
+        <div class="term"><dt>Period columns</dt><dd>The two non-nullable <code>DATETIME2</code> columns that hold the start and end of a row’s validity period, recorded in UTC.</dd></div>
+        <div class="term"><dt>History table</dt><dd>The linked table with a mirrored schema holding older states of modified rows.</dd></div>
+        <div class="term"><dt>GENERATED ALWAYS AS ROW START / END</dt><dd>The options that mark which period column holds the start and which holds the end.</dd></div>
+        <div class="term"><dt>PERIOD FOR SYSTEM_TIME</dt><dd>The clause that designates the two period columns as the row’s validity period.</dd></div>
+        <div class="term"><dt>SYSTEM_VERSIONING</dt><dd>The table option that turns automatic versioning on or off and links the history table.</dd></div>
+        <div class="term"><dt>HIDDEN</dt><dd>An option that keeps a column out of <code>SELECT *</code> and lets <code>INSERT</code> ignore it.</dd></div>
+        <div class="term"><dt>HISTORY_RETENTION_PERIOD</dt><dd>An optional subclause setting how long history is kept, after which a background task purges it.</dd></div>
+        <div class="term"><dt>FOR SYSTEM_TIME</dt><dd>The clause you add to a query to ask for a past state or period instead of the current one.</dd></div>
+        <div class="term"><dt>AS OF</dt><dd>The <code>FOR SYSTEM_TIME</code> subclause that returns rows valid at one instant: <code>validfrom &lt;= @datetime AND validto &gt; @datetime</code>.</dd></div>
+        <div class="term"><dt>CONTAINED IN</dt><dd>The subclause returning only rows whose whole validity period sits inside the input period.</dd></div>
+        <div class="term"><dt>Degenerate interval</dt><dd>A zero-length validity period (<code>validfrom = validto</code>) produced by updating the same row twice in one transaction; discarded by time-travel queries.</dd></div>
+        <div class="term"><dt>Application-time period table</dt><dd>A standard temporal table where the application defines the validity period, possibly in the future. Not supported in SQL Server 2022.</dd></div>
+        <div class="term"><dt>Bitemporal</dt><dd>A standard temporal table combining transaction time and application valid time. Not supported in SQL Server 2022.</dd></div>
+        <div class="term"><dt>Ledger</dt><dd>A SQL Server 2022 feature built on system versioning that uses Merkle hash trees to provide cryptographic tamper evidence.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 9.7 -->
+    <section class="section" id="ch9-quiz">
+      <div class="section-head">
+        <div class="sec-num">9.7</div>
+        <div>
+          <div class="kicker">Check yourself</div>
+          <h2>Six quick questions</h2>
+        </div>
+      </div>
+      <p class="lead">Try to answer before opening each one. If you can explain it in your own words, you’ve got the chapter.</p>
+
+      <details>
+        <summary>What are the six required elements of a system-versioned temporal table?</summary>
+        <div class="answer">A primary key; two non-nullable <code>DATETIME2</code> columns (any precision) for the period start and end in UTC; the start column marked <code>GENERATED ALWAYS AS ROW START</code> and the end column <code>GENERATED ALWAYS AS ROW END</code>; the designation <code>PERIOD FOR SYSTEM_TIME (&lt;startcol&gt;, &lt;endcol&gt;)</code>; the table option <code>SYSTEM_VERSIONING = ON</code>; and a linked history table, which SQL Server can create for you. Optional extras: <code>HIDDEN</code> on the period columns and a <code>HISTORY_RETENTION_PERIOD</code>.</div>
+      </details>
+      <details>
+        <summary>How does the history table differ from the current table?</summary>
+        <div class="answer">Same columns and types, but: no primary key; a clustered index on <code>(&lt;endcol&gt;, &lt;startcol&gt;)</code> with page compression where possible; period columns carrying no special options (not hidden, no <code>GENERATED ALWAYS</code>); no <code>PERIOD FOR SYSTEM_TIME</code> designation; and no <code>SYSTEM_VERSIONING</code> option.</div>
+      </details>
+      <details>
+        <summary>What does SQL Server do to the period columns when you INSERT, UPDATE, and DELETE?</summary>
+        <div class="answer">Insert: <code>validfrom</code> = transaction start time, <code>validto</code> = the maximum value of the type. Update: the old version moves to history with <code>validto</code> = transaction start time, and the new version stays in the current table with <code>validfrom</code> = transaction start time. Delete: the row moves to history with <code>validto</code> = the deletion time.</div>
+      </details>
+      <details>
+        <summary>Why do all statements in a transaction share one timestamp, and what can go wrong?</summary>
+        <div class="answer">SQL Server records the transaction <em>start</em> time, not the statement time. Two consequences: updating the same row twice in one transaction creates a degenerate interval (<code>validfrom = validto</code>) that time-travel queries discard; and if another session has already modified the row with a later timestamp, your older transaction time is rejected with <em>Msg 13535</em>, “transaction time was earlier than period start time for affected records.”</div>
+      </details>
+      <details>
+        <summary>FROM @start TO @end versus BETWEEN @start AND @end — what changes?</summary>
+        <div class="answer">Only the inclusivity of the end boundary. <code>FROM … TO</code> uses <code>validfrom &lt; @end</code>, so a row whose period starts exactly at <code>@end</code> is excluded; <code>BETWEEN … AND</code> uses <code>validfrom &lt;= @end</code> and includes it. Both use <code>validto &gt; @start</code>.</div>
+      </details>
+      <details>
+        <summary>Can users rewrite history, and what should you use if the answer matters?</summary>
+        <div class="answer">Not while versioning is enabled — only SQL Server may write to the history table. But a DBA can run <code>ALTER TABLE … SET (SYSTEM_VERSIONING = OFF)</code>, edit both tables, and switch it back on, so the guarantee is procedural, not cryptographic. Where tamper evidence is required, use the <strong>ledger</strong> feature (SQL Server 2022+ and Azure SQL Database), which adds Merkle hash trees on top of system versioning — with updatable or append-only ledger tables.</div>
+      </details>
+    </section>
+
   </main>
 </div>
 
@@ -6986,12 +7900,12 @@ ALTER TABLE dbo.OrderDetails ADD CONSTRAINT FK_OrderDetails_Orders
   <div class="footer-inner">
     <div>
       <h3>About this summary</h3>
-      <p>A study companion for <strong>Chapters 1–8</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292; Chapter 8, pages 293–342.</p>
-      <p class="fine">All thirteen figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, 5, and 8 have no figures or tables; the join-types, subquery-types, table-expression diagrams, and the four Chapter 8 diagrams (insert routes, identity vs. sequence, MERGE outcomes, OUTPUT flow) are original study aids, not from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
+      <p>A study companion for <strong>Chapters 1–9</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292; Chapter 8, pages 293–342; Chapter 9, pages 343–366.</p>
+      <p class="fine">All fifteen figures and five tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, 5, and 8 have no figures or tables; six diagrams are original study aids rather than book artwork — the join-types, subquery-types, and table-expression diagrams, plus the Chapter 8 set (insert routes, identity vs. sequence, MERGE outcomes, OUTPUT flow), the Chapter 9 anatomy diagram, and the redrawn version of Figure 9-2. (The book’s Figure 9-2 is vector art that cannot be extracted as an image, so it was redrawn from its caption and predicates.) This page is an unofficial study aid; the book remains the authoritative source.</p>
     </div>
     <div>
       <h3>Navigate</h3>
-      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#ch8-insert" style="color:#9fe0d6">Chapter 8</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch8-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch8-quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#ch8-insert" style="color:#9fe0d6">Chapter 8</a> · <a href="#ch9-intro" style="color:#9fe0d6">Chapter 9</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch9-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch9-quiz" style="color:#9fe0d6">Quiz</a></p>
       <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
     </div>
   </div>
@@ -7004,7 +7918,7 @@ ALTER TABLE dbo.OrderDetails ADD CONSTRAINT FK_OrderDetails_Orders
   "use strict";
 
   /* ---------- tiny T-SQL highlighter ---------- */
-  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP OUTPUT IDENTITY SEQUENCE EXEC PROC MATCHED BULK DECLARE GO USING PIVOT UNPIVOT APPLY CROSS OUTER INNER JOIN LEFT RIGHT FULL UNION EXCEPT INTERSECT WITH CUBE ROLLUP WHILE BREAK CONTINUE RETURN BEGIN CATCH NOCOUNT MINVALUE MAXVALUE CYCLE CACHE START INCREMENT NO").split(" "));
+  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP OUTPUT IDENTITY SEQUENCE EXEC PROC MATCHED BULK DECLARE GO USING PIVOT UNPIVOT APPLY CROSS OUTER INNER JOIN LEFT RIGHT FULL UNION EXCEPT INTERSECT WITH CUBE ROLLUP WHILE BREAK CONTINUE RETURN BEGIN CATCH NOCOUNT MINVALUE MAXVALUE CYCLE CACHE START INCREMENT NO GENERATED ALWAYS PERIOD SYSTEM_TIME SYSTEM_VERSIONING HISTORY_TABLE HISTORY_RETENTION_PERIOD HIDDEN TRAN COMMIT ROLLBACK CONTAINED ZONE CLUSTERED INDEX DAYS WEEKS MONTHS YEARS INFINITE").split(" "));
   var TYPES = new Set(["INT","VARCHAR","NVARCHAR","NCHAR","DATE","DATETIME","SMALLDATETIME","DATETIME2","DATETIMEOFFSET","TIME","MONEY","BIT","DECIMAL","NUMERIC","BIGINT","SMALLINT","TINYINT","FLOAT","TEXT","CHAR","VARBINARY","SQL_VARIANT","SYSNAME","ROWVERSION"]);
   var FUNCS = new Set(["SYSDATETIME","GETDATE","GETUTCDATE","SYSUTCDATETIME","SYSDATETIMEOFFSET","COUNT","YEAR","MONTH","DAY","CAST","CONVERT","PARSE","TRY_CAST","TRY_CONVERT","TRY_PARSE","COALESCE","ISNULL","DATEADD","DATEDIFF","DATEDIFF_BIG","DATEPART","DATENAME","DATETRUNC","EOMONTH","GENERATE_SERIES","STRING_SPLIT","STRING_AGG","CONCAT","CONCAT_WS","SUBSTRING","LEFT","RIGHT","LEN","DATALENGTH","CHARINDEX","PATINDEX","REPLACE","TRANSLATE","STUFF","UPPER","LOWER","RTRIM","LTRIM","TRIM","FORMAT","COMPRESS","DECOMPRESS","ROW_NUMBER","SCOPE_IDENTITY","IDENT_CURRENT","NEWID","NEWSEQUENTIALID","OBJECT_ID","OBJECTPROPERTY","COLUMNPROPERTY","SERVERPROPERTY","DATABASEPROPERTYEX","SCHEMA_NAME","TYPE_NAME"]);
 
