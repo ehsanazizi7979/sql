@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>T-SQL Fundamentals — Chapters 1–11 | Plain-English Study Companion</title>
-<meta name="description" content="Plain-English summaries of Chapters 1–11 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, code samples, and original study diagrams.">
+<title>T-SQL Fundamentals · Complete Book (Chapters 1–12) | Plain-English Study Companion</title>
+<meta name="description" content="Plain-English summaries of all twelve chapters of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, code samples, and original study diagrams.">
 <style>
   :root{
     --paper:#f7f4ed;
@@ -237,29 +237,29 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="#top"><span class="brand-mark">1–11</span> T-SQL Fundamentals · Chapters 1–11</a>
+    <a class="brand" href="#top"><span class="brand-mark">1–12</span> T-SQL Fundamentals · Complete book</a>
     <div class="topbar-meta">
-      <span>Plain-English summaries</span><span class="dot"></span><span>16 figures + 9 tables + 15 diagrams</span><span class="dot"></span><span>404+ code samples</span>
+      <span>Plain-English summaries</span><span class="dot"></span><span>16 figures + 9 tables + 18 diagrams</span><span class="dot"></span><span>434+ code samples</span>
     </div>
-    <a class="pill" href="#ch11-intro">Jump to Chapter 11 ↓</a>
+    <a class="pill" href="#ch12-variables">Jump to Chapter 12 ↓</a>
   </div>
 </header>
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <span class="eyebrow">📘 Chapters 1–11 · T-SQL Fundamentals, 4th Edition</span>
+    <span class="eyebrow">📘 The complete book · Chapters 1–12 · T-SQL Fundamentals, 4th Edition</span>
     <h1>The ideas behind the queries</h1>
-    <p class="lede">A plain-English study companion for Chapters 1–11 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
+    <p class="lede">A plain-English study companion for the whole of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — all twelve chapters — with the book’s figures, tables, and code, explained from the ground up.</p>
     <div class="chips">
-      <span class="chip">11 chapters · 490 book pages</span>
+      <span class="chip">12 chapters · 525 book pages</span>
       <span class="chip">16 figures + 9 tables from the book</span>
-      <span class="chip">15 original study diagrams</span>
-      <span class="chip">404+ code samples</span>
-      <span class="chip">~190 min read</span>
+      <span class="chip">18 original study diagrams</span>
+      <span class="chip">434+ code samples</span>
+      <span class="chip">~205 min read</span>
     </div>
     <div class="hero-quote">
-      <span>The eleven-chapter version</span>
-      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets. Chapter 8 switches from reading to writing: inserts, deletes, updates, <code>MERGE</code>, key generation, and the <code>OUTPUT</code> clause. Chapter 9 puts a running history behind every row. Chapter 10 asks what happens when those statements run at the same time: transactions, locks, blocking, isolation levels, and deadlocks. Chapter 11 rebuilds the same data as a graph, where relationships themselves become tables you can query with arrows.</p>
+      <span>The complete-book version</span>
+      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets. Chapter 8 switches from reading to writing: inserts, deletes, updates, <code>MERGE</code>, key generation, and the <code>OUTPUT</code> clause. Chapter 9 puts a running history behind every row. Chapter 10 asks what happens when those statements run at the same time: transactions, locks, blocking, isolation levels, and deadlocks. Chapter 11 rebuilds the same data as a graph, where relationships themselves become tables you can query with arrows. Chapter 12 closes the book with the programmability layer: batches, flow, cursors, temporary tables, dynamic SQL, routines, and error handling.</p>
     </div>
   </div>
 </section>
@@ -377,9 +377,20 @@
       <a href="#ch11-practice"><span class="n">11.8</span> Practice: 4 exercises</a>
       <a href="#ch11-recap"><span class="n">11.9</span> Recap &amp; key terms</a>
       <a href="#ch11-quiz"><span class="n">11.10</span> Check yourself</a>
+      <div class="toc-group">Chapter 12 · Programmable objects</div>
+      <a href="#ch12-variables"><span class="n">12.1</span> Variables</a>
+      <a href="#ch12-batches"><span class="n">12.2</span> Batches</a>
+      <a href="#ch12-flow"><span class="n">12.3</span> Flow elements</a>
+      <a href="#ch12-cursors"><span class="n">12.4</span> Cursors</a>
+      <a href="#ch12-temp"><span class="n">12.5</span> Temporary tables</a>
+      <a href="#ch12-dynamic"><span class="n">12.6</span> Dynamic SQL</a>
+      <a href="#ch12-routines"><span class="n">12.7</span> Routines</a>
+      <a href="#ch12-errors"><span class="n">12.8</span> Error handling</a>
+      <a href="#ch12-recap"><span class="n">12.9</span> Recap &amp; key terms</a>
+      <a href="#ch12-quiz"><span class="n">12.10</span> Check yourself</a>
     </nav>
     <div class="toc-foot">
-      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit; Chapter 8 turns that toolkit toward changing data; Chapter 9 records every change; Chapter 10 keeps it all correct when many sessions run at once; Chapter 11 models the data as a graph. If you only have five minutes, read the eleven recaps.
+      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit; Chapter 8 turns that toolkit toward changing data; Chapter 9 records every change; Chapter 10 keeps it all correct when many sessions run at once; Chapter 11 models the data as a graph, and Chapter 12 covers the programmability layer. If you only have five minutes, read the twelve recaps.
     </div>
   </aside>
 
@@ -10230,6 +10241,1106 @@ ORDER BY sortkey DESC;</code></pre>
       </details>
     </section>
 
+    <!-- ================= CHAPTER 12 ================= -->
+    <div class="part-divider" id="chapter-12">
+      <span class="part-eyebrow">Chapter 12 · Programmable objects</span>
+      <h2>T-SQL that writes T-SQL</h2>
+      <p>The book closes with a tour of its programmability surface: variables and the batches they live in, flow elements, cursors, temporary tables, dynamic SQL, routines, and error handling. The chapter is a reference for the language elements mentioned earlier in the book rather than an exhaustive guide — and, being the last chapter, it has no exercises section.</p>
+      <div class="part-chips">
+        <span>Book pages 491–525</span>
+        <span>Final chapter of the book</span>
+        <span>3 original diagrams</span>
+      </div>
+    </div>
+
+    <!-- 12.1 -->
+    <section class="section" id="ch12-variables">
+      <div class="section-head">
+        <div class="sec-num">12.1</div>
+        <div>
+          <div class="kicker">Variables</div>
+          <h2>SET, or the assignment SELECT</h2>
+        </div>
+      </div>
+      <p class="lead">A variable temporarily stores a data value for later use in the same <strong>batch</strong> in which it was declared. You declare with <code>DECLARE</code> and assign with <code>SET</code>:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · declare, then assign</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @i AS INT;
+SET @i = 10;
+
+-- or declare and initialize in one statement
+DECLARE @i AS INT = 10;</code></pre>
+      </div>
+      <p>The value you assign must be the result of a <strong>scalar</strong> expression — which can be a scalar subquery:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a scalar subquery as the value</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>USE TSQLV6;
+
+DECLARE @empname AS NVARCHAR(61);
+
+SET @empname = (SELECT firstname + N' ' + lastname
+                FROM HR.Employees
+                WHERE empid = 3);
+
+SELECT @empname AS empname;
+-- empname
+-- ----------
+-- Judy Lew</code></pre>
+      </div>
+      <p><code>SET</code> handles one variable at a time, so pulling several attributes from the same row means several statements — and several trips to the table. T-SQL also supports a nonstandard <strong>assignment SELECT</strong> that fills several variables from one row in a single statement:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · two SETs vs. one assignment SELECT</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>-- Two separate SET statements, two scans
+DECLARE @firstname AS NVARCHAR(20), @lastname AS NVARCHAR(40);
+SET @firstname = (SELECT firstname FROM HR.Employees WHERE empid = 3);
+SET @lastname  = (SELECT lastname  FROM HR.Employees WHERE empid = 3);
+
+-- One assignment SELECT, one scan
+DECLARE @firstname AS NVARCHAR(20), @lastname AS NVARCHAR(40);
+SELECT
+  @firstname = firstname,
+  @lastname  = lastname
+FROM HR.Employees
+WHERE empid = 3;</code></pre>
+      </div>
+      <div class="warn">
+        <strong>The assignment SELECT hides a bug when more than one row qualifies</strong>
+        It doesn’t fail. The assignments happen per qualifying row, each row overwriting the previous values, and you end up with whichever row SQL Server happened to access last — an order you cannot control. Run it against <code>WHERE mgrid = 2</code> and you might get <em>Sven Mortensen</em> today and <em>Judy Lew</em> tomorrow.
+      </div>
+      <p><code>SET</code> is the safer habit precisely because it forces you through a scalar subquery, and a scalar subquery <em>fails</em> if it returns more than one value:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">Msg 512</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @empname AS NVARCHAR(61);
+SET @empname = (SELECT firstname + N' ' + lastname
+                FROM HR.Employees
+                WHERE mgrid = 2);
+SELECT @empname AS empname;
+-- Msg 512, Level 16, State 1, Line 71
+-- Subquery returned more than 1 value. This is not permitted when the subquery
+-- follows =, !=, &lt;, &lt;= , &gt;, &gt;= or when the subquery is used as an expression.
+-- empname
+-- --------
+-- NULL</code></pre>
+      </div>
+      <p>Note the final detail: because the assignment never happened, the variable keeps its default — <code>NULL</code>, which is the value of every variable you declare without initializing.</p>
+    </section>
+
+    <!-- 12.2 -->
+    <section class="section" id="ch12-batches">
+      <div class="section-head">
+        <div class="sec-num">12.2</div>
+        <div>
+          <div class="kicker">Batches</div>
+          <h2>The unit of parsing, resolution, and scope</h2>
+        </div>
+      </div>
+      <p class="lead">A batch is one or more T-SQL statements sent by a client application to SQL Server for execution as a single unit. It undergoes <strong>parsing</strong> (syntax checking), <strong>resolution/binding</strong> (checking that referenced objects and columns exist, and permissions), and <strong>optimization</strong> as a unit.</p>
+      <div class="note">
+        <strong>Batches are not transactions</strong>
+        A transaction is an atomic unit of work; a batch is a unit of parsing. A batch can contain several transactions, and one transaction can be spread over several batches. When a transaction is rolled back, SQL Server undoes everything back to the start of the <em>transaction</em>, wherever the batch boundaries happen to be.
+      </div>
+      <p>Client APIs such as ADO.NET have methods for submitting a batch. Client tools — SSMS, Azure Data Studio, SQLCMD, OSQL — use a command called <code>GO</code> to mark the end of a batch. <code>GO</code> is a <strong>client tool command, not a T-SQL server command</strong>, and unlike T-SQL statements you do not terminate it with a semicolon.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">BATCH BOUNDARIES</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 300" role="img" aria-label="Diagram of three batches separated by GO: the first and third parse and execute, the second has a syntax error so the whole batch is never submitted">
+                <text x="20" y="22" class="jtitle">A BATCH IS PARSED AND RESOLVED AS A WHOLE</text>
+
+                <rect x="20" y="40" width="420" height="60" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="36" y="62" class="jlabel">BATCH 1</text>
+                <text x="36" y="82" class="jcap">PRINT 'First batch'; USE TSQLV6;</text>
+                <rect x="470" y="48" width="410" height="44" rx="7" fill="#ffffff" stroke="#0f6b63" stroke-width="1.3"/>
+                <text x="675" y="76" text-anchor="middle" class="jcap">parses fine, so the whole batch is submitted and runs</text>
+
+                <rect x="20" y="120" width="420" height="60" rx="8" fill="#fdf3e3" stroke="#b45309" stroke-width="1.5"/>
+                <text x="36" y="142" class="jlabel">BATCH 2</text>
+                <text x="36" y="162" class="jcap">SELECT orderid FOM Sales.Orders;   -- typo</text>
+                <rect x="470" y="128" width="410" height="44" rx="7" fill="#ffffff" stroke="#b45309" stroke-width="1.3"/>
+                <text x="675" y="156" text-anchor="middle" class="jcap">syntax error: nothing in the batch runs</text>
+
+                <rect x="20" y="200" width="420" height="60" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="36" y="222" class="jlabel">BATCH 3</text>
+                <text x="36" y="242" class="jcap">SELECT empid FROM HR.Employees;</text>
+                <rect x="470" y="208" width="410" height="44" rx="7" fill="#ffffff" stroke="#0f6b63" stroke-width="1.3"/>
+                <text x="675" y="236" text-anchor="middle" class="jcap">unaffected: still parsed and executed</text>
+
+                <text x="450" y="288" text-anchor="middle" class="jcap">GO is a client tool command, not a T-SQL statement — and a variable declared in one batch does not exist in the next.</text>
+              </svg>
+            </div>
+            <p class="fig-cap">Where you put GO changes what happens</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> three batches separated by <code>GO</code>. A syntax error anywhere in a batch means <em>none</em> of that batch reaches the server — but the batches before and after it are untouched. That is why batch boundaries matter so much: they decide what fails together.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">Variables are local to their batch <span class="tag">p. 495</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the variable dies at GO</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @i AS INT;
+SET @i = 10;
+-- Succeeds
+PRINT @i;
+GO
+-- Fails
+PRINT @i;
+-- 10
+-- Msg 137, Level 15, State 2, Line 106
+-- Must declare the scalar variable "@i".</code></pre>
+      </div>
+
+      <h3 class="subhead">Statements that must stand alone <span class="tag">p. 495</span></h3>
+      <p>These cannot be combined with other statements in the same batch: <code>CREATE DEFAULT</code>, <code>CREATE FUNCTION</code>, <code>CREATE PROCEDURE</code>, <code>CREATE RULE</code>, <code>CREATE SCHEMA</code>, <code>CREATE TRIGGER</code>, and <code>CREATE VIEW</code>.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · Msg 111, and the fix</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>/* invalid: two statements in one batch */
+DROP VIEW IF EXISTS Sales.MyView;
+CREATE VIEW Sales.MyView
+AS
+SELECT YEAR(orderdate) AS orderyear, COUNT(*) AS numorders
+FROM Sales.Orders
+GROUP BY YEAR(orderdate);
+GO
+-- Msg 111, Level 15, State 1, Line 113
+-- 'CREATE VIEW' must be the first statement in a query batch.
+
+/* valid: separate the two with GO */
+DROP VIEW IF EXISTS Sales.MyView;
+GO
+CREATE VIEW Sales.MyView
+AS
+SELECT YEAR(orderdate) AS orderyear, COUNT(*) AS numorders
+FROM Sales.Orders
+GROUP BY YEAR(orderdate);
+GO</code></pre>
+      </div>
+
+      <h3 class="subhead">A batch as a unit of resolution <span class="tag">p. 496</span></h3>
+      <p>Checking that objects and columns exist happens at the <em>batch</em> level, so a schema change and a query against the new column cannot share a batch:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · Msg 207, and the best practice</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>/* fails: the SELECT is resolved before the ALTER takes effect */
+ALTER TABLE dbo.T1 ADD col2 INT;
+SELECT col1, col2 FROM dbo.T1;
+-- Msg 207, Level 16, State 1, Line 130
+-- Invalid column name 'col2'.
+
+/* works: separate DDL and DML into different batches */
+ALTER TABLE dbo.T1 ADD col2 INT;
+GO
+SELECT col1, col2 FROM dbo.T1;</code></pre>
+      </div>
+      <p>That is the general recommendation: keep data definition language (DDL) and data manipulation language (DML) in separate batches.</p>
+
+      <h3 class="subhead">GO n <span class="tag">p. 496</span></h3>
+      <p><code>GO</code> accepts an argument telling the client tool how many times to execute the batch — handy for generating test data:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · one hundred rows, one command</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SET NOCOUNT ON;
+DROP TABLE IF EXISTS dbo.T1;
+CREATE TABLE dbo.T1(col1 INT IDENTITY);
+
+INSERT INTO dbo.T1 DEFAULT VALUES;
+GO 100
+
+SELECT * FROM dbo.T1;   -- 100 rows, values 1 through 100</code></pre>
+      </div>
+    </section>
+
+    <!-- 12.3 -->
+    <section class="section" id="ch12-flow">
+      <div class="section-head">
+        <div class="sec-num">12.3</div>
+        <div>
+          <div class="kicker">Flow elements</div>
+          <h2>IF … ELSE and WHILE</h2>
+        </div>
+      </div>
+      <p class="lead">T-SQL gives you two flow elements: <code>IF … ELSE</code> to branch, and <code>WHILE</code> to loop.</p>
+
+      <h3 class="subhead">IF … ELSE <span class="tag">p. 497</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · is today the last day of the year?</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>IF YEAR(SYSDATETIME()) &lt;&gt; YEAR(DATEADD(day, 1, SYSDATETIME()))
+  PRINT 'Today is the last day of the year.';
+ELSE
+  PRINT 'Today is not the last day of the year.';</code></pre>
+      </div>
+      <div class="warn">
+        <strong>ELSE means “FALSE or UNKNOWN”</strong>
+        T-SQL uses three-valued logic. If NULLs make both FALSE and UNKNOWN possible and you need to treat them differently, test for NULL explicitly with <code>IS NULL</code>.
+      </div>
+      <p>For more than two cases, nest the elements; for more than one statement per branch, wrap them in a <code>BEGIN … END</code> block:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · nested cases and statement blocks</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>IF YEAR(SYSDATETIME()) &lt;&gt; YEAR(DATEADD(day, 1, SYSDATETIME()))
+  PRINT 'Today is the last day of the year.';
+ELSE
+  IF MONTH(SYSDATETIME()) &lt;&gt; MONTH(DATEADD(day, 1, SYSDATETIME()))
+    PRINT 'Today is the last day of the month but not the last day of the year.';
+  ELSE
+    PRINT 'Today is not the last day of the month.';
+
+IF DAY(SYSDATETIME()) = 1
+BEGIN
+  PRINT 'Today is the first day of the month.';
+  PRINT 'Starting first-of-month-day process.';
+  /* ... process code goes here ... */
+  PRINT 'Finished first-of-month-day database process.';
+END;
+ELSE
+BEGIN
+  PRINT 'Today is not the first day of the month.';
+  PRINT 'Starting non-first-of-month-day process.';
+END;</code></pre>
+      </div>
+
+      <h3 class="subhead">WHILE, BREAK, and CONTINUE <span class="tag">p. 498</span></h3>
+      <p>The loop runs while the predicate is TRUE and stops when it is FALSE or UNKNOWN. T-SQL has no fixed-count loop, so you mimic one with a counter:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · ten iterations</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @i AS INT = 1;
+WHILE @i &lt;= 10
+BEGIN
+  PRINT @i;
+  SET @i = @i + 1;
+END;</code></pre>
+      </div>
+      <div class="grid grid-2">
+        <div class="card"><div class="mini">BREAK</div><p>Leaves the loop immediately and continues with the statement after the loop’s body. <code>IF @i = 6 BREAK;</code> turns the loop above into five iterations.</p></div>
+        <div class="card"><div class="mini">CONTINUE</div><p>Skips the rest of the current iteration and re-evaluates the predicate. <code>IF @i = 6 CONTINUE;</code> prints 1–5 and 7–10, skipping only the sixth.</p></div>
+      </div>
+      <p>The classic use of a loop is building a helper table. Here’s a small numbers table with 1,000 rows:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · populating dbo.Numbers</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SET NOCOUNT ON;
+DROP TABLE IF EXISTS dbo.Numbers;
+CREATE TABLE dbo.Numbers(n INT NOT NULL PRIMARY KEY);
+GO
+DECLARE @i AS INT = 1;
+WHILE @i &lt;= 1000
+BEGIN
+  INSERT INTO dbo.Numbers(n) VALUES(@i);
+  SET @i = @i + 1;
+END;</code></pre>
+      </div>
+    </section>
+
+    <!-- 12.4 -->
+    <section class="section" id="ch12-cursors">
+      <div class="section-head">
+        <div class="sec-num">12.4</div>
+        <div>
+          <div class="kicker">Cursors</div>
+          <h2>One row at a time, when you really must</h2>
+        </div>
+      </div>
+      <p class="lead">A cursor is an object that lets you process the rows of a query result one at a time and in a requested order — the opposite of a set-based query, which manipulates the whole set at once. Your default should always be set-based.</p>
+
+      <h3 class="subhead">Why set-based first <span class="tag">p. 501</span></h3>
+      <ul class="checklist">
+        <li><strong>Cursors fight the relational model</strong>, which is built on set theory.</li>
+        <li><strong>Row-by-row processing has real overhead</strong> — given cursor code and set-based code doing similar physical work behind the scenes, the cursor version is usually many times slower.</li>
+        <li><strong>Cursor code is imperative</strong>: you dictate <em>how</em> (declare, open, loop, close, deallocate). Set-based code is declarative: you say <em>what</em> you want. Cursor solutions end up longer, less readable, and harder to maintain.</li>
+      </ul>
+      <p>Most people find cursors more intuitive at first, which is exactly why they are so widely misused. Adopting the set-based state of mind takes time — sometimes years — but it is the right way to think in a language built on the relational model. That said, there are legitimate exceptions:</p>
+      <div class="grid grid-2">
+        <div class="card"><div class="mini">Per-object administrative tasks</div><p>Running some task for each index or table in a database genuinely means iterating over a list of names.</p></div>
+        <div class="card"><div class="mini">When tuning has been exhausted</div><p>Running aggregates on SQL Server versions without the window frame option are a famous case: relational solutions using joins or subqueries are extremely slow, and a cursor is usually optimal. With window functions available, they are not.</p></div>
+      </div>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">THE SIX STEPS OF A CURSOR</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 260" role="img" aria-label="Flow diagram of the six steps of working with a cursor: declare, open, fetch the first row, loop while the fetch status is zero processing and fetching, close, and deallocate">
+                <defs>
+                  <marker id="arrow12" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                  <marker id="arrow12b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#b45309"/>
+                  </marker>
+                </defs>
+                <text x="20" y="24" class="jtitle">DECLARE · OPEN · FETCH · LOOP · CLOSE · DEALLOCATE</text>
+
+                <rect x="20" y="55" width="240" height="56" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="140" y="78" text-anchor="middle" class="jlabel">1 · DECLARE CURSOR</text>
+                <text x="140" y="96" text-anchor="middle" class="jcap">based on a query</text>
+
+                <rect x="290" y="55" width="150" height="56" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="365" y="78" text-anchor="middle" class="jlabel">2 · OPEN</text>
+                <text x="365" y="96" text-anchor="middle" class="jcap">execute the query</text>
+
+                <rect x="470" y="55" width="410" height="56" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="675" y="78" text-anchor="middle" class="jlabel">3 · FETCH NEXT INTO @vars</text>
+                <text x="675" y="96" text-anchor="middle" class="jcap">first row into variables</text>
+
+                <line x1="262" y1="83" x2="285" y2="83" stroke="#0f6b63" stroke-width="1.8" marker-end="url(#arrow12)"/>
+                <line x1="442" y1="83" x2="465" y2="83" stroke="#0f6b63" stroke-width="1.8" marker-end="url(#arrow12)"/>
+
+                <rect x="20" y="140" width="480" height="66" rx="8" fill="#fdf3e3" stroke="#b45309" stroke-width="1.5"/>
+                <text x="260" y="165" text-anchor="middle" class="jlabel">4 · WHILE @@FETCH_STATUS = 0</text>
+                <text x="260" y="185" text-anchor="middle" class="jcap">process the current row, then FETCH NEXT again</text>
+
+                <rect x="530" y="140" width="165" height="66" rx="8" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="612" y="165" text-anchor="middle" class="jlabel">5 · CLOSE</text>
+                <text x="612" y="185" text-anchor="middle" class="jcap">release the row set</text>
+
+                <rect x="715" y="140" width="165" height="66" rx="8" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="797" y="165" text-anchor="middle" class="jlabel">6 · DEALLOCATE</text>
+                <text x="797" y="185" text-anchor="middle" class="jcap">free the resources</text>
+
+                <path d="M 675 111 C 675 140, 600 150, 508 168" fill="none" stroke="#0f6b63" stroke-width="1.8" marker-end="url(#arrow12)"/>
+                <line x1="502" y1="173" x2="525" y2="173" stroke="#0f6b63" stroke-width="1.8" marker-end="url(#arrow12)"/>
+                <line x1="697" y1="173" x2="710" y2="173" stroke="#0f6b63" stroke-width="1.8" marker-end="url(#arrow12)"/>
+
+                <path d="M 300 206 C 300 244, 80 248, 62 212" fill="none" stroke="#b45309" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#arrow12b)"/>
+                <text x="420" y="242" text-anchor="middle" class="jcap">back to step 4 while @@FETCH_STATUS = 0</text>
+              </svg>
+            </div>
+            <p class="fig-cap">What every cursor costs you</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> six mandatory steps, and a loop you drive yourself. The dashed arrow is the part you have to hand-code: check <code>@@FETCH_STATUS</code>, process the row, fetch again. Compare that with the one-line window-function alternative below and you can see why the book insists on set-based thinking.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">Worked example: running totals <span class="tag">p. 502</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the cursor solution</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SET NOCOUNT ON;
+
+-- Table variable to hold the final result
+DECLARE @Result AS TABLE
+(
+  custid     INT,
+  ordermonth DATE,
+  qty        INT,
+  runqty     INT,
+  PRIMARY KEY(custid, ordermonth)
+);
+
+DECLARE
+  @custid     AS INT,
+  @prvcustid  AS INT,
+  @ordermonth AS DATE,
+  @qty        AS INT,
+  @runqty     AS INT;
+
+-- Step 1: Declare the cursor based on a query
+DECLARE C CURSOR FAST_FORWARD /* read only, forward only */ FOR
+  SELECT custid, ordermonth, qty
+  FROM Sales.CustOrders
+  ORDER BY custid, ordermonth;
+
+-- Step 2: Open the cursor
+OPEN C;
+
+-- Step 3: Fetch attribute values from the first cursor record into variables
+FETCH NEXT FROM C INTO @custid, @ordermonth, @qty;
+
+SELECT @prvcustid = @custid, @runqty = 0;
+
+-- Step 4: Loop through the cursor records
+WHILE @@FETCH_STATUS = 0
+BEGIN
+  IF @custid &lt;&gt; @prvcustid
+    SELECT @prvcustid = @custid, @runqty = 0;
+  SET @runqty = @runqty + @qty;
+  INSERT INTO @Result VALUES(@custid, @ordermonth, @qty, @runqty);
+  FETCH NEXT FROM C INTO @custid, @ordermonth, @qty;
+END;
+
+-- Step 5: Close the cursor
+CLOSE C;
+
+-- Step 6: Deallocate the cursor
+DEALLOCATE C;
+
+SET NOCOUNT OFF;
+
+SELECT
+  custid,
+  CONVERT(VARCHAR(7), ordermonth, 121) AS ordermonth,
+  qty,
+  runqty
+FROM @Result
+ORDER BY custid, ordermonth;
+-- custid  ordermonth qty   runqty
+-- 1       2021-08    38    38
+-- 1       2021-10    41    79
+-- 1       2022-01    17    96
+-- ...     (636 rows)</code></pre>
+      </div>
+      <p>The same result, without the cursor — and without the table variable, the six steps, or the 636 individual inserts:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the set-based solution</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT custid, ordermonth, qty,
+  SUM(qty) OVER(PARTITION BY custid
+                ORDER BY ordermonth
+                ROWS UNBOUNDED PRECEDING) AS runqty
+FROM Sales.CustOrders
+ORDER BY custid, ordermonth;</code></pre>
+      </div>
+    </section>
+
+    <!-- 12.5 -->
+    <section class="section" id="ch12-temp">
+      <div class="section-head">
+        <div class="sec-num">12.5</div>
+        <div>
+          <div class="kicker">Temporary tables</div>
+          <h2>#local, ##global, and table variables</h2>
+        </div>
+      </div>
+      <p class="lead">Sometimes you need to store data temporarily — intermediate results during a loop, an expensive result you want to reuse, or just a table you lack permission to create permanently. SQL Server offers three kinds, all of which live in <code>tempdb</code>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Local temporary table</th><th>Global temporary table</th><th>Table variable</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Naming</strong></td><td><code>#T1</code></td><td><code>##T1</code></td><td><code>@T1</code> (declared)</td></tr>
+            <tr><td><strong>Visible to</strong></td><td>Only the creating session — and only from the creating level inward in the call stack</td><td>All sessions</td><td>Only the creating session, and only the current <em>batch</em></td></tr>
+            <tr><td><strong>Destroyed when</strong></td><td>The creating level goes out of scope (or the session disconnects, if created at the outermost level where <code>@@NESTLEVEL</code> is 0)</td><td>The creating session disconnects <em>and</em> no active references remain</td><td>The batch ends</td></tr>
+            <tr><td><strong>Rolled back with the transaction?</strong></td><td>Yes</td><td>Yes</td><td>No — only the active statement that failed is undone</td></tr>
+            <tr><td><strong>Good for</strong></td><td>Anything beyond a few rows</td><td>Sharing temporary data with everyone</td><td>Small volumes of data (a few rows)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Comparison table drawn from the book’s “Temporary tables” section, pp. 505–509.</p>
+
+      <h3 class="subhead">Local temporary tables <span class="tag">p. 505</span></h3>
+      <p>SQL Server appends an internal suffix so two sessions can each create <code>#T1</code> without colliding — you always refer to the table by the name you gave it, and only your session can see it. A typical use is doing expensive work once and reusing the small result:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · aggregate once, join twice</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS #MyOrderTotalsByYear;
+GO
+CREATE TABLE #MyOrderTotalsByYear
+(
+  orderyear INT NOT NULL PRIMARY KEY,
+  qty       INT NOT NULL
+);
+
+INSERT INTO #MyOrderTotalsByYear(orderyear, qty)
+  SELECT
+    YEAR(O.orderdate) AS orderyear,
+    SUM(OD.qty) AS qty
+  FROM Sales.Orders AS O
+    INNER JOIN Sales.OrderDetails AS OD
+      ON OD.orderid = O.orderid
+  GROUP BY YEAR(orderdate);
+
+SELECT Cur.orderyear, Cur.qty AS curyearqty, Prv.qty AS prvyearqty
+FROM #MyOrderTotalsByYear AS Cur
+  LEFT OUTER JOIN #MyOrderTotalsByYear AS Prv
+    ON Cur.orderyear = Prv.orderyear + 1;
+-- orderyear   curyearqty  prvyearqty
+-- 2020        9581        NULL
+-- 2021        25489       9581
+-- 2022        16247       25489
+
+-- from another session:
+SELECT orderyear, qty FROM #MyOrderTotalsByYear;
+-- Msg 208, Level 16, State 0, Line 1
+-- Invalid object name '#MyOrderTotalsByYear'.
+
+DROP TABLE IF EXISTS #MyOrderTotalsByYear;</code></pre>
+      </div>
+      <p>Two table expressions would have made SQL Server do the scan, join, and aggregate twice. Because the result is tiny — one row per order year — materializing it once is the better plan. Clean up as soon as you are done.</p>
+
+      <h3 class="subhead">Global temporary tables <span class="tag">p. 507</span></h3>
+      <p>Create with a <code>##</code> prefix and every session can see it. No special permissions are required and everyone has full DDL and DML access — which is the point, and also the risk. A common use is mimicking global variables, which T-SQL does not support:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · fake global variables</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE TABLE ##Globals
+(
+  id  sysname     NOT NULL PRIMARY KEY,
+  val SQL_VARIANT NOT NULL
+);
+
+INSERT INTO ##Globals(id, val) VALUES(N'I', CAST(10 AS INT));
+
+-- from any session:
+SELECT val FROM ##Globals WHERE id = N'I';   -- 10
+
+DROP TABLE IF EXISTS ##Globals;</code></pre>
+      </div>
+      <div class="note">
+        <strong>Keeping a global temp table alive</strong>
+        If you want it created every time SQL Server starts and never automatically destroyed, create it from a stored procedure marked as a startup procedure — see <code>sp_procoption</code> in the product documentation.
+      </div>
+
+      <h3 class="subhead">Table variables <span class="tag">p. 508</span></h3>
+      <p>Like local temp tables, table variables have a <strong>physical presence in tempdb</strong> — contrary to the common misconception that they live only in memory. Unlike them, their scope as <em>variables</em> is narrower: only the current batch, so inner batches in the call stack and later batches in the session cannot see them. And they behave differently on rollback: if an explicit transaction is rolled back, changes to temporary tables roll back too, but changes made to table variables by statements that <em>completed</em> in that transaction are kept.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the same task with a table variable</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @MyOrderTotalsByYear TABLE
+(
+  orderyear INT NOT NULL PRIMARY KEY,
+  qty       INT NOT NULL
+);
+
+INSERT INTO @MyOrderTotalsByYear(orderyear, qty)
+  SELECT
+    YEAR(O.orderdate) AS orderyear,
+    SUM(OD.qty) AS qty
+  FROM Sales.Orders AS O
+    INNER JOIN Sales.OrderDetails AS OD
+      ON OD.orderid = O.orderid
+  GROUP BY YEAR(orderdate);
+
+SELECT Cur.orderyear, Cur.qty AS curyearqty, Prv.qty AS prvyearqty
+FROM @MyOrderTotalsByYear AS Cur
+  LEFT OUTER JOIN @MyOrderTotalsByYear AS Prv
+    ON Cur.orderyear = Prv.orderyear + 1;</code></pre>
+      </div>
+      <p>And the reminder the book keeps repeating: this particular task needs neither a temp table nor a self-join — <code>LAG</code> does it in one pass.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · no temporary storage at all</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT
+  YEAR(O.orderdate) AS orderyear,
+  SUM(OD.qty) AS curyearqty,
+  LAG(SUM(OD.qty)) OVER(ORDER BY YEAR(orderdate)) AS prvyearqty
+FROM Sales.Orders AS O
+  INNER JOIN Sales.OrderDetails AS OD
+    ON OD.orderid = O.orderid
+GROUP BY YEAR(orderdate);</code></pre>
+      </div>
+
+      <h3 class="subhead">Table types <span class="tag">p. 509</span></h3>
+      <p>A table type preserves a table definition as an object in the database so you can reuse it as the definition of table variables and of input parameters to stored procedures and functions. Table types are required for table-valued parameters (TVPs).</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · define once, reuse everywhere</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TYPE IF EXISTS dbo.OrderTotalsByYear;
+CREATE TYPE dbo.OrderTotalsByYear AS TABLE
+(
+  orderyear INT NOT NULL PRIMARY KEY,
+  qty       INT NOT NULL
+);
+
+DECLARE @MyOrderTotalsByYear AS dbo.OrderTotalsByYear;
+
+INSERT INTO @MyOrderTotalsByYear(orderyear, qty)
+  SELECT
+    YEAR(O.orderdate) AS orderyear,
+    SUM(OD.qty) AS qty
+  FROM Sales.Orders AS O
+    INNER JOIN Sales.OrderDetails AS OD
+      ON OD.orderid = O.orderid
+  GROUP BY YEAR(orderdate);
+
+SELECT orderyear, qty FROM @MyOrderTotalsByYear;
+-- orderyear   qty
+-- 2020        9581
+-- 2021        25489
+-- 2022        16247</code></pre>
+      </div>
+    </section>
+
+    <!-- 12.6 -->
+    <section class="section" id="ch12-dynamic">
+      <div class="section-head">
+        <div class="sec-num">12.6</div>
+        <div>
+          <div class="kicker">Dynamic SQL</div>
+          <h2>Code that builds code</h2>
+        </div>
+      </div>
+      <p class="lead">Dynamic SQL means constructing a batch of T-SQL as a character string and then executing it. SQL Server gives you two ways to do that: the <code>EXEC</code> command and the <code>sp_executesql</code> stored procedure.</p>
+      <p>Typical uses: automating administrative tasks (query metadata, then build and run <code>BACKUP DATABASE</code> for every database); improving performance by building parameterized ad-hoc queries that can reuse cached plans; and constructing code elements from the data itself — the PIVOT case below.</p>
+
+      <div class="warn">
+        <strong>SQL injection</strong>
+        Be extremely careful when concatenating user input into code: an attacker can inject code you never intended to run. The best defence is to avoid concatenating user input at all — use parameters instead. If you must concatenate, inspect the input thoroughly first.
+      </div>
+
+      <h3 class="subhead">The EXEC command <span class="tag">p. 511</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · EXEC</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @sql AS VARCHAR(100);
+
+SET @sql = 'PRINT ''This message was printed by a dynamic SQL batch.'';';
+
+EXEC(@sql);
+-- This message was printed by a dynamic SQL batch.</code></pre>
+      </div>
+      <p>Note the doubled single quotes: two quotes inside the string produce one quote in the executed batch. <code>EXEC</code> accepts both regular and Unicode strings, and it is also how you run a stored procedure.</p>
+
+      <h3 class="subhead">sp_executesql <span class="tag">p. 511</span></h3>
+      <p><code>sp_executesql</code> is more secure and more flexible, because it has a real interface: input and output parameters. It accepts only <strong>Unicode</strong> strings. You pass the batch in <code>@stmt</code>, the parameter declarations in <code>@params</code>, and then assign the values:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a parameterized dynamic batch</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @sql AS NVARCHAR(100);
+
+SET @sql = N'SELECT orderid, custid, empid, orderdate
+FROM Sales.Orders
+WHERE orderid = @orderid;';
+
+EXEC sp_executesql
+  @stmt = @sql,
+  @params = N'@orderid AS INT',
+  @orderid = 10248;
+-- orderid     custid      empid       orderdate
+-- 10248       85          5           2020-07-04</code></pre>
+      </div>
+      <p>Two payoffs. <strong>Security:</strong> a parameter is an operand in an expression, never part of the code, so injection becomes impossible. <strong>Performance:</strong> because the code string stays identical when only the parameter value changes, SQL Server is far more likely to reuse a previously cached execution plan. Stored procedures with parameters are still the best way to get plan reuse — <code>sp_executesql</code> is the best you can do with ad-hoc code.</p>
+
+      <h3 class="subhead">Dynamic PIVOT <span class="tag">p. 512</span></h3>
+      <p>A static <code>PIVOT</code> forces you to know the spreading values ahead of time, which means editing the query every year:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · static PIVOT</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT *
+FROM (SELECT shipperid, YEAR(orderdate) AS orderyear, freight
+      FROM Sales.Orders) AS D
+  PIVOT(SUM(freight) FOR orderyear IN([2020],[2021],[2022])) AS P;
+-- shipperid   2020         2021          2022
+-- 3           4233.78      11413.35      4865.38
+-- 1           2297.42      8681.38       5206.53
+-- 2           3748.67      12374.04      12122.14</code></pre>
+      </div>
+      <p>Query the distinct years from the data, build the <code>IN</code> clause with <code>STRING_AGG</code> and <code>QUOTENAME</code>, and execute it:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · dynamic PIVOT</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @sql AS NVARCHAR(1000) = N'SELECT *
+FROM (SELECT shipperid, YEAR(orderdate) AS orderyear, freight
+      FROM Sales.Orders) AS D
+  PIVOT(SUM(freight) FOR orderyear IN('
+  + (SELECT STRING_AGG(QUOTENAME(orderyear), N',') WITHIN GROUP(ORDER BY orderyear)
+     FROM (SELECT DISTINCT(YEAR(orderdate)) AS orderyear FROM Sales.Orders) AS D)
+  + N')) AS P;';
+
+EXEC sys.sp_executesql @stmt = @sql;</code></pre>
+      </div>
+      <p><code>STRING_AGG</code> concatenates the distinct years; <code>QUOTENAME</code> converts each integer year to a Unicode string and wraps it in square brackets so it is a valid column identifier. The subquery produces <code>[2020],[2021],[2022]</code>, and the static pieces around it complete the query.</p>
+    </section>
+
+    <!-- 12.7 -->
+    <section class="section" id="ch12-routines">
+      <div class="section-head">
+        <div class="sec-num">12.7</div>
+        <div>
+          <div class="kicker">Routines</div>
+          <h2>Functions, procedures, and triggers</h2>
+        </div>
+      </div>
+      <p class="lead">Routines encapsulate code to calculate a result or execute activity. SQL Server supports three kinds: user-defined functions, stored procedures, and triggers. You can write them in T-SQL or in .NET via CLR integration; T-SQL is usually better for data manipulation, .NET for iterative logic, string manipulation, or computationally intensive work.</p>
+
+      <h3 class="subhead">User-defined functions <span class="tag">p. 514</span></h3>
+      <p>A UDF encapsulates logic that calculates something — possibly from input parameters — and returns a result. There are scalar UDFs (a single value) and table-valued UDFs (a table); you can embed a scalar UDF anywhere a single-valued expression can go, and a table UDF in a <code>FROM</code> clause.</p>
+      <div class="warn">
+        <strong>UDFs may not have side effects</strong>
+        Obviously they cannot change schema or data — but subtler cases count too. <code>RAND</code> and <code>NEWID</code> both need SQL Server to store internal state between invocations, so they have side effects and cannot be used inside a UDF.
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a scalar UDF that computes age</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE OR ALTER FUNCTION dbo.GetAge
+(
+  @birthdate AS DATE,
+  @eventdate AS DATE
+)
+RETURNS INT
+AS
+BEGIN
+  RETURN
+    DATEDIFF(year, @birthdate, @eventdate)
+    - CASE WHEN 100 * MONTH(@eventdate) + DAY(@eventdate)
+             &lt; 100 * MONTH(@birthdate) + DAY(@birthdate)
+           THEN 1 ELSE 0
+      END;
+END;
+GO
+
+SELECT
+  empid, firstname, lastname, birthdate,
+  dbo.GetAge(birthdate, SYSDATETIME()) AS age
+FROM HR.Employees;
+-- empid  firstname  lastname   birthdate   age
+-- 1      Sara       Davis      1968-12-08  53
+-- 2      Don        Funk       1972-02-19  49
+-- 3      Judy       Lew        1983-08-30  38
+-- ...</code></pre>
+      </div>
+      <p>The age is the difference in years, minus one when the event month and day are earlier in the year than the birth month and day. The expression <code>100 * month + day</code> is just a trick to concatenate month and day — 12 February yields 212.</p>
+      <div class="tip">
+        <strong>Scalar UDF inlining</strong>
+        From SQL Server 2019 and Azure SQL Database (compatibility level 150 or higher, and if the function meets certain requirements), SQL Server inlines a scalar UDF into the outer query before optimizing. Without it, a UDF invoked per row with outer columns as inputs typically costs you a hefty performance penalty; with it, you usually see a significant improvement.
+      </div>
+
+      <h3 class="subhead">Stored procedures <span class="tag">p. 515</span></h3>
+      <p>Procedures can have input and output parameters, return result sets, and — unlike functions — are allowed to have side effects, including schema changes. Compared with ad-hoc code they give you:</p>
+      <ul class="checklist">
+        <li><strong>Encapsulated logic</strong> — change the implementation in one place with <code>ALTER PROC</code> and every caller picks up the new version.</li>
+        <li><strong>Better security control</strong> — grant <code>EXECUTE</code> on the procedure instead of direct permissions on the tables, so validation and auditing always run. Parameterized procedures also help prevent SQL injection.</li>
+        <li><strong>Error handling in one place</strong> — the procedure can absorb errors and take corrective action.</li>
+        <li><strong>Performance</strong> — parameterized queries reuse cached plans, and the client sends only the procedure name and arguments, cutting network round trips.</li>
+      </ul>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a procedure with an output parameter</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE OR ALTER PROC Sales.GetCustomerOrders
+  @custid   AS INT,
+  @fromdate AS DATETIME = '19000101',
+  @todate   AS DATETIME = '99991231',
+  @numrows  AS INT OUTPUT
+AS
+SET NOCOUNT ON;
+
+SELECT orderid, custid, empid, orderdate
+FROM Sales.Orders
+WHERE custid = @custid
+  AND orderdate &gt;= @fromdate
+  AND orderdate &lt; @todate;
+
+SET @numrows = @@rowcount;
+GO
+
+DECLARE @rc AS INT;
+
+EXEC Sales.GetCustomerOrders
+  @custid   = 1,
+  @fromdate = '20210101',
+  @todate   = '20220101',
+  @numrows  = @rc OUTPUT;
+
+SELECT @rc AS numrows;
+-- orderid     custid      empid       orderdate
+-- 10643       1           6           2021-08-25
+-- 10692       1           4           2021-10-03
+-- 10702       1           4           2021-10-13
+-- numrows
+-- 3</code></pre>
+      </div>
+      <p>Defaults on <code>@fromdate</code> and <code>@todate</code> mean callers can omit them; <code>OUTPUT</code> marks <code>@numrows</code> as a return channel; <code>SET NOCOUNT ON</code> suppresses the “rows affected” chatter.</p>
+
+      <h3 class="subhead">Triggers <span class="tag">p. 517</span></h3>
+      <p>A trigger is a special kind of stored procedure that you cannot execute explicitly — it is attached to an event and fires when that event happens. SQL Server attaches triggers to data manipulation events (DML triggers, such as <code>INSERT</code>) and data definition events (DDL triggers, such as <code>CREATE TABLE</code>). Typical uses: auditing, integrity rules that constraints cannot express, and policy enforcement.</p>
+      <div class="note">
+        <strong>Two facts that surprise people</strong>
+        A trigger is part of the transaction that contains the firing event, so <code>ROLLBACK TRAN</code> inside a trigger rolls back the trigger’s changes <em>and</em> the whole transaction. And triggers fire <strong>per statement, not per modified row</strong>.
+      </div>
+      <p>DML triggers come in two flavours: <strong>after</strong> triggers fire once the event finishes and can be defined only on permanent tables; <strong>instead of</strong> triggers fire in place of the event and can be defined on tables and views. Inside the trigger you can read the <code>inserted</code> and <code>deleted</code> pseudo tables holding the affected rows — <code>inserted</code> is the new image (INSERT, UPDATE), <code>deleted</code> the old image (DELETE, UPDATE).</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · an AFTER INSERT audit trigger</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE TABLE dbo.T1
+(
+  keycol  INT         NOT NULL PRIMARY KEY,
+  datacol VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE dbo.T1_Audit
+(
+  audit_lsn  INT          NOT NULL IDENTITY PRIMARY KEY,
+  dt         DATETIME2(3) NOT NULL DEFAULT(SYSDATETIME()),
+  login_name sysname      NOT NULL DEFAULT(ORIGINAL_LOGIN()),
+  keycol     INT          NOT NULL,
+  datacol    VARCHAR(10)  NOT NULL
+);
+GO
+
+CREATE OR ALTER TRIGGER trg_T1_insert_audit ON dbo.T1 AFTER INSERT
+AS
+SET NOCOUNT ON;
+
+INSERT INTO dbo.T1_Audit(keycol, datacol)
+  SELECT keycol, datacol FROM inserted;
+GO
+
+INSERT INTO dbo.T1(keycol, datacol) VALUES(10, 'a');
+INSERT INTO dbo.T1(keycol, datacol) VALUES(30, 'x');
+INSERT INTO dbo.T1(keycol, datacol) VALUES(20, 'g');
+
+SELECT audit_lsn, dt, login_name, keycol, datacol
+FROM dbo.T1_Audit;
+-- audit_lsn   dt                      login_name    keycol  datacol
+-- 1           2022-02-12 09:04:27.713 SHIRE\Gandalf 10      a
+-- 2           2022-02-12 09:04:27.733 SHIRE\Gandalf 30      x
+-- 3           2022-02-12 09:04:27.733 SHIRE\Gandalf 20      g
+
+DROP TABLE dbo.T1_Audit, dbo.T1;</code></pre>
+      </div>
+      <p>DDL triggers come in two scopes — database (for example <code>CREATE TABLE</code>) and server (for example <code>CREATE DATABASE</code>); Azure SQL Database supports only database-scoped ones. SQL Server supports only <em>after</em> DDL triggers, never instead-of. Inside the trigger you call <code>EVENTDATA</code>, which returns the event information as XML, and extract attributes with XQuery <code>.value</code> expressions:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a database-scoped DDL audit trigger</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE OR ALTER TRIGGER trg_audit_ddl_events
+  ON DATABASE FOR DDL_DATABASE_LEVEL_EVENTS
+AS
+SET NOCOUNT ON;
+
+DECLARE @eventdata AS XML = eventdata();
+
+INSERT INTO dbo.AuditDDLEvents(
+  posttime, eventtype, loginname, schemaname,
+  objectname, targetobjectname, eventdata)
+  VALUES(
+    @eventdata.value('(/EVENT_INSTANCE/PostTime)[1]', 'VARCHAR(23)'),
+    @eventdata.value('(/EVENT_INSTANCE/EventType)[1]', 'sysname'),
+    @eventdata.value('(/EVENT_INSTANCE/LoginName)[1]', 'sysname'),
+    @eventdata.value('(/EVENT_INSTANCE/SchemaName)[1]', 'sysname'),
+    @eventdata.value('(/EVENT_INSTANCE/ObjectName)[1]', 'sysname'),
+    @eventdata.value('(/EVENT_INSTANCE/TargetObjectName)[1]', 'sysname'),
+    @eventdata);
+GO</code></pre>
+      </div>
+      <p>Create a table, alter it, add an index, and the audit table records one row per event with the event type, login, schema, object, target object, and the full XML.</p>
+    </section>
+
+    <!-- 12.8 -->
+    <section class="section" id="ch12-errors">
+      <div class="section-head">
+        <div class="sec-num">12.8</div>
+        <div>
+          <div class="kicker">Error handling</div>
+          <h2>TRY … CATCH and the error functions</h2>
+        </div>
+      </div>
+      <p class="lead">You put your usual code in a <code>TRY</code> block and all the error-handling code in the adjacent <code>CATCH</code> block. If the TRY block completes without error, the CATCH block is simply skipped; if anything in it fails, control passes to the CATCH block. And if a <code>TRY … CATCH</code> block handles an error, then as far as the caller is concerned there was no error.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · no error, then error</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>BEGIN TRY
+  PRINT 10/2;
+  PRINT 'No error';
+END TRY
+BEGIN CATCH
+  PRINT 'Error';
+END CATCH;
+-- 5
+-- No error     (CATCH skipped)
+
+BEGIN TRY
+  PRINT 10/0;
+  PRINT 'No error';
+END TRY
+BEGIN CATCH
+  PRINT 'Error';
+END CATCH;
+-- Error        (second PRINT never ran)</code></pre>
+      </div>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">TRY … CATCH CONTROL FLOW</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 300" role="img" aria-label="Flow diagram: if the TRY block has no error the CATCH block is skipped and execution continues, otherwise control passes to the CATCH block which can inspect the error functions and either handle the error or re-throw it">
+                <defs>
+                  <marker id="arrow12c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                  <marker id="arrow12d" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#b45309"/>
+                  </marker>
+                </defs>
+                <rect x="320" y="30" width="260" height="70" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.6"/>
+                <text x="450" y="55" text-anchor="middle" class="jlabel">BEGIN TRY</text>
+                <text x="450" y="73" text-anchor="middle" class="jcap">your usual code</text>
+                <text x="450" y="89" text-anchor="middle" class="jcap">END TRY</text>
+
+                <path d="M 400 100 L 350 146" fill="none" stroke="#0f6b63" stroke-width="1.8" marker-end="url(#arrow12c)"/>
+                <text x="352" y="128" text-anchor="end" class="jcap">no error</text>
+                <path d="M 500 100 L 550 146" fill="none" stroke="#b45309" stroke-width="1.8" marker-end="url(#arrow12d)"/>
+                <text x="548" y="128" class="jcap">error</text>
+
+                <rect x="30" y="150" width="360" height="70" rx="8" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="210" y="175" text-anchor="middle" class="jlabel">CATCH block skipped</text>
+                <text x="210" y="193" text-anchor="middle" class="jcap">execution continues after END CATCH</text>
+
+                <rect x="510" y="150" width="360" height="96" rx="8" fill="#fdf3e3" stroke="#b45309" stroke-width="1.5"/>
+                <text x="690" y="176" text-anchor="middle" class="jlabel">CATCH block runs</text>
+                <text x="690" y="198" text-anchor="middle" class="jcap">ERROR_NUMBER()   ERROR_MESSAGE()</text>
+                <text x="690" y="216" text-anchor="middle" class="jcap">ERROR_SEVERITY() ERROR_STATE()</text>
+                <text x="690" y="234" text-anchor="middle" class="jcap">ERROR_LINE()     ERROR_PROCEDURE()</text>
+
+                <line x1="690" y1="246" x2="690" y2="256" stroke="#b45309" stroke-width="1.6" marker-end="url(#arrow12d)"/>
+                <text x="690" y="278" text-anchor="middle" class="jcap">THROW re-raises the error to the caller</text>
+              </svg>
+            </div>
+            <p class="fig-cap">Two paths out of a TRY block</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the CATCH block is skipped on success and entered on failure. Inside it you inspect <code>ERROR_NUMBER()</code> to decide what to do, handle the cases you know, and <code>THROW</code> anything you don’t — which is what keeps the caller’s view honest.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">The error functions <span class="tag">p. 522</span></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Returns</th></tr></thead>
+          <tbody>
+            <tr><td><code>ERROR_NUMBER()</code></td><td>The error number — what your CATCH block usually branches on</td></tr>
+            <tr><td><code>ERROR_MESSAGE()</code></td><td>The error message text (query <code>sys.messages</code> for the full list)</td></tr>
+            <tr><td><code>ERROR_SEVERITY()</code> / <code>ERROR_STATE()</code></td><td>The severity and state</td></tr>
+            <tr><td><code>ERROR_LINE()</code></td><td>The line number where the error happened</td></tr>
+            <tr><td><code>ERROR_PROCEDURE()</code></td><td>The procedure name, or NULL if the error was not inside a procedure</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · handle what you know, re-throw the rest</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>BEGIN TRY
+  INSERT INTO dbo.Employees(empid, empname, mgrid)
+    VALUES(1, 'Emp1', NULL);
+  -- Also try with empid = 0, 'A', NULL
+END TRY
+BEGIN CATCH
+  IF ERROR_NUMBER() = 2627
+  BEGIN
+    PRINT '    Handling PK violation...';
+  END;
+  ELSE IF ERROR_NUMBER() = 547
+  BEGIN
+    PRINT '    Handling CHECK/FK constraint violation...';
+  END;
+  ELSE IF ERROR_NUMBER() = 515
+  BEGIN
+    PRINT '    Handling NULL violation...';
+  END;
+  ELSE IF ERROR_NUMBER() = 245
+  BEGIN
+    PRINT '    Handling conversion error...';
+  END;
+  ELSE
+  BEGIN
+    PRINT 'Re-throwing error...';
+    THROW;
+  END;
+  PRINT '    Error Number  : ' + CAST(ERROR_NUMBER() AS VARCHAR(10));
+  PRINT '    Error Message : ' + ERROR_MESSAGE();
+  PRINT '    Error Severity: ' + CAST(ERROR_SEVERITY() AS VARCHAR(10));
+  PRINT '    Error State   : ' + CAST(ERROR_STATE() AS VARCHAR(10));
+  PRINT '    Error Line    : ' + CAST(ERROR_LINE() AS VARCHAR(10));
+  PRINT '    Error Proc    : ' + COALESCE(ERROR_PROCEDURE(), 'Not within proc');
+END CATCH;
+-- second run:
+-- Handling PK violation...
+-- Error Number  : 2627
+-- Error Message : Violation of PRIMARY KEY constraint 'PK_Employees'. ...
+-- Error Severity: 14
+-- Error State   : 1
+-- Error Line    : 3
+-- Error Proc    : Not within proc</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the same logic, reusable</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE OR ALTER PROC dbo.ErrInsertHandler
+AS
+SET NOCOUNT ON;
+IF ERROR_NUMBER() = 2627
+BEGIN
+  PRINT 'Handling PK violation...';
+END;
+ELSE IF ERROR_NUMBER() = 547
+BEGIN
+  PRINT 'Handling CHECK/FK constraint violation...';
+END;
+ELSE IF ERROR_NUMBER() = 515
+BEGIN
+  PRINT 'Handling NULL violation...';
+END;
+ELSE IF ERROR_NUMBER() = 245
+BEGIN
+  PRINT 'Handling conversion error...';
+END;
+PRINT 'Error Number  : ' + CAST(ERROR_NUMBER() AS VARCHAR(10));
+PRINT 'Error Message : ' + ERROR_MESSAGE();
+PRINT 'Error Severity: ' + CAST(ERROR_SEVERITY() AS VARCHAR(10));
+PRINT 'Error State   : ' + CAST(ERROR_STATE() AS VARCHAR(10));
+PRINT 'Error Line    : ' + CAST(ERROR_LINE() AS VARCHAR(10));
+PRINT 'Error Proc    : ' + COALESCE(ERROR_PROCEDURE(), 'Not within proc');
+GO
+
+BEGIN TRY
+  INSERT INTO dbo.Employees(empid, empname, mgrid)
+    VALUES(1, 'Emp1', NULL);
+END TRY
+BEGIN CATCH
+  IF ERROR_NUMBER() IN (2627, 547, 515, 245)
+    EXEC dbo.ErrInsertHandler;
+  ELSE
+    THROW;
+END CATCH;</code></pre>
+      </div>
+      <p>Now the error-handling code lives in one place, and the CATCH block is three lines.</p>
+    </section>
+
+    <!-- 12.9 -->
+    <section class="section" id="ch12-recap">
+      <div class="section-head">
+        <div class="sec-num">12.9</div>
+        <div>
+          <div class="kicker">Takeaways</div>
+          <h2>Chapter 12 in ten bullets</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li><strong>Variables live in the batch that declared them</strong> — cross a <code>GO</code> and they are gone (Msg 137).</li>
+        <li><strong>A batch is a unit of parsing and resolution</strong>, not of work: one syntax error kills the whole batch (but only that batch), and DDL plus DML in the same batch can fail to resolve.</li>
+        <li><code>SET</code> <strong>is safer than the assignment SELECT</strong>: the latter silently keeps the last row SQL Server happened to read, while a scalar subquery fails loudly with Msg 512.</li>
+        <li><strong><code>GO</code> is a client tool command</strong>, not T-SQL; <code>GO n</code> runs the batch n times.</li>
+        <li><strong>Flow is <code>IF … ELSE</code> and <code>WHILE</code></strong>, with <code>BEGIN … END</code> blocks, <code>BREAK</code>, and <code>CONTINUE</code> — and remember <code>ELSE</code> covers UNKNOWN as well as FALSE.</li>
+        <li><strong>Choose set-based over cursors by default</strong>; a cursor needs six steps and a hand-written loop, and is usually many times slower.</li>
+        <li><strong>Temporary storage comes in three flavours</strong>: <code>#local</code> (session scope from the creating level inward), <code>##global</code> (everyone), and table variables (current batch only, and not rolled back with the transaction).</li>
+        <li><strong>Dynamic SQL: prefer <code>sp_executesql</code> over <code>EXEC</code></strong> — parameters block SQL injection and let SQL Server reuse cached plans.</li>
+        <li><strong>Routines</strong>: UDFs calculate and cannot have side effects; procedures do the work, encapsulate security, and reuse plans; triggers attach to events, fire per statement, and see <code>inserted</code>/<code>deleted</code>.</li>
+        <li><strong>Error handling is <code>TRY … CATCH</code></strong> plus the <code>ERROR_*</code> functions — handle the numbers you know, and <code>THROW</code> everything else.</li>
+      </ul>
+
+      <h3 class="subhead">Chapter 12 key terms</h3>
+      <dl class="terms">
+        <div class="term"><dt>Batch</dt><dd>One or more T-SQL statements sent to SQL Server as a single unit of parsing, resolution, and optimization.</dd></div>
+        <div class="term"><dt>GO</dt><dd>A client tool command marking the end of a batch; <code>GO n</code> executes the batch n times.</dd></div>
+        <div class="term"><dt>Assignment SELECT</dt><dd>A nonstandard <code>SELECT</code> that assigns several variables from one row; unsafe when more than one row qualifies.</dd></div>
+        <div class="term"><dt>Cursor</dt><dd>An object for processing query result rows one at a time in a requested order.</dd></div>
+        <div class="term"><dt>@@FETCH_STATUS</dt><dd>0 while the last <code>FETCH</code> succeeded — the standard way to drive a cursor loop.</dd></div>
+        <div class="term"><dt>Local temporary table</dt><dd>A <code>#name</code> table in tempdb, visible only to the creating session from the creating level inward.</dd></div>
+        <div class="term"><dt>Global temporary table</dt><dd>A <code>##name</code> table in tempdb, visible to all sessions until the creator disconnects and references drain.</dd></div>
+        <div class="term"><dt>Table variable</dt><dd>A <code>@name</code> table physically present in tempdb, scoped to the current batch and not rolled back with the transaction.</dd></div>
+        <div class="term"><dt>Table type</dt><dd>A persisted table definition reusable for table variables and routine input parameters; required for TVPs.</dd></div>
+        <div class="term"><dt>Dynamic SQL</dt><dd>Constructing a T-SQL batch as a character string and executing it with <code>EXEC</code> or <code>sp_executesql</code>.</dd></div>
+        <div class="term"><dt>SQL injection</dt><dd>An attack that exploits concatenated user input; prevented by using parameters instead of concatenation.</dd></div>
+        <div class="term"><dt>User-defined function</dt><dd>A routine that calculates and returns a scalar value or a table, and may not have side effects.</dd></div>
+        <div class="term"><dt>Trigger</dt><dd>A procedure attached to an event that cannot be executed explicitly; fires per statement, not per row.</dd></div>
+        <div class="term"><dt>TRY … CATCH</dt><dd>The T-SQL error-handling construct: code in TRY, handling in CATCH, with the error exposed through the <code>ERROR_*</code> functions.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 12.10 -->
+    <section class="section" id="ch12-quiz">
+      <div class="section-head">
+        <div class="sec-num">12.10</div>
+        <div>
+          <div class="kicker">Check yourself</div>
+          <h2>Six quick questions</h2>
+        </div>
+      </div>
+      <p class="lead">The book closes without an exercises section, so here are six questions instead. Try to answer before opening each one.</p>
+
+      <details>
+        <summary>What is the difference between a batch and a transaction?</summary>
+        <div class="answer">A transaction is an atomic unit of <em>work</em>; a batch is a unit of <em>parsing</em> and resolution. A batch can contain several transactions, and one transaction can be spread across several batches. When a transaction rolls back, SQL Server undoes everything back to the start of the transaction regardless of where the batches began.</div>
+      </details>
+      <details>
+        <summary>Why does the assignment SELECT sometimes give you the wrong answer without complaining?</summary>
+        <div class="answer">Because it does not fail when more than one row qualifies. The assignments run once per qualifying row, each row overwriting the previous values, so you end up with whichever row SQL Server happened to access last — and you have no control over that order. <code>SET</code> with a scalar subquery is safer because the subquery fails with Msg 512 when it returns more than one value.</div>
+      </details>
+      <details>
+        <summary>You add a column and query it in the same batch, and it fails. Why, and what's the fix?</summary>
+        <div class="answer">Because a batch is a unit of <em>resolution</em>: when the <code>SELECT</code> was bound, the table did not yet have the new column, so you get Msg 207, “Invalid column name”. The fix — and the general best practice — is to separate DDL from DML by putting a <code>GO</code> between the <code>ALTER TABLE</code> and the query.</div>
+      </details>
+      <details>
+        <summary>When is a cursor the right answer?</summary>
+        <div class="answer">Rarely. Good exceptions: you must run a task per object — for each index or table in the database — so you genuinely need to iterate a list of names; or you have exhausted set-based tuning and the iterative version is genuinely faster, the classic example being running aggregates on versions of SQL Server without the window frame option. Otherwise think in sets.</div>
+      </details>
+      <details>
+        <summary>Local temp table, global temp table, or table variable — how do you choose?</summary>
+        <div class="answer">Use <code>#local</code> when only your session should see the data and it is more than a few rows; use <code>##global</code> only when you deliberately want to share with every session (remembering that everyone then has full access); use a table variable for small volumes, and remember its scope is just the current batch and that completed statements inside a rolled-back transaction are <em>not</em> undone.</div>
+      </details>
+      <details>
+        <summary>Why prefer sp_executesql over EXEC, apart from the Unicode requirement?</summary>
+        <div class="answer">Two reasons. Security: parameters are operands in expressions rather than part of the code, so SQL injection through them is impossible. Performance: because the code string stays identical when only parameter values change, SQL Server is far more likely to reuse a previously cached execution plan instead of compiling a new one.</div>
+      </details>
+    </section>
+
   </main>
 </div>
 
@@ -10237,12 +11348,12 @@ ORDER BY sortkey DESC;</code></pre>
   <div class="footer-inner">
     <div>
       <h3>About this summary</h3>
-      <p>A study companion for <strong>Chapters 1–11</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292; Chapter 8, pages 293–342; Chapter 9, pages 343–366; Chapter 10, pages 367–408; Chapter 11, pages 409–490.</p>
-      <p class="fine">All sixteen figures and nine tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, 5, and 8 have no figures or tables; fifteen diagrams are original study aids rather than book artwork — the join-types, subquery-types, and table-expression diagrams, the four Chapter 8 diagrams (insert routes, identity vs. sequence, MERGE outcomes, OUTPUT flow), the Chapter 9 anatomy diagram, the redrawing of Figure 9-2, the three Chapter 10 diagrams (lock duration by isolation level, locking vs. row versioning, and the deadlock embrace), and the three Chapter 11 diagrams redrawn from Figures 11-2, 11-3, and 11-4. The book’s Figure 9-2 and all four Chapter 11 figures are vector art that cannot be extracted as images, so they were redrawn: Figure 9-2 from its predicates, Figure 11-1 as an HTML table listing the seven traditional tables, and Figures 11-2 through 11-4 as SVG. This page is an unofficial study aid; the book remains the authoritative source.</p>
+      <p>A study companion for <strong>the complete book</strong> — Chapters 1–12 of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292; Chapter 8, pages 293–342; Chapter 9, pages 343–366; Chapter 10, pages 367–408; Chapter 11, pages 409–490; Chapter 12, pages 491–525.</p>
+      <p class="fine">All sixteen figures and nine tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, 5, 8, and 12 have no figures or tables; eighteen diagrams are original study aids rather than book artwork — the join-types, subquery-types, and table-expression diagrams, the four Chapter 8 diagrams (insert routes, identity vs. sequence, MERGE outcomes, OUTPUT flow), the Chapter 9 anatomy diagram, the redrawing of Figure 9-2, the three Chapter 10 diagrams (lock duration by isolation level, locking vs. row versioning, and the deadlock embrace), the three Chapter 11 diagrams redrawn from Figures 11-2, 11-3, and 11-4, and the three Chapter 12 diagrams (batch boundaries, the six steps of a cursor, and TRY…CATCH control flow). The book’s Figure 9-2 and all four Chapter 11 figures are vector art that cannot be extracted as images, so they were redrawn: Figure 9-2 from its predicates, Figure 11-1 as an HTML table listing the seven traditional tables, and Figures 11-2 through 11-4 as SVG. Chapter 12 has no exercises section — the book says so explicitly — while Chapter 11 has four exercises with solutions. This page is an unofficial study aid; the book remains the authoritative source.</p>
     </div>
     <div>
       <h3>Navigate</h3>
-      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#ch8-insert" style="color:#9fe0d6">Chapter 8</a> · <a href="#ch9-intro" style="color:#9fe0d6">Chapter 9</a> · <a href="#ch10-trans" style="color:#9fe0d6">Chapter 10</a> · <a href="#ch11-intro" style="color:#9fe0d6">Chapter 11</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch11-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch11-quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#ch8-insert" style="color:#9fe0d6">Chapter 8</a> · <a href="#ch9-intro" style="color:#9fe0d6">Chapter 9</a> · <a href="#ch10-trans" style="color:#9fe0d6">Chapter 10</a> · <a href="#ch11-intro" style="color:#9fe0d6">Chapter 11</a> · <a href="#ch12-variables" style="color:#9fe0d6">Chapter 12</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch11-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch12-quiz" style="color:#9fe0d6">Quiz</a></p>
       <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
     </div>
   </div>
@@ -10255,9 +11366,9 @@ ORDER BY sortkey DESC;</code></pre>
   "use strict";
 
   /* ---------- tiny T-SQL highlighter ---------- */
-  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP OUTPUT IDENTITY SEQUENCE EXEC PROC MATCHED BULK DECLARE GO USING PIVOT UNPIVOT APPLY CROSS OUTER INNER JOIN LEFT RIGHT FULL UNION EXCEPT INTERSECT WITH CUBE ROLLUP WHILE BREAK CONTINUE RETURN BEGIN CATCH NOCOUNT MINVALUE MAXVALUE CYCLE CACHE START INCREMENT NO GENERATED ALWAYS PERIOD SYSTEM_TIME SYSTEM_VERSIONING HISTORY_TABLE HISTORY_RETENTION_PERIOD HIDDEN TRAN COMMIT ROLLBACK CONTAINED ZONE CLUSTERED INDEX DAYS WEEKS MONTHS YEARS INFINITE KILL SERIALIZABLE SNAPSHOT UNCOMMITTED REPEATABLE XACT_ABORT IMPLICIT_TRANSACTIONS LOCK_ESCALATION NOLOCK HOLDLOCK READCOMMITTEDLOCK ALLOW_SNAPSHOT_ISOLATION MATCH SHORTEST_PATH LAST_NODE STRING_AGG LAST_VALUE NODE EDGE CONNECTION WITHIN GROUP GRAPH TRUNCATE").split(" "));
+  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP OUTPUT IDENTITY SEQUENCE EXEC PROC MATCHED BULK DECLARE GO USING PIVOT UNPIVOT APPLY CROSS OUTER INNER JOIN LEFT RIGHT FULL UNION EXCEPT INTERSECT WITH CUBE ROLLUP WHILE BREAK CONTINUE RETURN BEGIN CATCH NOCOUNT MINVALUE MAXVALUE CYCLE CACHE START INCREMENT NO GENERATED ALWAYS PERIOD SYSTEM_TIME SYSTEM_VERSIONING HISTORY_TABLE HISTORY_RETENTION_PERIOD HIDDEN TRAN COMMIT ROLLBACK CONTAINED ZONE CLUSTERED INDEX DAYS WEEKS MONTHS YEARS INFINITE KILL SERIALIZABLE SNAPSHOT UNCOMMITTED REPEATABLE XACT_ABORT IMPLICIT_TRANSACTIONS LOCK_ESCALATION NOLOCK HOLDLOCK READCOMMITTEDLOCK ALLOW_SNAPSHOT_ISOLATION MATCH SHORTEST_PATH LAST_NODE STRING_AGG LAST_VALUE NODE EDGE CONNECTION WITHIN GROUP GRAPH TRUNCATE DECLARE WHILE BEGIN TRY CATCH THROW BREAK CONTINUE CURSOR FETCH OPEN CLOSE DEALLOCATE EXEC PROC FUNCTION TRIGGER ALTER PRINT TYPE").split(" "));
   var TYPES = new Set(["INT","VARCHAR","NVARCHAR","NCHAR","DATE","DATETIME","SMALLDATETIME","DATETIME2","DATETIMEOFFSET","TIME","MONEY","BIT","DECIMAL","NUMERIC","BIGINT","SMALLINT","TINYINT","FLOAT","TEXT","CHAR","VARBINARY","SQL_VARIANT","SYSNAME","ROWVERSION"]);
-  var FUNCS = new Set(["SYSDATETIME","GETDATE","GETUTCDATE","SYSUTCDATETIME","SYSDATETIMEOFFSET","COUNT","YEAR","MONTH","DAY","CAST","CONVERT","PARSE","TRY_CAST","TRY_CONVERT","TRY_PARSE","COALESCE","ISNULL","DATEADD","DATEDIFF","DATEDIFF_BIG","DATEPART","DATENAME","DATETRUNC","EOMONTH","GENERATE_SERIES","STRING_SPLIT","STRING_AGG","CONCAT","CONCAT_WS","SUBSTRING","LEFT","RIGHT","LEN","DATALENGTH","CHARINDEX","PATINDEX","REPLACE","TRANSLATE","STUFF","UPPER","LOWER","RTRIM","LTRIM","TRIM","FORMAT","COMPRESS","DECOMPRESS","LAST_VALUE","ROW_NUMBER","DB_NAME","OBJECT_NAME","SPID","TRANCOUNT","NODE_ID","EDGE_ID","FROM_ID","TO_ID",
+  var FUNCS = new Set(["SYSDATETIME","GETDATE","GETUTCDATE","SYSUTCDATETIME","SYSDATETIMEOFFSET","COUNT","YEAR","MONTH","DAY","CAST","CONVERT","PARSE","TRY_CAST","TRY_CONVERT","TRY_PARSE","COALESCE","ISNULL","DATEADD","DATEDIFF","DATEDIFF_BIG","DATEPART","DATENAME","DATETRUNC","EOMONTH","GENERATE_SERIES","STRING_SPLIT","STRING_AGG","CONCAT","CONCAT_WS","SUBSTRING","LEFT","RIGHT","LEN","DATALENGTH","CHARINDEX","PATINDEX","REPLACE","TRANSLATE","STUFF","UPPER","LOWER","RTRIM","LTRIM","TRIM","FORMAT","COMPRESS","DECOMPRESS","LAST_VALUE","ERROR_NUMBER","ERROR_MESSAGE","ERROR_SEVERITY","ERROR_STATE","ERROR_LINE","ERROR_PROCEDURE","QUOTENAME","ROW_NUMBER","DB_NAME","OBJECT_NAME","SPID","TRANCOUNT","NODE_ID","EDGE_ID","FROM_ID","TO_ID",
     "OBJECT_ID_FROM_NODE_ID","GRAPH_ID_FROM_NODE_ID","NODE_ID_FROM_PARTS","OBJECT_ID_FROM_EDGE_ID","GRAPH_ID_FROM_EDGE_ID","EDGE_ID_FROM_PARTS","SCOPE_IDENTITY","IDENT_CURRENT","NEWID","NEWSEQUENTIALID","OBJECT_ID","OBJECTPROPERTY","COLUMNPROPERTY","SERVERPROPERTY","DATABASEPROPERTYEX","SCHEMA_NAME","TYPE_NAME"]);
 
   function esc(s){
