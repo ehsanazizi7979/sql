@@ -230,9 +230,9 @@
       figure from the book, and the T-SQL listings you can run yourself.
     </p>
     <div class="badges">
-      <span class="badge">2 chapters covered</span>
-      <span class="badge">11 book listings</span>
-      <span class="badge">23 figures</span>
+      <span class="badge">3 chapters covered</span>
+      <span class="badge">18 book listings</span>
+      <span class="badge">36 figures</span>
       <span class="badge">AdventureWorks2014</span>
     </div>
   </div>
@@ -263,6 +263,14 @@
     <a class="mini" href="#ch2-first-operator">Behind the first operator</a>
     <a class="mini" href="#ch2-metrics">Measuring alongside plans</a>
     <a class="mini" href="#ch2-takeaways">Chapter 2 in ten lines</a>
+
+    <div class="grp">Chapter 3 · Data Reading Operators</div>
+    <a class="mini" href="#ch3-index">How an index is built</a>
+    <a class="mini" href="#ch3-scans">Scans</a>
+    <a class="mini" href="#ch3-seeks">Seeks</a>
+    <a class="mini" href="#ch3-lookups">Lookups &amp; covering indexes</a>
+    <a class="mini" href="#ch3-heap">Reading a heap</a>
+    <a class="mini" href="#ch3-cheatsheet">Cheat sheet</a>
   </nav>
 
   <main>
@@ -1472,6 +1480,422 @@ lob read-ahead reads 0.
       </div>
     </section>
 
+
+
+    <div class="chapterbar" id="chapter3">
+      <span class="cnum">Chapter 3</span>
+      <div>
+        <h2>Data Reading Operators</h2>
+        <p>How SQL Server actually gets rows off disk: scans, seeks and lookups on indexes,
+        and scans plus RID lookups on heaps. This is where "my query is slow" usually
+        becomes a concrete, fixable answer.</p>
+      </div>
+    </div>
+
+    <section class="card" id="ch3-index">
+      <h2><span class="num">1</span> How an index is built</h2>
+      <p class="lede">Before you can read a plan, you need a mental picture of the structure underneath it.</p>
+
+      <p>
+        A traditional SQL Server index is a set of <b>8 KB pages</b> wired together in a
+        <b>b+tree</b> (balanced tree — also called a bushy tree, or Bayer tree after its inventor).
+        This chapter ignores columnstore, memory-optimized and full-text indexes; those come later.
+      </p>
+
+      <table>
+        <thead><tr><th></th><th>Clustered index</th><th>Nonclustered index</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Leaf level holds</b></td>
+            <td>The actual <b>data rows</b>, ordered by the clustering key</td>
+            <td>Index key columns + the clustered key + any <code class="inl">INCLUDE</code>d columns</td>
+          </tr>
+          <tr>
+            <td><b>How many per table</b></td>
+            <td>Exactly one — it <i>is</i> the table</td>
+            <td>Zero or more</td>
+          </tr>
+          <tr>
+            <td><b>Analogy</b></td>
+            <td>A dictionary in alphabetical order</td>
+            <td>The index at the back of a book</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <b>The key sentence</b> "A clustered index is not a 'copy' of the table. It <i>is</i> the
+        table, with a b+tree structure built on top of it." That is why you can only have one.
+      </div>
+
+      <p>
+        There are essentially <b>three ways</b> to read an index — and only two ways to read a heap:
+      </p>
+      <div class="opgrid">
+        <div class="opcol">
+          <h4>On an index</h4>
+          <span>Scan</span><span>Seek</span><span>Lookup</span>
+        </div>
+        <div class="opcol">
+          <h4>On a heap</h4>
+          <span>Table Scan</span><span>RID Lookup</span>
+        </div>
+        <div class="opcol">
+          <h4>Pairing rule</h4>
+          <span>Key Lookup → clustered index</span><span>RID Lookup → heap</span>
+          <span>both paired with Nested Loops</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="ch3-scans">
+      <h2><span class="num">2</span> Scans</h2>
+      <p class="lede">A scan navigates to the first (or last) leaf page and then walks the leaf level, forward or backward.</p>
+
+      <p>Scans show up when:</p>
+      <ul>
+        <li>all rows are needed to answer the query,</li>
+        <li>so many rows qualify that scanning beats navigating the tree,</li>
+        <li>no usable index exists for the <code class="inl">WHERE</code> columns,</li>
+        <li>the query is written so a seek is impossible — e.g. a <b>function wrapped around the indexed column</b>.</li>
+      </ul>
+
+      <h3 class="step">Clustered Index Scan</h3>
+      <div class="code">
+        <header><span>Listing 3-1 · scan on the clustered index</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  e.LoginID,
+        e.JobTitle,
+        e.BirthDate
+<span class="kw">FROM</span>    HumanResources.Employee <span class="kw">AS</span> e
+<span class="kw">WHERE</span>   e.BirthDate &lt; <span class="kw">DATEADD</span>(<span class="kw">YEAR</span>, -50, <span class="kw">GETUTCDATE</span>());</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter3/fig-3-1-clustered-index-scan-plan.png"
+             alt="Plan with SELECT and Clustered Index Scan on Employee.PK_Employee_BusinessEntityID at 100% cost.">
+        <figcaption><b>Figure 3-1</b> — Clustered Index Scan on <code class="inl">PK_Employee_BusinessEntityID</code>.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter3/fig-3-2-cis-properties.png"
+             alt="Properties of Clustered Index Scan: Actual Number of Rows 26, Number of Rows Read 290, Ordered False, Table Cardinality 290, Predicate on BirthDate.">
+        <figcaption><b>Figure 3-2</b> — The four numbers that tell the whole story: <b>290 read</b>, <b>26 returned</b>, <b>Table Cardinality 290</b>, <b>Ordered = False</b>.</figcaption>
+      </figure>
+
+      <p>Properties worth reading on any read operator:</p>
+      <table>
+        <thead><tr><th>Property</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><b>Object</b></td><td>Which index was touched. Here the PK index, which is also the clustered index.</td></tr>
+          <tr><td><b>Number of Rows Read</b></td><td>How many rows the operator <i>looked at</i>: 290 — the whole table.</td></tr>
+          <tr><td><b>Actual / Estimated Number of Rows</b></td><td>How many rows it <i>returned</i>: 26.</td></tr>
+          <tr><td><b>Table Cardinality</b></td><td>Rows in the table: 290.</td></tr>
+          <tr><td><b>Ordered</b></td><td>Whether the output must be in index-key order. Add <code class="inl">ORDER BY e.BusinessEntityID</code> and it flips to <b>True</b> — a free sort.</td></tr>
+          <tr><td><b>Predicate</b></td><td>The filter applied <i>after</i> reading each row: <code class="inl">[BirthDate] &lt; dateadd(year,(-50),getutcdate())</code>.</td></tr>
+          <tr><td><b>Seek Predicates</b></td><td>The filter used to <i>navigate</i> to rows. Empty on a scan — this is the crucial difference.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note warn">
+        <b>Predicate ≠ Seek Predicate</b>
+        A <b>Predicate</b> is evaluated against every row read — read 290, keep 26. A
+        <b>Seek Predicate</b> is used to navigate the tree, so only matching rows are ever read.
+        They look similar in the Properties window and mean completely different things.
+      </div>
+
+      <p>
+        Why a scan here? The clustered key is <code class="inl">BusinessEntityID</code>, so leaf pages are
+        ordered by that, not by <code class="inl">BirthDate</code>. Nothing lets the engine jump to the
+        birthdays, so it must visit every leaf page. One page = one logical read.
+      </p>
+
+      <h3 class="step">Index Scan (nonclustered)</h3>
+      <div class="code">
+        <header><span>Listing 3-2 · scan on a nonclustered index</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  e.LoginID,
+        e.BusinessEntityID
+<span class="kw">FROM</span>    HumanResources.Employee <span class="kw">AS</span> e;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter3/fig-3-3-index-scan-plan.png"
+             alt="Plan with SELECT and Index Scan (NonClustered) on AK_Employee_LoginID.">
+        <figcaption><b>Figure 3-3</b> — No WHERE clause means <i>some</i> scan is unavoidable. The optimizer picks the <b>smallest</b> structure that answers the query: <code class="inl">AK_Employee_LoginID</code>.</figcaption>
+      </figure>
+
+      <p>
+        The index is keyed on <code class="inl">LoginID</code>; the clustered key
+        <code class="inl">BusinessEntityID</code> rides along in the leaf level, so the index
+        <b>covers</b> this query. Fewer pages ⇒ fewer reads ⇒ faster scan. Same operation, better
+        target.
+      </p>
+
+      <div class="note tip">
+        <b>Are scans "bad"? No.</b>
+        For a modest table, scanning is efficient. The real question is:
+        <b>how many rows did you read to return how few?</b> 290 → 26 is fine on a 290-row table.
+        The same shape on a 3-million-row table is a problem, and then you tune the query or add an index.
+        Other culprits to check: an <b>expression on the indexed column</b>, and <b>stale statistics</b>
+        that overestimate the row count (making the optimizer prefer a scan).
+      </div>
+    </section>
+
+    <section class="card" id="ch3-seeks">
+      <h2><span class="num">3</span> Seeks</h2>
+      <p class="lede">A seek navigates straight to the pages that qualify — like using a book's index instead of reading every page.</p>
+
+      <p>A seek happens when:</p>
+      <ul>
+        <li>an index matches the predicate column <b>and covers the query</b>, or</li>
+        <li>an index matches the predicate column, doesn't cover the query, <b>but the predicate is highly selective</b> (few rows).</li>
+      </ul>
+
+      <div class="code">
+        <header><span>Listing 3-3 · seek on the clustered index</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  e.BusinessEntityID,
+        e.NationalIDNumber,
+        e.LoginID,
+        e.VacationHours,
+        e.SickLeaveHours
+<span class="kw">FROM</span>    HumanResources.Employee <span class="kw">AS</span> e
+<span class="kw">WHERE</span>   e.BusinessEntityID = 226;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter3/fig-3-4-clustered-index-seek-plan.png"
+             alt="Plan with SELECT and Clustered Index Seek on PK_Employee_BusinessEntityID.">
+        <figcaption><b>Figure 3-4</b> — Clustered Index Seek: three logical reads for one row, versus 290-row scan.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/chapter3/fig-3-5-index-seek-properties.png"
+             alt="Seek properties: Object, Ordered True, Output List, Physical Operation Clustered Index Seek, Scan Direction FORWARD, Seek Predicates.">
+        <figcaption><b>Figure 3-5</b> — The giveaway is the <b>Seek Predicates</b> row, which a scan doesn't have.</figcaption>
+      </figure>
+
+      <p>The Seek Predicates text is worth decoding:</p>
+      <div class="code">
+        <header><span>Seek Predicates of Figure 3-5</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code>Seek Keys[1]: Prefix: [AdventureWorks2014].[HumanResources].[Employee].
+BusinessEntityID = Scalar Operator(CONVERT_IMPLICIT(int,[@1],0))</code></pre>
+        <div class="cap">Two things to notice: the <code class="inl">@1</code> is simple parameterization at work, and the <code class="inl">CONVERT_IMPLICIT</code> is the 226 literal being typed as <b>smallint</b> and converted.</div>
+      </div>
+      <div class="note warn">
+        <b>Implicit conversions cut both ways</b> The optimizer types the auto-parameter from the value it
+        was given. A bigger value would create an <code class="inl">int</code> parameter — and therefore a
+        <b>second plan</b>. And some conversions are harmless (as here, a seek still happened) while others
+        force a scan where a seek was possible. Always check whether the seek survived.
+      </div>
+
+      <h3 class="step">Index Seek (nonclustered) — and a clever rewrite</h3>
+      <div class="code">
+        <header><span>Listing 3-4 · nonclustered seek with LIKE</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  p.BusinessEntityID,
+        p.LastName,
+        p.FirstName
+<span class="kw">FROM</span>    Person.Person <span class="kw">AS</span> p
+<span class="kw">WHERE</span>   p.LastName <span class="kw">LIKE</span> <span class="str">'Jaf%'</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter3/fig-3-6-nonclustered-index-seek-plan.png"
+             alt="Plan with SELECT and Index Seek (NonClustered) on Person.IX_Person_LastName_FirstName_MiddleName.">
+        <figcaption><b>Figure 3-6</b> — Index Seek on <code class="inl">IX_Person_LastName_FirstName_MiddleName</code>. Because the index contains every column the query needs, this is a <b>covering</b> index — no lookup required.</figcaption>
+      </figure>
+
+      <p>
+        Buried in the properties is the optimizer doing real work. Given
+        <code class="inl">LIKE 'Jaf%'</code>, it produced two different things:
+      </p>
+      <div class="code">
+        <header><span>Predicate vs Seek Predicates for Listing 3-4</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="cm">-- Predicate: the original condition, still applied to each row</span>
+[Person].[Person].[LastName] <span class="kw">like</span> N<span class="str">'Jaf%'</span>
+
+<span class="cm">-- Seek Predicates: LIKE rewritten as a range, to navigate the index</span>
+Seek Keys[1]:
+  Start: [Person].[Person].LastName &gt;= Scalar Operator(N<span class="str">'Jaf'</span>),
+  End:   [Person].[Person].LastName &lt;  Scalar Operator(N<span class="str">'JaG'</span>)</code></pre>
+        <div class="cap">Logically equivalent to <code class="inl">LastName &gt;= 'Jaf' AND LastName &lt; 'JaG'</code>.</div>
+      </div>
+      <p>
+        That rewrite — turning a <code class="inl">LIKE</code> prefix match into a half-open range — is what
+        makes the seek possible. The original <code class="inl">LIKE</code> stays as the Predicate because,
+        depending on collation, the interval can contain values the LIKE wouldn't match. Note also that this
+        query got <b>no</b> auto-parameterization: a <code class="inl">LIKE</code> pattern may or may not start
+        with a wildcard, so the optimizer can't parameterize it.
+      </p>
+    </section>
+
+    <section class="card" id="ch3-lookups">
+      <h2><span class="num">4</span> Lookups and covering indexes</h2>
+      <p class="lede">When the index has the rows you want but not the columns you asked for, SQL Server has to go back for them.</p>
+
+      <div class="code">
+        <header><span>Listing 3-5 · same query, one extra column</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  p.BusinessEntityID,
+        p.LastName,
+        p.FirstName,
+        p.NameStyle          <span class="cm">-- not in the nonclustered index</span>
+<span class="kw">FROM</span>    Person.Person <span class="kw">AS</span> p
+<span class="kw">WHERE</span>   p.LastName <span class="kw">LIKE</span> <span class="str">'Jaf%'</span>;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter3/fig-3-7-key-lookup-plan.png"
+             alt="Plan with SELECT, Nested Loops, Index Seek NonClustered at 40% and Key Lookup on PK_Person_BusinessEntityID at 60%.">
+        <figcaption><b>Figure 3-7</b> — One extra column and the cost picture changes: seek 40%, <b>Key Lookup 60%</b>. A Nested Loops always accompanies a lookup, stitching the two streams together.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter3/fig-3-8-key-lookup-output-list.png"
+               alt="Key Lookup properties with Output List expanded showing Column NameStyle, Object PK_Person_BusinessEntityID, Seek Predicates.">
+          <figcaption><b>Figure 3-8</b> — The Output List names exactly what was missing: <code class="inl">NameStyle</code>.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter3/fig-3-9-rows-and-executions.png"
+               alt="Key Lookup properties with Actual Number of Rows 1, Estimated Number of Rows 1, Number of Executions 1 highlighted.">
+          <figcaption><b>Figure 3-9</b> — 1 row, 1 execution. A single lookup is harmless; the danger is <b>Number of Executions</b> in the thousands.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note warn">
+        <b>When a lookup actually hurts</b>
+        Each execution of a Key Lookup is a clustered index seek — about <b>three logical reads</b>.
+        One execution is nothing. Ten thousand executions is tens of thousands of reads. That's the
+        threshold at which a covering index pays for itself.
+      </div>
+      <div class="note tip">
+        <b>Before you build a covering index</b>
+        (1) Check whether the application really needs every column you're returning.
+        (2) If it does, prefer <b>extending an existing index</b> over creating a new one — a lookup-driven
+        index per query leads to "wild growth of little-used indexes."
+      </div>
+
+      <div class="code">
+        <header><span>Making the query covering</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="cm">-- Option A: add the missing column to the key (widens the tree at every level)</span>
+<span class="kw">CREATE NONCLUSTERED INDEX</span> IX_Person_LastName_FirstName_NameStyle
+<span class="kw">ON</span> Person.Person (LastName, FirstName, NameStyle);
+
+<span class="cm">-- Option B (usually better): keep the key, add the column at the leaf level only</span>
+<span class="kw">CREATE NONCLUSTERED INDEX</span> IX_Person_LastName_FirstName_MiddleName
+<span class="kw">ON</span> Person.Person (LastName, FirstName) <span class="kw">INCLUDE</span> (NameStyle);
+
+<span class="cm">-- Measure the difference: logical reads before vs after</span>
+<span class="kw">SET</span> STATISTICS IO <span class="kw">ON</span>;
+<span class="kw">SELECT</span>  p.BusinessEntityID, p.LastName, p.FirstName, p.NameStyle
+<span class="kw">FROM</span>    Person.Person <span class="kw">AS</span> p
+<span class="kw">WHERE</span>   p.LastName <span class="kw">LIKE</span> <span class="str">'Jaf%'</span>;
+<span class="kw">SET</span> STATISTICS IO <span class="kw">OFF</span>;</code></pre>
+        <div class="cap"><code class="inl">INCLUDE</code> is the cheaper lever: it stores the column at the leaf level without widening the navigation levels, and without changing the sort order.</div>
+      </div>
+    </section>
+
+    <section class="card" id="ch3-heap">
+      <h2><span class="num">5</span> Reading a heap</h2>
+      <p class="lede">A heap is a table with no clustered index — rows sit in insertion order, and there is nothing to seek <i>by</i>.</p>
+
+      <p>
+        You can still add nonclustered indexes. But instead of a clustered key, each entry carries a
+        <b>Row ID (RID)</b> — the physical location of the row in the heap. That gives exactly two ways
+        to read the table: <b>scan</b> or <b>lookup</b>.
+      </p>
+
+      <h3 class="step">Table Scan</h3>
+      <div class="code">
+        <header><span>Listing 3-6 · scan on a heap</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  dl.DatabaseUser,
+        dl.PostTime,
+        dl.Event,
+        dl.DatabaseLogID
+<span class="kw">FROM</span>    dbo.DatabaseLog <span class="kw">AS</span> dl;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter3/fig-3-10-table-scan-plan.png"
+             alt="Plan with SELECT and Table Scan on DatabaseLog at 100% cost.">
+        <figcaption><b>Figure 3-10</b> — Table Scan: the heap counterpart of a Clustered Index Scan. Same idea, different structure.</figcaption>
+      </figure>
+
+      <p>Table scans show up when:</p>
+      <ul>
+        <li>there is no useful nonclustered index, so every row must be examined,</li>
+        <li>the query asks for all of the rows (this example),</li>
+        <li>most rows are needed anyway — then scanning beats a lookup per row,</li>
+        <li>the table is tiny, where a scan is cheap regardless.</li>
+      </ul>
+
+      <h3 class="step">RID Lookup</h3>
+      <div class="code">
+        <header><span>Listing 3-7 · the same heap, with a selective filter</span><button class="copy" onclick="copyCode(this)">Copy</button></header>
+<pre><code><span class="kw">SELECT</span>  dl.DatabaseUser,
+        dl.PostTime,
+        dl.Event,
+        dl.DatabaseLogID
+<span class="kw">FROM</span>    dbo.DatabaseLog <span class="kw">AS</span> dl
+<span class="kw">WHERE</span>   dl.DatabaseLogID = 1;</code></pre>
+      </div>
+
+      <figure>
+        <img src="images/chapter3/fig-3-11-rid-lookup-plan.png"
+             alt="Plan with SELECT, Nested Loops, Index Seek on PK_DatabaseLog at 50% and RID Lookup (Heap) at 50%.">
+        <figcaption><b>Figure 3-11</b> — Index Seek finds the row's address, RID Lookup fetches the rest of the columns, Nested Loops combines them. Exactly the Key Lookup pattern, on a heap.</figcaption>
+      </figure>
+
+      <div class="figrow">
+        <figure>
+          <img src="images/chapter3/fig-3-12-bmk1000-output-list.png"
+               alt="Output List of the Index Seek showing Bmk1000 and DatabaseLogID.">
+          <figcaption><b>Figure 3-12</b> — The Output List contains <b>Bmk1000</b>: a column you never asked for. It's the RID. "Bmk" survives from when these were called <i>Bookmark Lookups</i>.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/chapter3/fig-3-13-rid-seek-predicates.png"
+               alt="Seek Predicates showing Prefix: Bmk1000 = Scalar Operator((Bmk1000)).">
+          <figcaption><b>Figure 3-13</b> — The RID Lookup seeks on that same <code class="inl">Bmk1000</code> value. One row here — cheap. Many rows means reconsider the design.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note">
+        <b>If a RID Lookup returns many rows</b> the usual fixes are, in order: rewrite the query to
+        return fewer columns, add a <b>clustered index</b> to the heap (turning it into a table you can
+        seek), or create a <b>covering index</b> so the lookup disappears altogether.
+      </div>
+    </section>
+
+    <section class="card" id="ch3-cheatsheet">
+      <h2><span class="num">★</span> Chapter 3 cheat sheet</h2>
+
+      <table>
+        <thead><tr><th>Operator</th><th>Structure</th><th>Reads</th><th>Look for</th></tr></thead>
+        <tbody>
+          <tr><td><b>Clustered Index Scan</b></td><td>Clustered index</td><td>All leaf pages</td><td>Reads ≫ returned, and the predicate column isn't the clustering key</td></tr>
+          <tr><td><b>Index Scan</b></td><td>Nonclustered</td><td>All leaf pages</td><td>Usually chosen because the index is smaller than the clustered one</td></tr>
+          <tr><td><b>Clustered Index Seek</b></td><td>Clustered index</td><td>Only qualifying pages (~3 logical reads)</td><td>Has <b>Seek Predicates</b>; check for implicit conversions</td></tr>
+          <tr><td><b>Index Seek</b></td><td>Nonclustered</td><td>Only qualifying pages</td><td>Both Predicate <i>and</i> Seek Predicates (e.g. a rewritten LIKE)</td></tr>
+          <tr><td><b>Key Lookup</b></td><td>Clustered index, from a nonclustered seek</td><td>~3 logical reads <b>per execution</b></td><td><b>Number of Executions</b>; missing column in Output List</td></tr>
+          <tr><td><b>Table Scan</b></td><td>Heap</td><td>All pages</td><td>No clustered index at all — consider adding one</td></tr>
+          <tr><td><b>RID Lookup</b></td><td>Heap, from a nonclustered seek</td><td>~3 logical reads per execution</td><td><code class="inl">Bmk1000</code> in Output List; many executions</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li>A clustered index <b>is</b> the table — that's why there can only be one.</li>
+        <li>Nonclustered leaf pages = key columns + clustered key + <code class="inl">INCLUDE</code>d columns. Nothing else.</li>
+        <li><b>Predicate</b> = filter every row. <b>Seek Predicate</b> = navigate to rows. Never confuse them.</li>
+        <li>The number that matters on a read operator is <b>Rows Read vs Rows Returned</b>.</li>
+        <li>Scan ≠ bad, seek ≠ good. A seek that returns a million rows is worse than a scan that returns ten.</li>
+        <li>Lookups are only expensive when <b>executed many times</b> — check Number of Executions, not the 60% cost label.</li>
+        <li>Fix lookups by covering the query, preferably with <code class="inl">INCLUDE</code> on an existing index.</li>
+      </ul>
+      <div class="note tip">
+        <b>The chapter's summary, condensed</b>
+        Scans, seeks and lookups are just different mechanisms for the same job. None is inherently
+        good or bad — read the operator properties, see how many rows were processed versus returned,
+        and how the filtering actually worked.
+      </div>
+    </section>
 
     <footer class="foot">
       Study notes for <i>SQL Server Execution Plans, 3rd Edition</i> by Grant Fritchey (Redgate, 2018).
