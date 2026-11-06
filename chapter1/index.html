@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>T-SQL Fundamentals — Chapters 1–7 | Plain-English Study Companion</title>
-<meta name="description" content="Plain-English summaries of Chapters 1–7 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, and code samples.">
+<title>T-SQL Fundamentals — Chapters 1–8 | Plain-English Study Companion</title>
+<meta name="description" content="Plain-English summaries of Chapters 1–8 of T-SQL Fundamentals (4th Edition) by Itzik Ben-Gan, with the book's figures, tables, code samples, and original study diagrams.">
 <style>
   :root{
     --paper:#f7f4ed;
@@ -236,28 +236,29 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="#top"><span class="brand-mark">1–7</span> T-SQL Fundamentals · Chapters 1–7</a>
+    <a class="brand" href="#top"><span class="brand-mark">1–8</span> T-SQL Fundamentals · Chapters 1–8</a>
     <div class="topbar-meta">
-      <span>Plain-English summaries</span><span class="dot"></span><span>13 figures + 3 tables</span><span class="dot"></span><span>100+ code samples</span>
+      <span>Plain-English summaries</span><span class="dot"></span><span>13 figures + 3 tables + 4 diagrams</span><span class="dot"></span><span>280+ code samples</span>
     </div>
-    <a class="pill" href="#ch7-window">Jump to Chapter 7 ↓</a>
+    <a class="pill" href="#ch8-insert">Jump to Chapter 8 ↓</a>
   </div>
 </header>
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <span class="eyebrow">📘 Chapters 1–7 · T-SQL Fundamentals, 4th Edition</span>
+    <span class="eyebrow">📘 Chapters 1–8 · T-SQL Fundamentals, 4th Edition</span>
     <h1>The ideas behind the queries</h1>
-    <p class="lede">A plain-English study companion for Chapters 1–7 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
+    <p class="lede">A plain-English study companion for Chapters 1–8 of <em>T-SQL Fundamentals</em> by Itzik Ben-Gan — with the book’s figures, tables, and code, explained from the ground up.</p>
     <div class="chips">
-      <span class="chip">7 chapters · 292 book pages</span>
+      <span class="chip">8 chapters · 342 book pages</span>
       <span class="chip">13 figures + 3 tables from the book</span>
-      <span class="chip">100+ code samples</span>
-      <span class="chip">~110 min read</span>
+      <span class="chip">4 original study diagrams</span>
+      <span class="chip">280+ code samples</span>
+      <span class="chip">~135 min read</span>
     </div>
     <div class="hero-quote">
-      <span>The seven-chapter version</span>
-      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets.</p>
+      <span>The eight-chapter version</span>
+      <p>Chapters 1–5 build from sets and logic to queries, joins, subqueries, and reusable table expressions. Chapter 6 combines result sets. Chapter 7 is the analysis toolkit: window functions, pivoting and unpivoting, grouping sets, and time-series buckets. Chapter 8 switches from reading to writing: inserts, deletes, updates, <code>MERGE</code>, key generation, and the <code>OUTPUT</code> clause.</p>
     </div>
   </div>
 </section>
@@ -334,9 +335,21 @@
       <a href="#ch7-practice"><span class="n">7.6</span> Practice: 8 exercises</a>
       <a href="#ch7-recap"><span class="n">7.7</span> Recap &amp; key terms</a>
       <a href="#ch7-quiz"><span class="n">7.8</span> Check yourself</a>
+      <div class="toc-group">Chapter 8 · Data modification</div>
+      <a href="#ch8-insert"><span class="n">8.1</span> Inserting data</a>
+      <a href="#ch8-keys"><span class="n">8.2</span> Identity vs. sequence</a>
+      <a href="#ch8-delete"><span class="n">8.3</span> Deleting data</a>
+      <a href="#ch8-update"><span class="n">8.4</span> Updating data</a>
+      <a href="#ch8-merge"><span class="n">8.5</span> Merging data</a>
+      <a href="#ch8-texpr"><span class="n">8.6</span> Through table expressions</a>
+      <a href="#ch8-top"><span class="n">8.7</span> TOP &amp; OFFSET-FETCH</a>
+      <a href="#ch8-output"><span class="n">8.8</span> The OUTPUT clause</a>
+      <a href="#ch8-practice"><span class="n">8.9</span> Practice: 6 exercises</a>
+      <a href="#ch8-recap"><span class="n">8.10</span> Recap &amp; key terms</a>
+      <a href="#ch8-quiz"><span class="n">8.11</span> Check yourself</a>
     </nav>
     <div class="toc-foot">
-      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit. If you only have five minutes, read the seven recaps.
+      <strong>Reading tip:</strong> Chapters 1–6 build the foundation; Chapter 7 is the analysis toolkit; Chapter 8 turns that toolkit toward changing data. If you only have five minutes, read the eight recaps.
     </div>
   </aside>
 
@@ -5367,6 +5380,1605 @@ ORDER BY shipperid, startofyear;</code></pre>
       </details>
     </section>
 
+    <!-- ================= CHAPTER 8 ================= -->
+    <div class="part-divider" id="chapter-8">
+      <span class="part-eyebrow">Chapter 8 · Data modification</span>
+      <h2>Change what the tables hold</h2>
+      <p>Every chapter so far only <em>read</em> data. This chapter writes it: five ways to insert rows, two ways to delete them, three flavours of <code>UPDATE</code>, <code>MERGE</code> for “synchronise these two tables,” and the <code>OUTPUT</code> clause, which lets a modification statement also <em>return</em> the rows it touched.</p>
+      <div class="part-chips">
+        <span>Book pages 293–342</span>
+        <span>2 listings · 6 exercises</span>
+        <span>4 original study diagrams</span>
+      </div>
+    </div>
+
+    <!-- 8.1 -->
+    <section class="section" id="ch8-insert">
+      <div class="section-head">
+        <div class="sec-num">8.1</div>
+        <div>
+          <div class="kicker">Inserting data</div>
+          <h2>Five ways to get rows into a table</h2>
+        </div>
+      </div>
+      <p class="lead">DML — Data Manipulation Language — includes <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>TRUNCATE</code>, and <code>MERGE</code>. Note that retrieval counts as manipulation too. This section covers the five insert statements, then the two tools SQL Server gives you for generating keys.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Statement</th><th>Source of the rows</th><th>Target</th><th>Standard?</th></tr></thead>
+          <tbody>
+            <tr><td><strong><code>INSERT VALUES</code></strong></td><td>Literal values you type</td><td>Existing table</td><td>Standard</td></tr>
+            <tr><td><strong><code>INSERT SELECT</code></strong></td><td>A <code>SELECT</code> query</td><td>Existing table</td><td>Standard</td></tr>
+            <tr><td><strong><code>INSERT EXEC</code></strong></td><td>A stored procedure or dynamic batch</td><td>Existing table</td><td>Standard</td></tr>
+            <tr><td><strong><code>SELECT INTO</code></strong></td><td>A <code>SELECT</code> query</td><td><strong>New</strong> table it creates for you</td><td>T-SQL only</td></tr>
+            <tr><td><strong><code>BULK INSERT</code></strong></td><td>A file</td><td>Existing table</td><td>T-SQL only</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">INSERT ROUTES</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 300" role="img" aria-label="Diagram of the five insert statements, their sources, and their targets">
+                <defs>
+                  <marker id="arrow8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                </defs>
+                <text x="127" y="16" text-anchor="middle" class="jtitle">SOURCE</text>
+                <text x="405" y="16" text-anchor="middle" class="jtitle">STATEMENT</text>
+                <text x="742" y="16" text-anchor="middle" class="jtitle">TARGET</text>
+
+                <!-- row 1 -->
+                <g>
+                  <rect x="15" y="28" width="224" height="40" rx="7" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="127" y="46" text-anchor="middle" class="jlabel">VALUES(10001,'20220212',3,'A')</text>
+                  <text x="127" y="61" text-anchor="middle" class="jcap">literals you type</text>
+                  <line x1="245" y1="48" x2="288" y2="48" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8)"/>
+                  <rect x="295" y="28" width="220" height="40" rx="7" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="405" y="53" text-anchor="middle" class="jlabel">INSERT ... VALUES</text>
+                  <line x1="521" y1="48" x2="628" y2="48" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8)"/>
+                  <rect x="635" y="28" width="250" height="40" rx="7" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="760" y="53" text-anchor="middle" class="jlabel">existing table</text>
+                </g>
+
+                <!-- row 2 -->
+                <g>
+                  <rect x="15" y="82" width="224" height="40" rx="7" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="127" y="100" text-anchor="middle" class="jlabel">SELECT ... FROM Sales.Orders</text>
+                  <text x="127" y="115" text-anchor="middle" class="jcap">any query</text>
+                  <line x1="245" y1="102" x2="288" y2="102" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8)"/>
+                  <rect x="295" y="82" width="220" height="40" rx="7" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="405" y="107" text-anchor="middle" class="jlabel">INSERT ... SELECT</text>
+                  <line x1="521" y1="102" x2="628" y2="102" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8)"/>
+                  <rect x="635" y="82" width="250" height="40" rx="7" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="760" y="107" text-anchor="middle" class="jlabel">existing table</text>
+                </g>
+
+                <!-- row 3 -->
+                <g>
+                  <rect x="15" y="136" width="224" height="40" rx="7" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="127" y="154" text-anchor="middle" class="jlabel">EXEC Sales.GetOrders</text>
+                  <text x="127" y="169" text-anchor="middle" class="jcap">procedure or dynamic batch</text>
+                  <line x1="245" y1="156" x2="288" y2="156" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8)"/>
+                  <rect x="295" y="136" width="220" height="40" rx="7" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="405" y="161" text-anchor="middle" class="jlabel">INSERT ... EXEC</text>
+                  <line x1="521" y1="156" x2="628" y2="156" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8)"/>
+                  <rect x="635" y="136" width="250" height="40" rx="7" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="760" y="161" text-anchor="middle" class="jlabel">existing table</text>
+                </g>
+
+                <!-- row 4 -->
+                <g>
+                  <rect x="15" y="190" width="224" height="40" rx="7" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="127" y="208" text-anchor="middle" class="jlabel">SELECT ... FROM Sales.Orders</text>
+                  <text x="127" y="223" text-anchor="middle" class="jcap">any query</text>
+                  <line x1="245" y1="210" x2="288" y2="210" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8)"/>
+                  <rect x="295" y="190" width="220" height="40" rx="7" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="405" y="215" text-anchor="middle" class="jlabel">SELECT ... INTO</text>
+                  <line x1="521" y1="210" x2="628" y2="210" stroke="#b45309" stroke-width="2" marker-end="url(#arrow8)"/>
+                  <rect x="635" y="190" width="250" height="40" rx="7" fill="#fdf3e3" stroke="#b45309" stroke-width="1.5"/>
+                  <text x="760" y="208" text-anchor="middle" class="jlabel" fill="#8a4a06">table created on the fly</text>
+                  <text x="760" y="223" text-anchor="middle" class="jcap">structure copied, constraints not</text>
+                </g>
+
+                <!-- row 5 -->
+                <g>
+                  <rect x="15" y="244" width="224" height="40" rx="7" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="127" y="262" text-anchor="middle" class="jlabel">'c:\temp\orders.txt'</text>
+                  <text x="127" y="277" text-anchor="middle" class="jcap">a file on disk</text>
+                  <line x1="245" y1="264" x2="288" y2="264" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8)"/>
+                  <rect x="295" y="244" width="220" height="40" rx="7" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="405" y="269" text-anchor="middle" class="jlabel">BULK INSERT</text>
+                  <line x1="521" y1="264" x2="628" y2="264" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8)"/>
+                  <rect x="635" y="244" width="250" height="40" rx="7" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                  <text x="760" y="269" text-anchor="middle" class="jlabel">existing table</text>
+                </g>
+              </svg>
+            </div>
+            <p class="fig-cap">Where each insert statement gets its rows — and where it puts them</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> four of the five statements need a table that already exists; only <code>SELECT INTO</code> (amber) builds the table for you as it runs, which is why it copies column names, types, nullability and the identity property — but not constraints, indexes, triggers, column properties, or permissions.</p>
+          </div>
+        </div>
+      </figure>
+
+      <details>
+        <summary>Sample data · create and populate dbo.Orders (p. 293)</summary>
+        <div class="answer">
+          <p>Most of this chapter works on fresh tables in the <code>dbo</code> schema of <code>TSQLV6</code>, so the sample data stays untouched.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · the chapter’s first table</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+
+DROP TABLE IF EXISTS dbo.Orders;
+
+CREATE TABLE dbo.Orders
+(
+  orderid   INT         NOT NULL
+    CONSTRAINT PK_Orders PRIMARY KEY,
+  orderdate DATE        NOT NULL
+    CONSTRAINT DFT_orderdate DEFAULT(SYSDATETIME()),
+  empid     INT         NOT NULL,
+  custid    VARCHAR(10) NOT NULL
+);</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <h3 class="subhead">The INSERT VALUES statement <span class="tag">p. 293</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a single row</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>INSERT INTO dbo.Orders(orderid, orderdate, empid, custid)
+  VALUES(10001, '20220212', 3, 'A');</code></pre>
+      </div>
+      <ul>
+        <li>Listing the target column names is optional — but do it anyway. It makes the value-to-column association explicit instead of depending on the column order in <code>CREATE TABLE</code>.</li>
+        <li>In T-SQL the <code>INTO</code> keyword itself is optional. The column list is what matters.</li>
+        <li>Omit a column and SQL Server fills it with its <strong>default</strong> if one is defined, else <code>NULL</code> if the column allows it, else the statement <strong>fails</strong>.</li>
+      </ul>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · relying on the default for orderdate</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>INSERT INTO dbo.Orders(orderid, empid, custid)
+  VALUES(10002, 5, 'B');</code></pre>
+      </div>
+
+      <div class="warn">
+        <strong>Truncation errors: the message depends on your compatibility level</strong>
+        If a string or binary value is longer than the target column, SQL Server fails the modification. Before SQL Server 2019 you got the generic <em>Msg 8152, “String or binary data would be truncated.”</em> — no table, no column, no value. On SQL Server 2019+ with database compatibility level 150 or higher you get <strong>Msg 2628</strong>, which names the table, the column, and the truncated value.
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · 13 characters into VARCHAR(10)</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>-- To change compatibility level use:
+-- ALTER DATABASE CURRENT SET COMPATIBILITY_LEVEL = &lt;level&gt;
+
+INSERT INTO dbo.Orders(orderid, orderdate, empid, custid)
+  VALUES(20001, '20220212', 1, 'TooLongCustID');
+
+-- Pre-2019 / below compat level 150:
+-- Msg 8152, Level 16, State 30: String or binary data would be truncated.
+
+-- SQL Server 2019+ with compat level 150+:
+-- Msg 2628, Level 16, State 1: String or binary data would be truncated
+-- in table 'TSQLV6.dbo.Orders', column 'custid'.
+-- Truncated value: 'TooLongCus'.</code></pre>
+      </div>
+
+      <h3 class="subhead">Multiple rows, and VALUES as a table <span class="tag">p. 295</span></h3>
+      <p>T-SQL extends the standard <code>VALUES</code> clause so you can list several rows separated by commas. The whole statement is one transaction: if any row fails, none of them lands in the table.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · four rows in one statement</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>INSERT INTO dbo.Orders
+  (orderid, orderdate, empid, custid)
+VALUES
+  (10003, '20220213', 4, 'B'),
+  (10004, '20220214', 1, 'A'),
+  (10005, '20220213', 1, 'C'),
+  (10006, '20220215', 3, 'C');</code></pre>
+      </div>
+      <p>The same <code>VALUES</code> clause also works as a <strong>table value constructor</strong> — a derived table you can select from. Alias the table, then alias the columns:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · VALUES as a derived table</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT *
+FROM ( VALUES
+         (10003, '20220213', 4, 'B'),
+         (10004, '20220214', 1, 'A'),
+         (10005, '20220213', 1, 'C'),
+         (10006, '20220215', 3, 'C') )
+     AS O(orderid, orderdate, empid, custid);</code></pre>
+      </div>
+
+      <h3 class="subhead">The INSERT SELECT statement <span class="tag">p. 295</span></h3>
+      <p>Same shape as <code>INSERT VALUES</code>, except the source is a query instead of a list of literals.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · insert the result of a query</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>INSERT INTO dbo.Orders(orderid, orderdate, empid, custid)
+  SELECT orderid, orderdate, empid, custid
+  FROM Sales.Orders
+  WHERE shipcountry = N'UK';</code></pre>
+      </div>
+      <div class="tip">
+        <strong>Functions in an INSERT SELECT run once, not once per row</strong>
+        A system function such as <code>SYSDATETIME</code> is invoked a single time for the whole query, so every inserted row gets the same timestamp. The exception is <code>NEWID</code>, which generates a new GUID per row.
+      </div>
+
+      <h3 class="subhead">The INSERT EXEC statement <span class="tag">p. 296</span></h3>
+      <p>This one inserts whatever a stored procedure or a dynamic SQL batch returns. Stored procedures and batches are covered properly in Chapter 12; for now the syntax is enough.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a procedure, then INSERT EXEC</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE OR ALTER PROC Sales.GetOrders
+  @country AS NVARCHAR(40)
+AS
+SELECT orderid, orderdate, empid, custid
+FROM Sales.Orders
+WHERE shipcountry = @country;
+GO
+
+EXEC Sales.GetOrders @country = N'France';   -- 77 rows
+
+INSERT INTO dbo.Orders(orderid, orderdate, empid, custid)
+  EXEC Sales.GetOrders @country = N'France';</code></pre>
+      </div>
+
+      <h3 class="subhead">The SELECT INTO statement <span class="tag">p. 297</span></h3>
+      <p>Nonstandard, and the only member of the family that <strong>creates</strong> its target. Add <code>INTO &lt;target&gt;</code> right before the <code>FROM</code> clause of your query.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · create and populate in one step</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS dbo.Orders;
+
+SELECT orderid, orderdate, empid, custid
+INTO dbo.Orders
+FROM Sales.Orders;</code></pre>
+      </div>
+      <div class="grid grid-2">
+        <div class="card"><div class="mini">Copied</div><p>Column names, types, nullability, the identity property, and of course the data itself.</p></div>
+        <div class="card"><div class="mini">Not copied</div><p>Constraints, indexes, triggers, other column properties, and permissions. Create those yourself if you need them.</p></div>
+      </div>
+      <p>It is also <strong>fast</strong>: as long as the database’s recovery model is not <code>FULL</code>, <code>SELECT INTO</code> runs in a minimally logged mode. <code>INSERT SELECT</code> can be minimally logged too, but the list of prerequisites is longer.</p>
+      <p>With set operations, the <code>INTO</code> clause goes in front of the <code>FROM</code> of the <em>first</em> query:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · SELECT INTO with EXCEPT</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS dbo.Locations;
+
+SELECT country, region, city
+INTO dbo.Locations
+FROM Sales.Customers
+
+EXCEPT
+
+SELECT country, region, city
+FROM HR.Employees;</code></pre>
+      </div>
+
+      <h3 class="subhead">The BULK INSERT statement <span class="tag">p. 298</span></h3>
+      <p>Loads data from a file into an existing table. You specify the target table, the source file, and options such as the data file type and the field and row terminators.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · bulk load a comma-delimited file</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>BULK INSERT dbo.Orders FROM 'c:\temp\orders.txt'
+  WITH
+    (
+       DATAFILETYPE    = 'char',
+       FIELDTERMINATOR = ',',
+       ROWTERMINATOR   = '\n'
+    );</code></pre>
+      </div>
+    </section>
+
+    <!-- 8.2 -->
+    <section class="section" id="ch8-keys">
+      <div class="section-head">
+        <div class="sec-num">8.2</div>
+        <div>
+          <div class="kicker">Keys</div>
+          <h2>Identity versus sequence</h2>
+        </div>
+      </div>
+      <p class="lead">SQL Server ships two built-in ways to generate numeric surrogate keys. Identity is the older, simpler one and comes with a long list of limitations. The sequence object fixes most of them and is the better default in new code.</p>
+
+      <h3 class="subhead">Identity <span class="tag">p. 298</span></h3>
+      <p>Identity is a standard <strong>column property</strong>. Any numeric type with a scale of zero can carry it, and you can optionally set a seed and an increment (both default to 1).</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a table with an identity column</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS dbo.T1;
+
+CREATE TABLE dbo.T1
+(
+  keycol  INT         NOT NULL IDENTITY(1, 1)
+    CONSTRAINT PK_T1 PRIMARY KEY,
+  datacol VARCHAR(10) NOT NULL
+    CONSTRAINT CHK_T1_datacol CHECK(datacol LIKE '[ABCDEFGHIJKLMNOPQRSTUVWXYZ]%')
+);
+
+INSERT INTO dbo.T1(datacol) VALUES('AAAAA'),('CCCCC'),('BBBBB');
+
+SELECT * FROM dbo.T1;
+-- keycol      datacol
+-- ----------- ----------
+-- 1           AAAAA
+-- 2           CCCCC
+-- 3           BBBBB</code></pre>
+      </div>
+      <p>In your <code>INSERT</code> statements you ignore the identity column completely. When querying you can name it, or use the generic form <code>$identity</code>:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the generic $identity form</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT $identity FROM dbo.T1;</code></pre>
+      </div>
+
+      <h4>Getting the value that was just generated</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Returns</th><th>Use it when</th></tr></thead>
+          <tbody>
+            <tr><td><code>SCOPE_IDENTITY()</code></td><td>Last identity value generated in the <strong>current scope</strong></td><td><strong>Almost always</strong> — this is the safe default</td></tr>
+            <tr><td><code>@@identity</code></td><td>Last identity value generated in the <strong>session</strong>, any scope</td><td>Rarely: a trigger’s insert can change it under you</td></tr>
+            <tr><td><code>IDENT_CURRENT('dbo.T1')</code></td><td>Current identity value <strong>in that table</strong>, any session</td><td>You need the table’s high-water mark, not your own insert</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · capture the new key, then use it</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @new_key AS INT;
+
+INSERT INTO dbo.T1(datacol) VALUES('AAAAA');
+
+SET @new_key = SCOPE_IDENTITY();
+
+SELECT @new_key AS new_key;   -- 4</code></pre>
+      </div>
+
+      <div class="warn">
+        <strong>Identity leaves gaps, and it does not enforce uniqueness</strong>
+        If an <code>INSERT</code> fails or its transaction rolls back, the identity value it consumed is <strong>not</strong> given back — the next row skips it. SQL Server also caches identity values for performance, so an unclean shutdown (power failure) can leave gaps too. And because you can insert explicit values with <code>IDENTITY_INSERT</code> or reseed with <code>DBCC CHECKIDENT</code>, the property alone guarantees nothing: add a primary key or unique constraint if you need uniqueness.
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a failed insert still burns a value</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>INSERT INTO dbo.T1(datacol) VALUES('12345');
+-- Msg 547: The INSERT statement conflicted with the CHECK constraint
+-- "CHK_T1_datacol" ...
+
+INSERT INTO dbo.T1(datacol) VALUES('EEEEE');
+
+SELECT * FROM dbo.T1;
+-- 4           AAAAA
+-- 6           EEEEE      &lt;-- 5 was consumed by the failed insert</code></pre>
+      </div>
+      <p>You can insert your own explicit values by enabling a session option, but you can never <strong>update</strong> an identity column:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · explicit identity values</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SET IDENTITY_INSERT dbo.T1 ON;
+
+INSERT INTO dbo.T1(keycol, datacol) VALUES(5, 'FFFFF');
+
+SET IDENTITY_INSERT dbo.T1 OFF;</code></pre>
+      </div>
+      <p>One subtlety: turning the option off moves the table’s current identity value forward <em>only if</em> the explicit value you supplied was higher than it. Above, the current value was already 6, so inserting 5 changed nothing and the next generated value is 7.</p>
+
+      <h3 class="subhead">Sequence <span class="tag">p. 302</span></h3>
+      <p>A sequence is an <strong>independent object</strong> in the database, not a property of one column. Ask it for a value with <code>NEXT VALUE FOR</code> and use the result wherever you like — including across several tables, which is how you keep keys from colliding between them.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · CREATE SEQUENCE and friends</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>CREATE SEQUENCE dbo.SeqOrderIDs AS INT
+  MINVALUE 1
+  CYCLE;
+
+ALTER SEQUENCE dbo.SeqOrderIDs
+  NO CYCLE;
+
+SELECT NEXT VALUE FOR dbo.SeqOrderIDs;   -- 1, no row inserted anywhere</code></pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Meaning</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><code>AS &lt;type&gt;</code></td><td>Any numeric type with scale zero</td><td><code>BIGINT</code></td></tr>
+            <tr><td><code>MINVALUE</code> / <code>MAXVALUE</code></td><td>Bounds within the type</td><td>The type’s own bounds</td></tr>
+            <tr><td><code>START WITH</code></td><td>First value handed out</td><td>The <code>MINVALUE</code></td></tr>
+            <tr><td><code>INCREMENT BY</code></td><td>Step size</td><td>1</td></tr>
+            <tr><td><code>CYCLE</code> / <code>NO CYCLE</code></td><td>Wrap around at the maximum</td><td><code>NO CYCLE</code></td></tr>
+            <tr><td><code>CACHE &lt;n&gt;</code> / <code>NO CACHE</code></td><td>How often the recoverable value is written to disk</td><td>50 (undocumented, may change)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Everything except the data type can be changed later with <code>ALTER SEQUENCE</code>. Three patterns for using the value:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a variable, an insert, and an update</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>-- 1. grab it first, use it in several places
+DECLARE @neworderid AS INT = NEXT VALUE FOR dbo.SeqOrderIDs;
+
+INSERT INTO dbo.T1(keycol, datacol) VALUES(@neworderid, 'a');
+
+-- 2. inline, when you don't need it beforehand
+INSERT INTO dbo.T1(keycol, datacol)
+  VALUES(NEXT VALUE FOR dbo.SeqOrderIDs, 'b');
+
+-- 3. yes, you can generate sequence values in an UPDATE
+UPDATE dbo.T1
+  SET keycol = NEXT VALUE FOR dbo.SeqOrderIDs;</code></pre>
+      </div>
+      <p>T-SQL adds three extensions the standard does not have. The <code>OVER</code> clause controls the order in which values are assigned in a multi-row insert; <code>NEXT VALUE FOR</code> is allowed in a <strong>default constraint</strong>; and <code>sp_sequence_get_range</code> allocates a whole block of values at once.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the three T-SQL extensions</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>-- a) ordered assignment in a multi-row insert
+INSERT INTO dbo.T1(keycol, datacol)
+  SELECT
+    NEXT VALUE FOR dbo.SeqOrderIDs OVER(ORDER BY hiredate),
+    LEFT(firstname, 1) + LEFT(lastname, 1)
+  FROM HR.Employees;
+
+-- b) as a default constraint
+ALTER TABLE dbo.T1
+  ADD CONSTRAINT DFT_T1_keycol
+    DEFAULT (NEXT VALUE FOR dbo.SeqOrderIDs)
+    FOR keycol;
+
+INSERT INTO dbo.T1(datacol) VALUES('c');   -- keycol filled automatically
+
+-- c) allocate a million values in one call
+DECLARE @first AS SQL_VARIANT;
+
+EXEC sys.sp_sequence_get_range
+  @sequence_name     = N'dbo.SeqOrderIDs',
+  @range_size        = 1000000,
+  @range_first_value = @first OUTPUT;
+
+SELECT @first;</code></pre>
+      </div>
+      <p>Query <code>sys.sequences</code> to see where a sequence stands, and remember: like identity, a sequence does <strong>not</strong> promise gap-free values.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · inspect and clean up</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>SELECT current_value
+FROM sys.sequences
+WHERE OBJECT_ID = OBJECT_ID(N'dbo.SeqOrderIDs');
+
+DROP TABLE IF EXISTS dbo.T1;
+DROP SEQUENCE IF EXISTS dbo.SeqOrderIDs;</code></pre>
+      </div>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">IDENTITY vs. SEQUENCE</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 270" role="img" aria-label="Diagram comparing the identity column property, tied to one column in one table, with a sequence object that is independent and can feed several tables">
+                <defs>
+                  <marker id="arrow8b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                </defs>
+
+                <!-- IDENTITY panel -->
+                <rect x="15" y="14" width="420" height="240" rx="10" fill="#fbf9f3" stroke="#d3cab8" stroke-width="1.5"/>
+                <text x="225" y="38" text-anchor="middle" class="jtitle">IDENTITY</text>
+                <text x="225" y="56" text-anchor="middle" class="jcap">a property of one column</text>
+
+                <rect x="105" y="72" width="240" height="96" rx="8" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="225" y="92" text-anchor="middle" class="jlabel">dbo.T1</text>
+                <rect x="125" y="102" width="200" height="26" rx="4" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.2"/>
+                <text x="225" y="120" text-anchor="middle" class="jlabel">keycol INT IDENTITY(1,1)</text>
+                <rect x="125" y="133" width="200" height="24" rx="4" fill="#ffffff" stroke="#cfe6e1" stroke-width="1.2"/>
+                <text x="225" y="150" text-anchor="middle" class="jcap">datacol VARCHAR(10)</text>
+
+                <text x="225" y="192" text-anchor="middle" class="jcap">value appears only when a row is inserted</text>
+                <text x="225" y="212" text-anchor="middle" class="jcap">cannot be added to / removed from a column</text>
+                <text x="225" y="232" text-anchor="middle" class="jcap">cannot appear in an UPDATE</text>
+                <text x="225" y="248" text-anchor="middle" class="jcap">gaps after failure, rollback, or crash</text>
+
+                <!-- SEQUENCE panel -->
+                <rect x="465" y="14" width="420" height="240" rx="10" fill="#fbf9f3" stroke="#d3cab8" stroke-width="1.5"/>
+                <text x="675" y="38" text-anchor="middle" class="jtitle">SEQUENCE</text>
+                <text x="675" y="56" text-anchor="middle" class="jcap">an independent database object</text>
+
+                <rect x="545" y="72" width="260" height="42" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="675" y="90" text-anchor="middle" class="jlabel">dbo.SeqOrderIDs</text>
+                <text x="675" y="107" text-anchor="middle" class="jcap">NEXT VALUE FOR ...</text>
+
+                <line x1="620" y1="116" x2="540" y2="146" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8b)"/>
+                <line x1="675" y1="116" x2="675" y2="146" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8b)"/>
+                <line x1="730" y1="116" x2="810" y2="146" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8b)"/>
+
+                <rect x="480" y="150" width="120" height="34" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="540" y="171" text-anchor="middle" class="jcap">dbo.Orders</text>
+                <rect x="615" y="150" width="120" height="34" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="675" y="171" text-anchor="middle" class="jcap">a variable</text>
+                <rect x="750" y="150" width="120" height="34" rx="6" fill="#ffffff" stroke="#0f6b63" stroke-width="1.5"/>
+                <text x="810" y="171" text-anchor="middle" class="jcap">another table</text>
+
+                <text x="675" y="208" text-anchor="middle" class="jcap">generate a value before you need it</text>
+                <text x="675" y="226" text-anchor="middle" class="jcap">usable in INSERT, UPDATE, and defaults</text>
+                <text x="675" y="244" text-anchor="middle" class="jcap">MIN/MAX, CYCLE, CACHE, ranges</text>
+              </svg>
+            </div>
+            <p class="fig-cap">Identity is welded to a column; a sequence is a shared tap</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> on the left, the generator lives <em>inside</em> one column of one table, so it can only produce a value as a side effect of inserting a row there. On the right, it is a standalone object: one <code>NEXT VALUE FOR</code> call can feed an order ID, a local variable, and a row in another table, and it works inside <code>UPDATE</code> and default constraints too.</p>
+          </div>
+        </div>
+      </figure>
+    </section>
+
+    <!-- 8.3 -->
+    <section class="section" id="ch8-delete">
+      <div class="section-head">
+        <div class="sec-num">8.3</div>
+        <div>
+          <div class="kicker">Deleting data</div>
+          <h2>DELETE, TRUNCATE, and delete-by-join</h2>
+        </div>
+      </div>
+      <p class="lead">Two statements remove rows. <code>DELETE</code> takes a filter and logs every row it removes; <code>TRUNCATE</code> takes no filter and deallocates whole blocks of data instead. T-SQL also lets you delete through a join.</p>
+
+      <details>
+        <summary>Sample data · copies of dbo.Customers and dbo.Orders (p. 307)</summary>
+        <div class="answer">
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · create and populate the copies</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>DROP TABLE IF EXISTS dbo.Orders, dbo.Customers;
+
+CREATE TABLE dbo.Customers
+(
+  custid       INT          NOT NULL,
+  companyname  NVARCHAR(40) NOT NULL,
+  contactname  NVARCHAR(30) NOT NULL,
+  contacttitle NVARCHAR(30) NOT NULL,
+  address      NVARCHAR(60) NOT NULL,
+  city         NVARCHAR(15) NOT NULL,
+  region       NVARCHAR(15) NULL,
+  postalcode   NVARCHAR(10) NULL,
+  country      NVARCHAR(15) NOT NULL,
+  phone        NVARCHAR(24) NOT NULL,
+  fax          NVARCHAR(24) NULL,
+  CONSTRAINT PK_Customers PRIMARY KEY(custid)
+);
+
+CREATE TABLE dbo.Orders
+(
+  orderid        INT          NOT NULL,
+  custid         INT          NULL,
+  empid          INT          NOT NULL,
+  orderdate      DATE         NOT NULL,
+  requireddate   DATE         NOT NULL,
+  shippeddate    DATE         NULL,
+  shipperid      INT          NOT NULL,
+  freight        MONEY        NOT NULL
+    CONSTRAINT DFT_Orders_freight DEFAULT(0),
+  shipname       NVARCHAR(40) NOT NULL,
+  shipaddress    NVARCHAR(60) NOT NULL,
+  shipcity       NVARCHAR(15) NOT NULL,
+  shipregion     NVARCHAR(15) NULL,
+  shippostalcode NVARCHAR(10) NULL,
+  shipcountry    NVARCHAR(15) NOT NULL,
+  CONSTRAINT PK_Orders PRIMARY KEY(orderid),
+  CONSTRAINT FK_Orders_Customers FOREIGN KEY(custid)
+    REFERENCES dbo.Customers(custid)
+);
+GO
+
+INSERT INTO dbo.Customers SELECT * FROM Sales.Customers;
+INSERT INTO dbo.Orders    SELECT * FROM Sales.Orders;</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <h3 class="subhead">The DELETE statement <span class="tag">p. 308</span></h3>
+      <p>The standard form has only two clauses: <code>FROM</code> (the target table) and <code>WHERE</code> (the filter). Only rows for which the predicate is TRUE are deleted.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · delete with a filter</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DELETE FROM dbo.Orders
+WHERE orderdate &lt; '20210101';
+-- (152 rows affected)</code></pre>
+      </div>
+      <p>Turn on the session option <code>NOCOUNT</code> if you want to suppress those “rows affected” messages — it is off by default. Keep in mind that <code>DELETE</code> is a <strong>fully logged</strong> operation, which is what makes large deletes expensive.</p>
+
+      <h3 class="subhead">The TRUNCATE statement <span class="tag">p. 309</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · TRUNCATE</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>TRUNCATE TABLE dbo.T1;</code></pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>DELETE</th><th>TRUNCATE</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Filter</strong></td><td>Yes, with <code>WHERE</code></td><td>No — always all rows</td></tr>
+            <tr><td><strong>Logging</strong></td><td>Fully logged, row by row</td><td>Minimally logged (only deallocated blocks are recorded)</td></tr>
+            <tr><td><strong>Speed on millions of rows</strong></td><td>Many minutes</td><td>A few seconds</td></tr>
+            <tr><td><strong>Identity</strong></td><td>Current value is kept</td><td>Reset back to the original seed</td></tr>
+            <tr><td><strong>Referenced by a foreign key</strong></td><td>Allowed</td><td><strong>Not allowed</strong> — even if the referencing table is empty and the FK is disabled</td></tr>
+            <tr><td><strong>Transactional</strong></td><td>Yes</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tip">
+        <strong>A cheap insurance policy for production tables</strong>
+        Both <code>TRUNCATE</code> and <code>DROP</code> are fast enough to commit before you notice you ran them in the wrong connection. Create a dummy table with a foreign key pointing at the production table: the FK blocks truncating or dropping it — and you can even disable the FK so it costs nothing at runtime.
+      </div>
+      <p>On partitioned tables, SQL Server 2016 and later can truncate individual partitions:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · truncate partitions 1, 3, 5, and 7 through 10</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>TRUNCATE TABLE dbo.T1 WITH ( PARTITIONS(1, 3, 5, 7 TO 10) );</code></pre>
+      </div>
+
+      <h3 class="subhead">DELETE based on a join <span class="tag">p. 310</span></h3>
+      <p>A nonstandard T-SQL form that lets you filter on — and reference — columns of a related table. The two <code>FROM</code> clauses look confusing until you write it as a <code>SELECT</code> first: join, filter, then replace the <code>SELECT</code> clause with <code>DELETE</code> naming the alias of the side you want to empty. The first <code>FROM</code> is optional — <code>DELETE O</code> works just as well.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · delete orders placed by US customers</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DELETE FROM O
+FROM dbo.Orders AS O
+  INNER JOIN dbo.Customers AS C
+    ON O.custid = C.custid
+WHERE C.country = N'USA';</code></pre>
+      </div>
+      <p>The standard alternative uses a subquery, and SQL Server produces the same execution plan for both, so there is no performance reason to prefer the join:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the standard form with EXISTS</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DELETE FROM dbo.Orders
+WHERE EXISTS
+  (SELECT *
+   FROM dbo.Customers AS C
+   WHERE Orders.custid = C.custid
+     AND C.country = N'USA');</code></pre>
+      </div>
+      <div class="note">
+        <strong>Rule of thumb from the book</strong>
+        Stick to standard code unless you have a compelling reason not to. For <code>UPDATE</code> based on a join there sometimes is one (see the next section); for <code>DELETE</code> there usually is not.
+      </div>
+    </section>
+
+    <!-- 8.4 -->
+    <section class="section" id="ch8-update">
+      <div class="section-head">
+        <div class="sec-num">8.4</div>
+        <div>
+          <div class="kicker">Updating data</div>
+          <h2>UPDATE, all-at-once, and the assignment trick</h2>
+        </div>
+      </div>
+      <p class="lead">The standard <code>UPDATE</code> with a <code>SET</code> clause and a <code>WHERE</code> filter is the one you will use most. T-SQL adds compound assignment operators, a join-based form, and a proprietary syntax that updates a row and fills a variable in a single pass.</p>
+
+      <h3 class="subhead">The UPDATE statement <span class="tag">p. 313</span></h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a filtered update</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>UPDATE dbo.OrderDetails
+  SET discount = discount + 0.05
+WHERE productid = 51;</code></pre>
+      </div>
+      <p>T-SQL supports compound assignment operators — <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>%=</code> and others — so the statement above can be shortened to:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · compound assignment</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>UPDATE dbo.OrderDetails
+  SET discount += 0.05
+WHERE productid = 51;</code></pre>
+      </div>
+
+      <h3 class="subhead">All-at-once, again <span class="tag">p. 313</span></h3>
+      <p>The all-at-once concept from Chapter 2 applies here too: every assignment in the <code>SET</code> clause sees the row <em>before</em> the update. Given <code>col1 = 100</code> in a row:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · two assignments, one moment in time</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>UPDATE dbo.T1
+  SET col1 = col1 + 10, col2 = col1 + 10;</code></pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>col1</th><th>col2</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Before</strong></td><td>100</td><td>(anything)</td></tr>
+            <tr><td><strong>Left-to-right (wrong model)</strong></td><td>110</td><td>120</td></tr>
+            <tr><td><strong>All-at-once (what SQL does)</strong></td><td>110</td><td>110</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The pleasant consequence: swapping two columns needs no temporary variable, because both assignments read the original row.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · swap two columns</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>UPDATE dbo.T1
+  SET col1 = col2, col2 = col1;</code></pre>
+      </div>
+
+      <h3 class="subhead">UPDATE based on a join <span class="tag">p. 314</span></h3>
+      <p>Listing 8-1 in the book bumps the discount on every order detail belonging to customer 1. Same shape as the delete-by-join: <code>FROM</code> with the joins, <code>WHERE</code> filter, then <code>UPDATE</code> naming the alias of the target side. Only one table can be the target of a single statement.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · Listing 8-1 · UPDATE based on a join</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>UPDATE OD
+  SET discount += 0.05
+FROM dbo.OrderDetails AS OD
+  INNER JOIN dbo.Orders AS O
+    ON OD.orderid = O.orderid
+WHERE O.custid = 1;</code></pre>
+      </div>
+      <p>The standard rewrite uses <code>EXISTS</code> for the filter:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the standard form</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>UPDATE dbo.OrderDetails
+  SET discount += 0.05
+WHERE EXISTS
+  (SELECT * FROM dbo.Orders AS O
+   WHERE O.orderid = OrderDetails.orderid
+     AND O.custid = 1);</code></pre>
+      </div>
+      <p><strong>Where the join really wins</strong> is when you need several columns from the other table in the <code>SET</code> clause. The join gives you one access to the source table for filtering <em>and</em> assignment; the standard version needs a separate subquery for each assignment, and each one touches the other table again.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · three columns from another table</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>-- Join version: one access to T2
+UPDATE T1
+  SET col1 = T2.col1,
+      col2 = T2.col2,
+      col3 = T2.col3
+FROM dbo.T1 JOIN dbo.T2
+  ON T2.keycol = T1.keycol
+WHERE T2.col4 = 'ABC';</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the same task with subqueries</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>-- Standard version: four separate accesses to T2
+UPDATE dbo.T1
+  SET col1 = (SELECT col1 FROM dbo.T2 WHERE T2.keycol = T1.keycol),
+      col2 = (SELECT col2 FROM dbo.T2 WHERE T2.keycol = T1.keycol),
+      col3 = (SELECT col3 FROM dbo.T2 WHERE T2.keycol = T1.keycol)
+WHERE EXISTS
+  (SELECT *
+   FROM dbo.T2
+   WHERE T2.keycol = T1.keycol
+     AND T2.col4 = 'ABC');</code></pre>
+      </div>
+      <div class="note">
+        <strong>Not available yet: row constructors in SET</strong>
+        Standard SQL would let you write <code>SET (col1, col2, col3) = (SELECT col1, col2, col3 FROM ...)</code>. T-SQL has only partially implemented row constructors, and this use is one of the missing pieces — it would still need a second subquery for the filter anyway.
+      </div>
+
+      <h3 class="subhead">Assignment UPDATE <span class="tag">p. 316</span></h3>
+      <p>A proprietary form that changes data and assigns a variable in the same statement. Its classic use is a hand-rolled sequence with <strong>no gaps</strong> — something neither identity nor a sequence object can promise.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · a gap-free custom sequence</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS dbo.MySequences;
+
+CREATE TABLE dbo.MySequences
+(
+  id VARCHAR(10) NOT NULL
+    CONSTRAINT PK_MySequences PRIMARY KEY(id),
+  val INT NOT NULL
+);
+
+INSERT INTO dbo.MySequences VALUES('SEQ1', 0);</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · increment and capture in one pass</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @nextval AS INT;
+
+UPDATE dbo.MySequences
+  SET @nextval = val += 1
+WHERE id = 'SEQ1';
+
+SELECT @nextval;</code></pre>
+      </div>
+      <p>First <code>val</code> becomes <code>val + 1</code>, then that result is assigned to <code>@nextval</code>. The whole statement runs as a transaction and touches the data once, which is cheaper than an <code>UPDATE</code> followed by a <code>SELECT</code>.</p>
+      <div class="warn">
+        <strong>Variable assignments are not transactional</strong>
+        If you assign a value to a variable inside a transaction and the transaction later fails, the table change is rolled back but the variable keeps its value.
+      </div>
+    </section>
+
+    <!-- 8.5 -->
+    <section class="section" id="ch8-merge">
+      <div class="section-head">
+        <div class="sec-num">8.5</div>
+        <div>
+          <div class="kicker">Merging data</div>
+          <h2>One statement, three possible actions</h2>
+        </div>
+      </div>
+      <p class="lead"><code>MERGE</code> synchronises a target table with a source table, applying different actions depending on whether rows match. It is standard SQL with a few T-SQL extras. One <code>MERGE</code> usually replaces a whole bundle of <code>INSERT</code>, <code>UPDATE</code>, and <code>DELETE</code> statements.</p>
+
+      <details>
+        <summary>Sample data · Listing 8-2 · Customers and CustomersStage</summary>
+        <div class="answer">
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · Listing 8-2</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>DROP TABLE IF EXISTS dbo.Customers, dbo.CustomersStage;
+GO
+
+CREATE TABLE dbo.Customers
+(
+  custid      INT         NOT NULL,
+  companyname VARCHAR(25) NOT NULL,
+  phone       VARCHAR(20) NOT NULL,
+  address     VARCHAR(50) NOT NULL,
+  CONSTRAINT PK_Customers PRIMARY KEY(custid)
+);
+
+INSERT INTO dbo.Customers(custid, companyname, phone, address)
+VALUES
+  (1, 'cust 1', '(111) 111-1111', 'address 1'),
+  (2, 'cust 2', '(222) 222-2222', 'address 2'),
+  (3, 'cust 3', '(333) 333-3333', 'address 3'),
+  (4, 'cust 4', '(444) 444-4444', 'address 4'),
+  (5, 'cust 5', '(555) 555-5555', 'address 5');
+
+CREATE TABLE dbo.CustomersStage
+(
+  custid      INT         NOT NULL,
+  companyname VARCHAR(25) NOT NULL,
+  phone       VARCHAR(20) NOT NULL,
+  address     VARCHAR(50) NOT NULL,
+  CONSTRAINT PK_CustomersStage PRIMARY KEY(custid)
+);
+
+INSERT INTO dbo.CustomersStage(custid, companyname, phone, address)
+VALUES
+  (2, 'AAAAA',        '(222) 222-2222', 'address 2'),
+  (3, 'cust 3',       '(333) 333-3333', 'address 3'),
+  (5, 'BBBBB',        'CCCCC',          'DDDDD'),
+  (6, 'cust 6 (new)', '(666) 666-6666', 'address 6'),
+  (7, 'cust 7 (new)', '(777) 777-7777', 'address 7');</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">MERGE OUTCOMES</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 265" role="img" aria-label="Diagram of the three MERGE outcomes: matched rows are updated, source-only rows are inserted, target-only rows are deleted">
+                <defs>
+                  <marker id="arrow8c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                </defs>
+                <ellipse cx="335" cy="98" rx="205" ry="92" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.6"/>
+                <ellipse cx="565" cy="98" rx="205" ry="92" fill="#e8eefc" stroke="#1d4ed8" stroke-width="1.6" fill-opacity="0.72"/>
+
+                <text x="180" y="24" text-anchor="middle" class="jtitle">TARGET · dbo.Customers</text>
+                <text x="720" y="24" text-anchor="middle" class="jtitle">SOURCE · dbo.CustomersStage</text>
+
+                <text x="245" y="92" text-anchor="middle" class="jlabel">only in target</text>
+                <text x="245" y="110" text-anchor="middle" class="jcap">custid 1, 4</text>
+
+                <text x="450" y="86" text-anchor="middle" class="jlabel">in both</text>
+                <text x="450" y="104" text-anchor="middle" class="jcap">custid 2, 3, 5</text>
+
+                <text x="655" y="92" text-anchor="middle" class="jlabel">only in source</text>
+                <text x="655" y="110" text-anchor="middle" class="jcap">custid 6, 7</text>
+
+                <path d="M 245 175 L 245 197 L 155 197 L 155 212" fill="none" stroke="#b45309" stroke-width="2" marker-end="url(#arrow8c)"/>
+                <path d="M 450 180 L 450 212" fill="none" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8c)"/>
+                <path d="M 655 175 L 655 197 L 745 197 L 745 212" fill="none" stroke="#1d4ed8" stroke-width="2" marker-end="url(#arrow8c)"/>
+
+                <rect x="15" y="214" width="280" height="38" rx="6" fill="#fdf3e3" stroke="#b45309" stroke-width="1.4"/>
+                <text x="155" y="231" text-anchor="middle" class="jlabel" fill="#8a4a06">WHEN NOT MATCHED BY SOURCE</text>
+                <text x="155" y="246" text-anchor="middle" class="jcap">THEN DELETE</text>
+
+                <rect x="310" y="214" width="280" height="38" rx="6" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.4"/>
+                <text x="450" y="231" text-anchor="middle" class="jlabel">WHEN MATCHED</text>
+                <text x="450" y="246" text-anchor="middle" class="jcap">THEN UPDATE</text>
+
+                <rect x="605" y="214" width="280" height="38" rx="6" fill="#e8eefc" stroke="#1d4ed8" stroke-width="1.4"/>
+                <text x="745" y="231" text-anchor="middle" class="jlabel" fill="#1e3a8a">WHEN NOT MATCHED</text>
+                <text x="745" y="246" text-anchor="middle" class="jcap">THEN INSERT</text>
+              </svg>
+            </div>
+            <p class="fig-cap">Three regions, three clauses</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the <code>ON</code> predicate (<code>TGT.custid = SRC.custid</code>) splits the two tables into three regions. Customers 2, 3 and 5 exist in both and get updated; 6 and 7 exist only in the stage table and get inserted; 1 and 4 exist only in the target and — if you add the third clause — get deleted.</p>
+          </div>
+        </div>
+      </figure>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · upsert with MERGE</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>MERGE INTO dbo.Customers AS TGT
+USING dbo.CustomersStage AS SRC
+  ON TGT.custid = SRC.custid
+WHEN MATCHED THEN
+  UPDATE SET
+    TGT.companyname = SRC.companyname,
+    TGT.phone = SRC.phone,
+    TGT.address = SRC.address
+WHEN NOT MATCHED THEN
+  INSERT (custid, companyname, phone, address)
+  VALUES (SRC.custid, SRC.companyname, SRC.phone, SRC.address);</code></pre>
+      </div>
+      <div class="warn">
+        <strong>MERGE must be terminated with a semicolon</strong>
+        It is the one statement in T-SQL where the terminator is mandatory rather than merely good practice.
+      </div>
+      <p>Notice that the <code>UPDATE</code> and <code>INSERT</code> actions omit the table name — the target was already named in <code>MERGE INTO</code>. The statement reports five rows modified: three updates (2, 3, 5) and two inserts (6, 7).</p>
+
+      <h3 class="subhead">Deleting rows the source forgot <span class="tag">p. 320</span></h3>
+      <p>Add the third clause to remove target rows that have no counterpart in the source. Running this against the sample data deletes customers 1 and 4.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the third clause</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>MERGE dbo.Customers AS TGT
+USING dbo.CustomersStage AS SRC
+  ON TGT.custid = SRC.custid
+WHEN MATCHED THEN
+  UPDATE SET
+    TGT.companyname = SRC.companyname,
+    TGT.phone = SRC.phone,
+    TGT.address = SRC.address
+WHEN NOT MATCHED THEN
+  INSERT (custid, companyname, phone, address)
+  VALUES (SRC.custid, SRC.companyname, SRC.phone, SRC.address)
+WHEN NOT MATCHED BY SOURCE THEN
+  DELETE;</code></pre>
+      </div>
+
+      <h3 class="subhead">Only update when something changed <span class="tag">p. 321</span></h3>
+      <p>The basic form rewrites every matched row, even when nothing differs — which means extra log writes and extra rows in your audit trail. Add an <code>AND</code> predicate to any action clause and it fires only when that predicate is also TRUE:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · WHEN MATCHED AND ...</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>MERGE dbo.Customers AS TGT
+USING dbo.CustomersStage AS SRC
+  ON TGT.custid = SRC.custid
+WHEN MATCHED AND
+       (   TGT.companyname &lt;&gt; SRC.companyname
+        OR TGT.phone       &lt;&gt; SRC.phone
+        OR TGT.address     &lt;&gt; SRC.address) THEN
+  UPDATE SET
+    TGT.companyname = SRC.companyname,
+    TGT.phone = SRC.phone,
+    TGT.address = SRC.address
+WHEN NOT MATCHED THEN
+  INSERT (custid, companyname, phone, address)
+  VALUES (SRC.custid, SRC.companyname, SRC.phone, SRC.address);</code></pre>
+      </div>
+      <div class="note">
+        <strong>MERGE is not only for multi-action work</strong>
+        A <code>MERGE</code> with a single <code>WHEN MATCHED THEN DELETE</code> or <code>WHEN MATCHED THEN UPDATE</code> clause is perfectly legal, and is sometimes the clearest way to express a filtered modification — see Exercises 3 and 5.
+      </div>
+    </section>
+
+    <!-- 8.6 -->
+    <section class="section" id="ch8-texpr">
+      <div class="section-head">
+        <div class="sec-num">8.6</div>
+        <div>
+          <div class="kicker">Through table expressions</div>
+          <h2>Modify data you can only describe with a query</h2>
+        </div>
+      </div>
+      <p class="lead">A table expression holds no data — it reflects the data in underlying tables. So a modification against a CTE or derived table is really a modification of the underlying tables, reached through the expression. Sometimes that is merely convenient; sometimes it is the only way.</p>
+
+      <div class="warn">
+        <strong>Three restrictions</strong>
+        <ul style="margin:.4rem 0 0">
+          <li>If the defining query joins tables, you may affect <strong>only one side</strong> of the join in a single statement.</li>
+          <li>You cannot update a <strong>calculated</strong> column — SQL Server will not reverse-engineer the inputs.</li>
+          <li>An <code>INSERT</code> must supply values for every underlying column that does not get one implicitly (nullable, default, identity, or <code>ROWVERSION</code>).</li>
+        </ul>
+      </div>
+
+      <h3 class="subhead">Convenience: debug the SELECT first</h3>
+      <p>Rewrite Listing 8-1 as a table expression and you can highlight just the inner <code>SELECT</code> and run it to see exactly which rows would change — no editing back and forth.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the same update through a CTE</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH C AS
+(
+  SELECT custid, OD.orderid,
+    productid, discount, discount + 0.05 AS newdiscount
+  FROM dbo.OrderDetails AS OD
+    INNER JOIN dbo.Orders AS O
+      ON OD.orderid = O.orderid
+  WHERE O.custid = 1
+)
+UPDATE C
+  SET discount = newdiscount;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the same thing as a derived table</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>UPDATE D
+  SET discount = newdiscount
+FROM ( SELECT custid, OD.orderid,
+         productid, discount, discount + 0.05 AS newdiscount
+       FROM dbo.OrderDetails AS OD
+         INNER JOIN dbo.Orders AS O
+           ON OD.orderid = O.orderid
+       WHERE O.custid = 1 ) AS D;</code></pre>
+      </div>
+
+      <h3 class="subhead">Necessity: window functions in the SET clause <span class="tag">p. 323</span></h3>
+      <p>Suppose you want to number rows into <code>col2</code>. Window functions are allowed only in <code>SELECT</code> and <code>ORDER BY</code>, so the direct route fails:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · this does not work</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS dbo.T1;
+CREATE TABLE dbo.T1(col1 INT, col2 INT);
+GO
+INSERT INTO dbo.T1(col1) VALUES(20),(10),(30);
+
+UPDATE dbo.T1
+  SET col2 = ROW_NUMBER() OVER(ORDER BY col1);
+-- Msg 4108, Level 15, State 1:
+-- Windowed functions can only appear in the SELECT or ORDER BY clauses.</code></pre>
+      </div>
+      <p>Put the window function in a table expression that also returns the column you want to update, then update the expression:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the working version</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH C AS
+(
+  SELECT col1, col2, ROW_NUMBER() OVER(ORDER BY col1) AS rownum
+  FROM dbo.T1
+)
+UPDATE C
+  SET col2 = rownum;
+
+SELECT * FROM dbo.T1;
+-- col1        col2
+-- ----------- -----------
+-- 20          2
+-- 10          1
+-- 30          3</code></pre>
+      </div>
+    </section>
+
+    <!-- 8.7 -->
+    <section class="section" id="ch8-top">
+      <div class="section-head">
+        <div class="sec-num">8.7</div>
+        <div>
+          <div class="kicker">Chunked modifications</div>
+          <h2>TOP and OFFSET-FETCH on a modification</h2>
+        </div>
+      </div>
+      <p class="lead">You can put <code>TOP</code> directly in an <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, or <code>MERGE</code> statement to cap how many rows it touches — handy for splitting one huge modification into manageable chunks.</p>
+
+      <div class="warn">
+        <strong>You cannot say which rows</strong>
+        Unlike in a <code>SELECT</code>, a <code>TOP</code> filter in a modification statement <strong>cannot</strong> have an <code>ORDER BY</code>. SQL Server simply modifies whichever rows it reaches first. And <code>OFFSET-FETCH</code> is not allowed directly at all, because it requires an <code>ORDER BY</code>.
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · TOP directly on a modification</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DELETE TOP (50) FROM dbo.Orders;         -- whichever 50 rows come first
+
+UPDATE TOP (50) dbo.Orders
+  SET freight += 10.00;                  -- likewise, 50 arbitrary rows</code></pre>
+      </div>
+      <p>When you <em>do</em> care which rows, wrap the <code>TOP</code> — or an <code>OFFSET-FETCH</code> — inside a table expression, where <code>ORDER BY</code> is allowed, and modify that:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the 50 lowest order IDs</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH C AS
+(
+  SELECT TOP (50) *
+  FROM dbo.Orders
+  ORDER BY orderid
+)
+DELETE FROM C;</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · the 50 highest order IDs, via OFFSET-FETCH</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>WITH C AS
+(
+  SELECT *
+  FROM dbo.Orders
+  ORDER BY orderid DESC
+  OFFSET 0 ROWS FETCH NEXT 50 ROWS ONLY
+)
+UPDATE C
+  SET freight += 10.00;</code></pre>
+      </div>
+    </section>
+
+    <!-- 8.8 -->
+    <section class="section" id="ch8-output">
+      <div class="section-head">
+        <div class="sec-num">8.8</div>
+        <div>
+          <div class="kicker">The OUTPUT clause</div>
+          <h2>Make the modification report back</h2>
+        </div>
+      </div>
+      <p class="lead">Normally a modification statement just changes data. Add <code>OUTPUT</code> and it also <em>returns</em> the rows it touched — indispensable for troubleshooting, auditing, and archiving.</p>
+
+      <p>The clause is shaped like a <code>SELECT</code> list, except every attribute is prefixed with <code>inserted</code> or <code>deleted</code>, which refer to the new and the old image of the row.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Statement</th><th><code>inserted.*</code></th><th><code>deleted.*</code></th></tr></thead>
+          <tbody>
+            <tr><td><code>INSERT</code></td><td>The new row (including generated identity / sequence values)</td><td>n/a</td></tr>
+            <tr><td><code>DELETE</code></td><td>n/a</td><td>The removed row</td></tr>
+            <tr><td><code>UPDATE</code></td><td>The row <em>after</em> the change</td><td>The row <em>before</em> the change</td></tr>
+            <tr><td><code>MERGE</code></td><td>New values; NULL for <code>DELETE</code> actions</td><td>Old values; NULL for <code>INSERT</code> actions</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><code>OUTPUT</code> produces a result set like a <code>SELECT</code>. Add <code>INTO &lt;table&gt;</code> to send it into a permanent table, a temporary table, or a table variable instead. Want both? Write <strong>two</strong> <code>OUTPUT</code> clauses — one with <code>INTO</code>, one without.</p>
+
+      <figure>
+        <div class="fig-card">
+          <div class="fig-top"><span class="fig-label">HOW OUTPUT FLOWS</span><span class="fig-src">Original study diagram · not from the book</span></div>
+          <div class="fig-body">
+            <div class="join-scroll">
+              <svg class="join-svg" viewBox="0 0 900 250" role="img" aria-label="Diagram showing a modification statement producing an OUTPUT row set that can be returned to the caller, written into a table with INTO, or both">
+                <defs>
+                  <marker id="arrow8d" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f6b63"/>
+                  </marker>
+                </defs>
+                <rect x="15" y="60" width="190" height="130" rx="8" fill="#fbf9f3" stroke="#0f6b63" stroke-width="1.6"/>
+                <text x="110" y="40" text-anchor="middle" class="jtitle">MODIFICATION</text>
+                <text x="110" y="88" text-anchor="middle" class="jlabel">INSERT</text>
+                <text x="110" y="112" text-anchor="middle" class="jlabel">UPDATE</text>
+                <text x="110" y="136" text-anchor="middle" class="jlabel">DELETE</text>
+                <text x="110" y="160" text-anchor="middle" class="jlabel">MERGE</text>
+                <text x="110" y="182" text-anchor="middle" class="jcap">touches N rows</text>
+
+                <line x1="210" y1="125" x2="300" y2="125" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8d)"/>
+
+                <rect x="305" y="60" width="215" height="130" rx="8" fill="#e4f1ee" stroke="#0f6b63" stroke-width="1.6"/>
+                <text x="412" y="40" text-anchor="middle" class="jtitle">OUTPUT CLAUSE</text>
+                <text x="412" y="88" text-anchor="middle" class="jlabel">one row per modified row</text>
+                <text x="412" y="112" text-anchor="middle" class="jlabel">inserted.*   deleted.*</text>
+                <text x="412" y="136" text-anchor="middle" class="jlabel">$action</text>
+                <text x="412" y="160" text-anchor="middle" class="jcap">MERGE only: INSERT /</text>
+                <text x="412" y="176" text-anchor="middle" class="jcap">UPDATE / DELETE</text>
+
+                <line x1="525" y1="100" x2="630" y2="80" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8d)"/>
+                <line x1="525" y1="150" x2="630" y2="170" stroke="#0f6b63" stroke-width="2" marker-end="url(#arrow8d)"/>
+
+                <rect x="635" y="45" width="250" height="58" rx="8" fill="#ffffff" stroke="#0f6b63" stroke-width="1.6"/>
+                <text x="760" y="68" text-anchor="middle" class="jlabel">result set to the caller</text>
+                <text x="760" y="88" text-anchor="middle" class="jcap">plain OUTPUT, no INTO</text>
+
+                <rect x="635" y="145" width="250" height="58" rx="8" fill="#fdf3e3" stroke="#b45309" stroke-width="1.6"/>
+                <text x="760" y="168" text-anchor="middle" class="jlabel" fill="#8a4a06">OUTPUT ... INTO @audit</text>
+                <text x="760" y="188" text-anchor="middle" class="jcap">table, temp table, or variable</text>
+
+                <text x="450" y="232" text-anchor="middle" class="jcap">Specify both clauses once each to return the rows AND archive them.</text>
+              </svg>
+            </div>
+            <p class="fig-cap">One modification, two possible destinations for its output</p>
+            <p class="fig-exp"><strong>What you’re looking at:</strong> the <code>OUTPUT</code> clause turns the modified rows into a row set. Without <code>INTO</code> it goes back to whoever ran the statement; with <code>INTO</code> it is written to a table you name. Nested DML goes one step further and treats that row set as the input of another statement.</p>
+          </div>
+        </div>
+      </figure>
+
+      <h3 class="subhead">INSERT with OUTPUT <span class="tag">p. 326</span></h3>
+      <p>The classic use: you insert many rows into a table with an identity column and need <em>all</em> the generated keys. <code>SCOPE_IDENTITY</code> only gives you the last one.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · every generated identity value</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS dbo.T1;
+CREATE TABLE dbo.T1
+(
+  keycol  INT          NOT NULL IDENTITY(1, 1) CONSTRAINT PK_T1 PRIMARY KEY,
+  datacol NVARCHAR(40) NOT NULL
+);
+
+INSERT INTO dbo.T1(datacol)
+  OUTPUT inserted.keycol, inserted.datacol
+    SELECT lastname
+    FROM HR.Employees
+    WHERE country = N'USA';
+-- keycol      datacol
+-- ----------- ---------
+-- 1           Davis
+-- 2           Funk
+-- 3           Lew
+-- 4           Peled
+-- 5           Cameron</code></pre>
+      </div>
+      <p>The same technique returns sequence values generated by <code>NEXT VALUE FOR</code>. Direct the rows somewhere instead with <code>INTO</code> — here a table variable:</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · capture into a table variable</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DECLARE @NewRows TABLE(keycol INT, datacol NVARCHAR(40));
+
+INSERT INTO dbo.T1(datacol)
+  OUTPUT inserted.keycol, inserted.datacol
+  INTO @NewRows(keycol, datacol)
+    SELECT lastname
+    FROM HR.Employees
+    WHERE country = N'UK';
+
+SELECT * FROM @NewRows;</code></pre>
+      </div>
+
+      <h3 class="subhead">DELETE with OUTPUT <span class="tag">p. 328</span></h3>
+      <p>Perfect for archiving: delete and capture in one statement, with one pass over the data.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · delete and return what went</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DELETE FROM dbo.Orders
+  OUTPUT
+    deleted.orderid,
+    deleted.orderdate,
+    deleted.empid,
+    deleted.custid
+WHERE orderdate &lt; '20220101';
+-- (560 rows affected) and the same 560 rows returned</code></pre>
+      </div>
+      <p>Add <code>INTO dbo.OrdersArchive</code> and you have deleted-and-archived in a single transaction.</p>
+
+      <h3 class="subhead">UPDATE with OUTPUT <span class="tag">p. 329</span></h3>
+      <p>Here both prefixes are meaningful, so you can return the before and after values side by side.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · old and new discount</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>UPDATE dbo.OrderDetails
+  SET discount += 0.05
+OUTPUT
+  inserted.orderid,
+  inserted.productid,
+  deleted.discount AS olddiscount,
+  inserted.discount AS newdiscount
+WHERE productid = 51;</code></pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>orderid</th><th>productid</th><th>olddiscount</th><th>newdiscount</th></tr></thead>
+          <tbody>
+            <tr><td>10249</td><td>51</td><td>0.000</td><td>0.050</td></tr>
+            <tr><td>10250</td><td>51</td><td>0.150</td><td>0.200</td></tr>
+            <tr><td>10291</td><td>51</td><td>0.100</td><td>0.150</td></tr>
+            <tr><td>10335</td><td>51</td><td>0.200</td><td>0.250</td></tr>
+            <tr><td colspan="4" style="color:var(--muted)">… 39 rows in total (abbreviated output from the book)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="subhead">MERGE with OUTPUT <span class="tag">p. 330</span></h3>
+      <p>A single <code>MERGE</code> can fire several different actions, so you need to know which one produced each row. The <code>$action</code> function tells you.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · $action in the OUTPUT clause</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>MERGE INTO dbo.Customers AS TGT
+USING dbo.CustomersStage AS SRC
+  ON TGT.custid = SRC.custid
+WHEN MATCHED THEN
+  UPDATE SET
+    TGT.companyname = SRC.companyname,
+    TGT.phone = SRC.phone,
+    TGT.address = SRC.address
+WHEN NOT MATCHED THEN
+  INSERT (custid, companyname, phone, address)
+  VALUES (SRC.custid, SRC.companyname, SRC.phone, SRC.address)
+WHEN NOT MATCHED BY SOURCE THEN
+  DELETE
+OUTPUT $action AS theaction, inserted.custid,
+  deleted.companyname AS oldcompanyname,
+  inserted.companyname AS newcompanyname,
+  deleted.phone AS oldphone,
+  inserted.phone AS newphone,
+  deleted.address AS oldaddress,
+  inserted.address AS newaddress;</code></pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>theaction</th><th>custid</th><th>oldcompanyname</th><th>newcompanyname</th></tr></thead>
+          <tbody>
+            <tr><td><strong>DELETE</strong></td><td><code>NULL</code></td><td>cust 1</td><td><code>NULL</code></td></tr>
+            <tr><td><strong>UPDATE</strong></td><td>2</td><td>cust 2</td><td>AAAAA</td></tr>
+            <tr><td><strong>UPDATE</strong></td><td>3</td><td>cust 3</td><td>cust 3</td></tr>
+            <tr><td><strong>DELETE</strong></td><td><code>NULL</code></td><td>cust 4</td><td><code>NULL</code></td></tr>
+            <tr><td><strong>UPDATE</strong></td><td>5</td><td>cust 5</td><td>BBBBB</td></tr>
+            <tr><td><strong>INSERT</strong></td><td>6</td><td><code>NULL</code></td><td>cust 6 (new)</td></tr>
+            <tr><td><strong>INSERT</strong></td><td>7</td><td><code>NULL</code></td><td>cust 7 (new)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:-.4rem">Abbreviated output from the book, p. 331. Note how <code>INSERT</code> actions leave the <code>deleted</code> columns NULL and <code>DELETE</code> actions leave the <code>inserted</code> columns NULL.</p>
+
+      <h3 class="subhead">Nested DML <span class="tag">p. 331</span></h3>
+      <p><code>OUTPUT</code> returns one row per modified row — but what if you only want to archive <em>some</em> of them? Nested DML wraps the modification-with-<code>OUTPUT</code> in a derived table, then filters it in an outer <code>INSERT SELECT</code>.</p>
+      <details>
+        <summary>Sample data · dbo.Products and dbo.ProductsAudit</summary>
+        <div class="answer">
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · create the audit table</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>DROP TABLE IF EXISTS dbo.ProductsAudit, dbo.Products;
+
+CREATE TABLE dbo.Products
+(
+  productid    INT          NOT NULL,
+  productname  NVARCHAR(40) NOT NULL,
+  supplierid   INT          NOT NULL,
+  categoryid   INT          NOT NULL,
+  unitprice    MONEY        NOT NULL
+    CONSTRAINT DFT_Products_unitprice DEFAULT(0),
+  discontinued BIT          NOT NULL
+    CONSTRAINT DFT_Products_discontinued DEFAULT(0),
+  CONSTRAINT PK_Products PRIMARY KEY(productid),
+  CONSTRAINT CHK_Products_unitprice CHECK(unitprice &gt;= 0)
+);
+
+INSERT INTO dbo.Products SELECT * FROM Production.Products;
+
+CREATE TABLE dbo.ProductsAudit
+(
+  LSN INT NOT NULL IDENTITY PRIMARY KEY,
+  TS DATETIME2 NOT NULL DEFAULT(SYSDATETIME()),
+  productid INT NOT NULL,
+  colname SYSNAME NOT NULL,
+  oldval SQL_VARIANT NOT NULL,
+  newval SQL_VARIANT NOT NULL
+);</code></pre>
+          </div>
+        </div>
+      </details>
+      <p>The task: raise every product from supplier 1 by 15 percent, and audit only those whose old price was below 20 while the new price is at least 20.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · nested DML</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>INSERT INTO dbo.ProductsAudit(productid, colname, oldval, newval)
+  SELECT productid, N'unitprice', oldval, newval
+  FROM (UPDATE dbo.Products
+          SET unitprice *= 1.15
+        OUTPUT
+          inserted.productid,
+          deleted.unitprice AS oldval,
+          inserted.unitprice AS newval
+        WHERE supplierid = 1) AS D
+  WHERE oldval &lt; 20.0 AND newval &gt;= 20.0;</code></pre>
+      </div>
+      <p>Three products were updated but only two passed the outer filter, so the audit table gets two rows. This is the same “one query’s result is another query’s input” idea from Chapter 5 — the input just happens to be a modification statement.</p>
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup for this chapter</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS dbo.OrderDetails, dbo.ProductsAudit, dbo.Products,
+  dbo.Orders, dbo.Customers, dbo.T1, dbo.T2, dbo.MySequences, dbo.CustomersStage;</code></pre>
+      </div>
+    </section>
+
+    <!-- 8.9 -->
+    <section class="section" id="ch8-practice">
+      <div class="section-head">
+        <div class="sec-num">8.9</div>
+        <div>
+          <div class="kicker">Practice</div>
+          <h2>Six exercises, with the book’s solutions</h2>
+        </div>
+      </div>
+      <p class="lead">Try each one before opening the solution. All of them run against the <code>TSQLV6</code> database.</p>
+
+      <details>
+        <summary>Exercise 1 · Populate dbo.Customers three ways (three parts)</summary>
+        <div class="answer">
+          <p>First create the table:</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · setup</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+
+DROP TABLE IF EXISTS dbo.Customers;
+
+CREATE TABLE dbo.Customers
+(
+  custid      INT          NOT NULL PRIMARY KEY,
+  companyname NVARCHAR(40) NOT NULL,
+  country     NVARCHAR(15) NOT NULL,
+  region      NVARCHAR(15) NULL,
+  city        NVARCHAR(15) NOT NULL
+);</code></pre>
+          </div>
+          <p><strong>1-1</strong> · Insert one row: custid 100, companyname <em>Coho Winery</em>, country USA, region WA, city Redmond.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 1-1</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>INSERT INTO dbo.Customers(custid, companyname, country, region, city)
+  VALUES(100, N'Coho Winery', N'USA', N'WA', N'Redmond');</code></pre>
+          </div>
+          <p><strong>1-2</strong> · Insert every customer from <code>Sales.Customers</code> who has placed at least one order.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 1-2</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>INSERT INTO dbo.Customers(custid, companyname, country, region, city)
+  SELECT custid, companyname, country, region, city
+  FROM Sales.Customers AS C
+  WHERE EXISTS
+    (SELECT * FROM Sales.Orders AS O
+     WHERE O.custid = C.custid);</code></pre>
+          </div>
+          <p><strong>1-3</strong> · Use <code>SELECT INTO</code> to create and populate <code>dbo.Orders</code> with orders placed from 2020 through 2022.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 1-3</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>USE TSQLV6;
+
+DROP TABLE IF EXISTS dbo.Orders;
+
+SELECT *
+INTO dbo.Orders
+FROM Sales.Orders
+WHERE orderdate &gt;= '20200101'
+  AND orderdate &lt; '20230101';</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 2 · Delete old orders and report them with OUTPUT</summary>
+        <div class="answer">
+          <p>Delete orders placed before August 2020 and return their <code>orderid</code> and <code>orderdate</code>. Expected: 22 rows, starting at 10248 / 2020-07-04.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 2</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>DELETE FROM dbo.Orders
+  OUTPUT deleted.orderid, deleted.orderdate
+WHERE orderdate &lt; '20200801';</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 3 · Delete orders placed by Brazilian customers</summary>
+        <div class="answer">
+          <p>Three ways to express the same thing — the book shows all three.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · standard, with EXISTS</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>DELETE FROM dbo.Orders
+WHERE EXISTS
+  (SELECT *
+   FROM dbo.Customers AS C
+   WHERE Orders.custid = C.custid
+     AND C.country = N'Brazil');</code></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · nonstandard, based on a join</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>DELETE FROM O
+FROM dbo.Orders AS O
+  INNER JOIN dbo.Customers AS C
+    ON O.custid = C.custid
+WHERE country = N'Brazil';</code></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · MERGE with a single action</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>MERGE INTO dbo.Orders AS O
+USING (SELECT * FROM dbo.Customers WHERE country = N'Brazil') AS C
+  ON O.custid = C.custid
+WHEN MATCHED THEN DELETE;</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 4 · Replace NULL regions with &lt;None&gt;, reporting old and new</summary>
+        <div class="answer">
+          <p>Remember to test for NULL with <code>IS NULL</code>, never with <code>= NULL</code>. Expected: 58 rows changed.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 4</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>UPDATE dbo.Customers
+  SET region = '&lt;None&gt;'
+OUTPUT
+  deleted.custid,
+  deleted.region AS oldregion,
+  inserted.region AS newregion
+WHERE region IS NULL;</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 5 · Copy UK customer locations onto their orders</summary>
+        <div class="answer">
+          <p>Set <code>shipcountry</code>, <code>shipregion</code>, and <code>shipcity</code> from the corresponding customer’s <code>country</code>, <code>region</code>, and <code>city</code> for orders placed by UK customers. Three solutions again: a join-based <code>UPDATE</code>, a CTE, or a <code>MERGE</code>.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · UPDATE based on a join</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>UPDATE O
+  SET shipcountry = C.country,
+      shipregion = C.region,
+      shipcity = C.city
+FROM dbo.Orders AS O
+  INNER JOIN dbo.Customers AS C
+    ON O.custid = C.custid
+WHERE C.country = N'UK';</code></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · through a CTE</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>WITH CTE_UPD AS
+(
+  SELECT
+    O.shipcountry AS ocountry, C.country AS ccountry,
+    O.shipregion  AS oregion,  C.region  AS cregion,
+    O.shipcity    AS ocity,    C.city    AS ccity
+  FROM dbo.Orders AS O
+    INNER JOIN dbo.Customers AS C
+      ON O.custid = C.custid
+  WHERE C.country = N'UK'
+)
+UPDATE CTE_UPD
+  SET ocountry = ccountry, oregion = cregion, ocity = ccity;</code></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · MERGE with only WHEN MATCHED</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>MERGE INTO dbo.Orders AS O
+USING (SELECT * FROM dbo.Customers WHERE country = N'UK') AS C
+  ON O.custid = C.custid
+WHEN MATCHED THEN
+  UPDATE SET shipcountry = C.country,
+             shipregion = C.region,
+             shipcity = C.city;</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Exercise 6 · Truncate two tables joined by a foreign key</summary>
+        <div class="answer">
+          <p>Create and populate <code>dbo.Orders</code> and <code>dbo.OrderDetails</code> (they have a foreign key between them), then truncate both.</p>
+          <p><code>TRUNCATE</code> is refused on a table that a foreign key references — even when the referencing table is empty. So: drop the constraint, truncate, re-create it.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="code-label">T-SQL · solution 6</span><button class="copy-btn" type="button">Copy</button></div>
+            <pre><code>ALTER TABLE dbo.OrderDetails DROP CONSTRAINT FK_OrderDetails_Orders;
+
+TRUNCATE TABLE dbo.OrderDetails;
+TRUNCATE TABLE dbo.Orders;
+
+ALTER TABLE dbo.OrderDetails ADD CONSTRAINT FK_OrderDetails_Orders
+  FOREIGN KEY(orderid) REFERENCES dbo.Orders(orderid);</code></pre>
+          </div>
+          <p>Order matters: the referencing table can be truncated freely, so you only need to drop the constraint because of the referenced side.</p>
+        </div>
+      </details>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-label">T-SQL · cleanup for the exercises</span><button class="copy-btn" type="button">Copy</button></div>
+        <pre><code>DROP TABLE IF EXISTS dbo.OrderDetails, dbo.Orders, dbo.Customers;</code></pre>
+      </div>
+    </section>
+
+    <!-- 8.10 -->
+    <section class="section" id="ch8-recap">
+      <div class="section-head">
+        <div class="sec-num">8.10</div>
+        <div>
+          <div class="kicker">Takeaways</div>
+          <h2>Chapter 8 in ten bullets</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li><strong>DML is not just modification.</strong> It includes <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>TRUNCATE</code>, and <code>MERGE</code>.</li>
+        <li><strong>Five ways in:</strong> <code>INSERT VALUES</code>, <code>INSERT SELECT</code>, <code>INSERT EXEC</code>, <code>SELECT INTO</code> (creates the table), and <code>BULK INSERT</code> (from a file).</li>
+        <li><strong>Name your target columns.</strong> Omitted columns get their default, else NULL, else the statement fails.</li>
+        <li><strong>Identity is welded to one column</strong> and burns values on failure, rollback, and crash; use <code>SCOPE_IDENTITY()</code>, and add a unique constraint if you need uniqueness.</li>
+        <li><strong>A sequence is an independent object:</strong> generate before you insert, use it in <code>UPDATE</code> and default constraints, configure <code>MINVALUE</code>/<code>MAXVALUE</code>/<code>CYCLE</code>/<code>CACHE</code>, and allocate ranges with <code>sp_sequence_get_range</code>.</li>
+        <li><strong><code>DELETE</code> filters and logs every row; <code>TRUNCATE</code> has no filter, is minimally logged, resets identity, and is blocked by foreign keys.</strong></li>
+        <li><strong>UPDATE is all-at-once:</strong> every assignment reads the pre-update row, which is why swapping two columns needs no temporary variable.</li>
+        <li><strong><code>MERGE</code> maps three regions to three actions</strong> — <code>WHEN MATCHED</code>, <code>WHEN NOT MATCHED</code>, <code>WHEN NOT MATCHED BY SOURCE</code> — and must end with a semicolon.</li>
+        <li><strong>You can modify through table expressions</strong> — mandatory when the <code>SET</code> clause needs a window function, and the only way to give <code>TOP</code> an <code>ORDER BY</code>.</li>
+        <li><strong><code>OUTPUT</code> turns modified rows into a row set</strong> you can return, write with <code>INTO</code>, or filter through nested DML.</li>
+      </ul>
+
+      <h3 class="subhead">Chapter 8 key terms</h3>
+      <dl class="terms">
+        <div class="term"><dt>DML</dt><dd>Data Manipulation Language — <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>TRUNCATE</code>, and <code>MERGE</code>.</dd></div>
+        <div class="term"><dt>Surrogate key</dt><dd>A key generated by the system rather than derived from application data.</dd></div>
+        <div class="term"><dt>Identity property</dt><dd>A column property that generates sequential numeric values on insert, with a seed and an increment.</dd></div>
+        <div class="term"><dt>Sequence object</dt><dd>An independent database object that hands out numbers on demand via <code>NEXT VALUE FOR</code>.</dd></div>
+        <div class="term"><dt>SCOPE_IDENTITY</dt><dd>The last identity value generated in the current scope — safer than <code>@@identity</code>, which ignores scope.</dd></div>
+        <div class="term"><dt>IDENTITY_INSERT</dt><dd>A session option that lets you supply explicit values for an identity column.</dd></div>
+        <div class="term"><dt>Minimal logging</dt><dd>Recording only what is needed to roll back (for example, deallocated data blocks) instead of every row — what makes <code>TRUNCATE</code> and <code>SELECT INTO</code> fast.</dd></div>
+        <div class="term"><dt>All-at-once operation</dt><dd>The rule that all expressions in the same logical phase are evaluated against the pre-modification state.</dd></div>
+        <div class="term"><dt>Compound assignment</dt><dd>Shorthand operators such as <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, and <code>%=</code>.</dd></div>
+        <div class="term"><dt>Assignment UPDATE</dt><dd>A T-SQL form that updates a column and assigns a variable in the same statement: <code>SET @v = col += 1</code>.</dd></div>
+        <div class="term"><dt>MERGE</dt><dd>A statement that applies different DML actions to a target based on whether source rows match.</dd></div>
+        <div class="term"><dt>$action</dt><dd>A function available in a <code>MERGE</code> <code>OUTPUT</code> clause that returns <code>INSERT</code>, <code>UPDATE</code>, or <code>DELETE</code>.</dd></div>
+        <div class="term"><dt>OUTPUT clause</dt><dd>A clause on a modification statement that returns the modified rows, referencing <code>inserted</code> and <code>deleted</code> column values.</dd></div>
+        <div class="term"><dt>Nested DML</dt><dd>Using the result of a modification statement with <code>OUTPUT</code> as the derived-table input of another DML statement.</dd></div>
+        <div class="term"><dt>Table value constructor</dt><dd>The enhanced <code>VALUES</code> clause, usable both for multi-row inserts and as a derived table in a <code>FROM</code> clause.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 8.11 -->
+    <section class="section" id="ch8-quiz">
+      <div class="section-head">
+        <div class="sec-num">8.11</div>
+        <div>
+          <div class="kicker">Check yourself</div>
+          <h2>Six quick questions</h2>
+        </div>
+      </div>
+      <p class="lead">Try to answer before opening each one. If you can explain it in your own words, you’ve got the chapter.</p>
+
+      <details>
+        <summary>Which insert statement creates its own target table, and what does it not copy?</summary>
+        <div class="answer"><code>SELECT INTO</code> creates the table as it runs. It copies column names, types, nullability, the identity property, and the data — but <em>not</em> constraints, indexes, triggers, other column properties, or permissions.</div>
+      </details>
+      <details>
+        <summary>Why prefer SCOPE_IDENTITY over @@identity?</summary>
+        <div class="answer"><code>@@identity</code> returns the last identity value generated anywhere in the session, including inside a trigger fired by your insert. <code>SCOPE_IDENTITY()</code> stays inside the current scope — the code you actually wrote. Both are unaffected by other sessions; for a table’s high-water mark regardless of session, use <code>IDENT_CURRENT</code>.</div>
+      </details>
+      <details>
+        <summary>Four reasons to choose a sequence object over identity?</summary>
+        <div class="answer">It is not tied to a column, so one sequence can feed several tables; you can generate a value before the insert and hold it in a variable; it works in <code>UPDATE</code> statements and default constraints; and it supports <code>MINVALUE</code>/<code>MAXVALUE</code>, <code>CYCLE</code>, <code>CACHE</code>, and range allocation. (Neither mechanism guarantees gap-free values.)</div>
+      </details>
+      <details>
+        <summary>DELETE or TRUNCATE? List the differences that matter.</summary>
+        <div class="answer"><code>TRUNCATE</code> has no filter, is minimally logged (seconds instead of minutes), resets the identity value to the seed, and is blocked when a foreign key references the table — even an empty or disabled one. <code>DELETE</code> filters, logs every row, keeps the identity value, and works with foreign keys. Both are transactional.</div>
+      </details>
+      <details>
+        <summary>What does this do, and why: UPDATE dbo.T1 SET col1 = col2, col2 = col1?</summary>
+        <div class="answer">It swaps the two columns’ values. All assignments in the <code>SET</code> clause happen all at once, so both read the row as it was before the update. No temporary variable is needed — unlike in a language that evaluates assignments left to right.</div>
+      </details>
+      <details>
+        <summary>Why can’t you control which 50 rows DELETE TOP (50) removes — and how do you fix it?</summary>
+        <div class="answer">A <code>TOP</code> filter on a modification statement cannot have an <code>ORDER BY</code>, and <code>OFFSET-FETCH</code> is not allowed directly because it requires one. The fix is to put the <code>TOP</code> (or the <code>OFFSET-FETCH</code>) with its <code>ORDER BY</code> inside a CTE or derived table, then issue the modification against the table expression.</div>
+      </details>
+    </section>
+
   </main>
 </div>
 
@@ -5374,12 +6986,12 @@ ORDER BY shipperid, startofyear;</code></pre>
   <div class="footer-inner">
     <div>
       <h3>About this summary</h3>
-      <p>A study companion for <strong>Chapters 1–7</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292.</p>
-      <p class="fine">All thirteen figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, and 5 have no figures or tables; the join-types, subquery-types, and table-expression diagrams are original study aids, not from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
+      <p>A study companion for <strong>Chapters 1–8</strong> of <em>T-SQL Fundamentals, Fourth Edition</em> by Itzik Ben-Gan (Microsoft Press, 2023): Chapter 1, pages 1–26; Chapter 2, pages 27–116; Chapter 3, pages 117–148; Chapter 4, pages 149–175; Chapter 5, pages 177–210; Chapter 6, pages 211–230; Chapter 7, pages 231–292; Chapter 8, pages 293–342.</p>
+      <p class="fine">All thirteen figures and three tables are reproduced from the book PDF in this repository. All code samples and exercise solutions are from the book. Chapters 3, 4, 5, and 8 have no figures or tables; the join-types, subquery-types, table-expression diagrams, and the four Chapter 8 diagrams (insert routes, identity vs. sequence, MERGE outcomes, OUTPUT flow) are original study aids, not from the book. This page is an unofficial study aid; the book remains the authoritative source.</p>
     </div>
     <div>
       <h3>Navigate</h3>
-      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch7-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch7-quiz" style="color:#9fe0d6">Quiz</a></p>
+      <p><a href="#big-picture" style="color:#9fe0d6">Chapter 1</a> · <a href="#ch2-select" style="color:#9fe0d6">Chapter 2</a> · <a href="#ch3-cross" style="color:#9fe0d6">Chapter 3</a> · <a href="#ch4-selfcontained" style="color:#9fe0d6">Chapter 4</a> · <a href="#ch5-derived" style="color:#9fe0d6">Chapter 5</a> · <a href="#ch6-basics" style="color:#9fe0d6">Chapter 6</a> · <a href="#ch7-window" style="color:#9fe0d6">Chapter 7</a> · <a href="#ch8-insert" style="color:#9fe0d6">Chapter 8</a> · <a href="#code" style="color:#9fe0d6">Code</a> · <a href="#ch8-practice" style="color:#9fe0d6">Practice</a> · <a href="#ch8-quiz" style="color:#9fe0d6">Quiz</a></p>
       <p class="fine">Built as a single self-contained HTML page. No external scripts, fonts, or stylesheets.</p>
     </div>
   </div>
@@ -5392,9 +7004,9 @@ ORDER BY shipperid, startofyear;</code></pre>
   "use strict";
 
   /* ---------- tiny T-SQL highlighter ---------- */
-  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP").split(" "));
-  var TYPES = new Set(["INT","VARCHAR","NVARCHAR","NCHAR","DATE","DATETIME","SMALLDATETIME","DATETIME2","DATETIMEOFFSET","TIME","MONEY","BIT","DECIMAL","NUMERIC","BIGINT","SMALLINT","FLOAT","TEXT","CHAR","VARBINARY"]);
-  var FUNCS = new Set(["SYSDATETIME","GETDATE","GETUTCDATE","SYSUTCDATETIME","SYSDATETIMEOFFSET","COUNT","YEAR","MONTH","DAY","CAST","CONVERT","PARSE","TRY_CAST","TRY_CONVERT","TRY_PARSE","COALESCE","ISNULL","DATEADD","DATEDIFF","DATEDIFF_BIG","DATEPART","DATENAME","DATETRUNC","EOMONTH","GENERATE_SERIES","STRING_SPLIT","STRING_AGG","CONCAT","CONCAT_WS","SUBSTRING","LEFT","RIGHT","LEN","DATALENGTH","CHARINDEX","PATINDEX","REPLACE","TRANSLATE","STUFF","UPPER","LOWER","RTRIM","LTRIM","TRIM","FORMAT","COMPRESS","DECOMPRESS","ROW_NUMBER","OBJECT_ID","OBJECTPROPERTY","COLUMNPROPERTY","SERVERPROPERTY","DATABASEPROPERTYEX","SCHEMA_NAME","TYPE_NAME"]);
+  var KEYWORDS = new Set(("USE DROP TABLE IF EXISTS CREATE ALTER ADD CONSTRAINT PRIMARY KEY UNIQUE INDEX ON WHERE IS FOREIGN REFERENCES CHECK DEFAULT FOR NOT NULL AND OR AS BY GROUP HAVING ORDER OFFSET FETCH TOP DISTINCT INSERT UPDATE DELETE TRUNCATE MERGE GRANT REVOKE SELECT FROM INTO VALUES SET CASE WHEN THEN ELSE END LIKE IN BETWEEN COLLATE OVER PARTITION WITHIN ASC DESC ESCAPE LEADING TRAILING BOTH ONLY PERCENT TIES ROWS ROW NEXT FIRST CURRENT_TIMESTAMP OUTPUT IDENTITY SEQUENCE EXEC PROC MATCHED BULK DECLARE GO USING PIVOT UNPIVOT APPLY CROSS OUTER INNER JOIN LEFT RIGHT FULL UNION EXCEPT INTERSECT WITH CUBE ROLLUP WHILE BREAK CONTINUE RETURN BEGIN CATCH NOCOUNT MINVALUE MAXVALUE CYCLE CACHE START INCREMENT NO").split(" "));
+  var TYPES = new Set(["INT","VARCHAR","NVARCHAR","NCHAR","DATE","DATETIME","SMALLDATETIME","DATETIME2","DATETIMEOFFSET","TIME","MONEY","BIT","DECIMAL","NUMERIC","BIGINT","SMALLINT","TINYINT","FLOAT","TEXT","CHAR","VARBINARY","SQL_VARIANT","SYSNAME","ROWVERSION"]);
+  var FUNCS = new Set(["SYSDATETIME","GETDATE","GETUTCDATE","SYSUTCDATETIME","SYSDATETIMEOFFSET","COUNT","YEAR","MONTH","DAY","CAST","CONVERT","PARSE","TRY_CAST","TRY_CONVERT","TRY_PARSE","COALESCE","ISNULL","DATEADD","DATEDIFF","DATEDIFF_BIG","DATEPART","DATENAME","DATETRUNC","EOMONTH","GENERATE_SERIES","STRING_SPLIT","STRING_AGG","CONCAT","CONCAT_WS","SUBSTRING","LEFT","RIGHT","LEN","DATALENGTH","CHARINDEX","PATINDEX","REPLACE","TRANSLATE","STUFF","UPPER","LOWER","RTRIM","LTRIM","TRIM","FORMAT","COMPRESS","DECOMPRESS","ROW_NUMBER","SCOPE_IDENTITY","IDENT_CURRENT","NEWID","NEWSEQUENTIALID","OBJECT_ID","OBJECTPROPERTY","COLUMNPROPERTY","SERVERPROPERTY","DATABASEPROPERTYEX","SCHEMA_NAME","TYPE_NAME"]);
 
   function esc(s){
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
